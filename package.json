@@ -1,0 +1,11 @@
+{
+  "name": "limagochi",
+  "version": "3.0.0",
+  "description": "Limagochi: mascota virtual retro (PWA) con servidor opcional de Web Push",
+  "private": true,
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "web-push": "^3.6.7" }
+}
