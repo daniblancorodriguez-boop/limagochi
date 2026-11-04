@@ -107,7 +107,7 @@ function newState() {
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
     hat: null,                                 // gorro de recuerdo elegido (id de evento)
-    room: { use: null, tv: false, min: 0, auto: false },   // casa: dónde está (sit|lie|bed|tv), tele encendida
+    room: { use: null, tv: false, min: 0, auto: false, hug: 0, ball: 0 },   // casa: dónde está (sit|lie|bed|tv), tele encendida
     pause: null,                               // {since} mientras está de vacaciones (el tiempo se detiene)
     stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
@@ -605,6 +605,15 @@ function openObject(id) {
     return;
   }
   if (!awake()) return;
+  if (id === 'ball') {
+    ask('⚽ Pelota', btn('Jugar con la pelota', () => {
+      closePanel();
+      if (Date.now() - (r.ball || 0) < 10 * 60000) { setMsg('Ya ha jugado hace poco ⚽'); return; }
+      r.ball = Date.now(); ballUntil = Date.now() + 5000; s.happy = clamp(s.happy + 6); s.energy = clamp(s.energy - 3);
+      Sound.play('happy'); setMsg('⚽ ¡Qué divertido! +felicidad'); Store.save(); render();
+    }));
+    return;
+  }
   if (id === 'sofa') {
     const opts = [];
     if (r.use === 'sit' || r.use === 'lie') {
@@ -632,6 +641,7 @@ function hitObject(x, y) {
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
   if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
+  if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';
   return null;
 }
 
@@ -928,7 +938,7 @@ function drawTomb() {
 }
 function drawNote(x, y) { R1(x + 2, y, 1, 4, C.ink); R1(x, y + 3, 2, 2, C.ink); R1(x + 2, y, 2, 1, C.ink); }
 
-let hugUntil = 0, moving = false;
+let hugUntil = 0, ballUntil = 0, moving = false;
 const pos = { x: 12, y: 11, ok: false };
 function drawPet(now, frame, f) {
   const s = state;
@@ -968,6 +978,7 @@ function drawPet(now, frame, f) {
   else if (u === 'bed' || (s.sleeping && s.owned.includes('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
   else if (u === 'tv') { bx = 18; by = 11; }
   else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
+  else if (now < ballUntil) { bx = 14 + Math.round(Math.sin(now / 260) * 3); by = 11 - (Math.floor(now / 130) % 2); }
   else if (!s.sleeping && !f) { bx += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); by -= frame; }   // pasea
   if (!pos.ok) { pos.x = bx; pos.y = by; pos.ok = true; }
   const ddx = bx - pos.x, ddy = by - pos.y;
@@ -1060,7 +1071,14 @@ function drawHouse(now) {
     drawItem('tv', t.x, t.y, s.room.tv ? 1 : 0);
   }
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
-  if (o.includes('ball')) drawItem('ball', 2, 34 - itemSize('ball').h);
+  if (o.includes('ball')) {
+    const bh = itemSize('ball').h, bw = itemSize('ball').w;
+    if (now < ballUntil) {                                                  // rebota entre la mascota y la esquina
+      const k = now / 260, bxx = Math.round(8 + Math.sin(k) * 6), up = Math.round(Math.abs(Math.sin(k * 2)) * 8);
+      drawItem('ball', bxx, 34 - bh - up);
+      if (up < 2) R1(bxx + 1, 35, Math.max(1, bw - 2), 1, C.dark);
+    } else drawItem('ball', 2, 34 - bh);
+  }
 }
 
 function drawScene(now) {
