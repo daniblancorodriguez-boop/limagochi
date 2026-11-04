@@ -264,3 +264,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .cell.seen { border-color: var(--ink); background: var(--lcd-2); }
 .cell.sel { outline: 2px solid var(--ink); }
 .cell canvas { width: 100%; max-width: 44px; aspect-ratio: 1; image-rendering: pixelated; }
+
+/* ---------- Guía ---------- */
+.guide { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+.gh { margin-top: 5px; font-size: 12px; font-weight: 800; border-bottom: 1px solid var(--ink); }
+.gp { font-size: 11px; line-height: 1.35; font-weight: 600; }
+.gli { padding-left: 2px; }

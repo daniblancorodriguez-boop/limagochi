@@ -30,12 +30,21 @@ function now() {
   return d;
 }
 /** night 22:00–06:59 · dusk 07:00–07:59 y 19:00–21:59 · day el resto. Con el ciclo desactivado siempre es de día. */
-function phase() {
+function phaseAt(ts) {
   if (!settings.cycle) return 'day';
-  const h = now().getHours();
+  const ov = params.get('hour');
+  const h = ov !== null && ov !== '' && !isNaN(ov) ? Math.max(0, Math.min(23, Number(ov))) : new Date(ts).getHours();
   if (h >= 22 || h < 7) return 'night';
   if (h < 8 || h >= 19) return 'dusk';
   return 'day';
+}
+const phase = () => phaseAt(now().getTime());
+/** Mañana (07:00–11:59): a esa hora se despierta solo aunque no haya recuperado toda la energía. */
+function isMorningAt(ts) {
+  if (!settings.cycle) return false;
+  const ov = params.get('hour');
+  const h = ov !== null && ov !== '' && !isNaN(ov) ? Number(ov) : new Date(ts).getHours();
+  return h >= 7 && h < 12;
 }
 
 /* ------------------------------ eventos --------------------------------- */
@@ -138,7 +147,7 @@ function hat(g, evId, spriteX, bodyTopY) {
 }
 
 L.world = {
-  now, phase, isNight: () => phase() === 'night', event: eventNow, EVENTS, EVENT_FOODS,
+  now, phase, phaseAt, isMorningAt, isNight: () => phase() === 'night', event: eventNow, EVENTS, EVENT_FOODS,
   sky, decor, hat,
   eventLabel(ev) { return ev ? `${ev.icon} ${ev.name}` : ''; }
 };

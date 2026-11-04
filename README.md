@@ -21,6 +21,14 @@ todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic 
 | Eco Lima (memoria) | 🎮 Jugar → 🧠 · toca los cuadros, teclas 1–4, o A (siguiente casilla) + B (pulsar) |
 | Web Push con la app cerrada | `server.js` + `docs/notify.js` (`LIMA.push`) |
 
+## Tiempos (como el Tamagotchi original)
+Huevo 5 min · Bebé ~65 min · Niño hasta el día 6 de vida · Adulto ~12 días. Hambre vacía en ~8 h, felicidad en ~10 h.
+Por la noche (22:00–07:00, tu hora real) se duerme solo. Valores en `CFG` de `docs/game.js`.
+El selector «Vel.» (x10, x60) del pie acelera el tiempo para probar.
+
+## Hablarle (🎤) y Guía
+🎤 en la pantalla principal escucha palabras clave; más lecciones = más listo, pero se cansa. Las palabras están en la Guía (❓).
+
 ## Probar día/noche y eventos sin esperar
 Añade parámetros a la URL: `?hour=23` (hora) y/o `?date=2026-10-31` (fecha).
 

@@ -15,14 +15,22 @@ const CFG = {
   saveKey: 'limagochi.v1',
   lcdKey: 'limagochi.lcd',
   shellKey: 'limagochi.shell',
-  maxOfflineMin: 720,                 // máximo que se simula al volver (12 h)
-  dayMin: 30,                         // 1 "día" = 30 min de juego
-  stageMin: { egg: 1, baby: 15, child: 60 },
+  maxOfflineMin: 14 * 1440,           // máximo que se simula al volver (14 días)
+  dayMin: 1440,                       // 1 día de vida = 24 h reales
+  /* tiempos como el Tamagotchi original: bebé 65 min · niño hasta el día 6 de vida · adulto ~12 días */
+  stageMin: { egg: 5, baby: 65, child: 6 * 1440 - 70 },
   minWeight: { egg: 3, baby: 3, child: 8, adult: 15 },
   obese: { baby: 10, child: 22, adult: 40 },   // peso a partir del cual está obeso
-  rate: { hunger: 1.1, happy: 0.9, energy: 0.5, discipline: 0.15, sleep: 4 },   // por minuto
-  deathNeglectMin: 60,
-  lifespanMin: 900                    // vida del adulto (la obesidad la acorta x2.5)
+  /* por minuto (despierto): hambre vacía en ~8 h, felicidad en ~10 h, energía en ~14 h; dormir recupera en ~8 h */
+  rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21 },
+  poopEvery: [90, 180],               // minutos entre caquitas
+  callChance: 0.0015,                 // probabilidad por minuto de llamar la atención (~1,4 al día)
+  callWindowMin: 45,                  // tiempo para responder antes de que cuente como error
+  sickRisk: 0.0004,                   // riesgo base de enfermar por minuto
+  sickMistakeMin: 60,                 // enfermo sin curar durante este tiempo = error de cuidado
+  dangerMin: 480,                     // descuido acumulado que lanza el aviso de peligro (8 h)
+  deathNeglectMin: 720,               // descuido acumulado que mata (12 h)
+  lifespanMin: 12 * 1440              // vida del adulto (la obesidad la acorta x2.5)
 };
 
 /* cat: meal = sacia hambre · snack = sube felicidad (engorda y da caries) · gourmet = se compra con 🪙 */
@@ -58,6 +66,13 @@ const SHELLS = ['#7ed957', '#ff8fb1', '#6ec6ff', '#ffd84d', '#b99cff'];
 /* ============================== UTILIDADES ============================== */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+/** 75 → «1 h 15 min» · 3000 → «2 d 2 h» */
+const fmtDur = m => {
+  m = Math.max(0, Math.round(m));
+  if (m < 60) return `${m} min`;
+  if (m < 1440) return `${Math.floor(m / 60)} h ${m % 60} min`;
+  return `${Math.floor(m / 1440)} d ${Math.floor(m % 1440 / 60)} h`;
+};
 const clamp = (v, a = 0, b = 100) => Math.min(b, Math.max(a, v));
 const rand = (a, b) => a + Math.random() * (b - a);
 
@@ -69,7 +84,7 @@ function newState() {
     ageMin: 0, stageMin: 0, wear: 0,
     weight: 3,
     hunger: 70, happy: 70, energy: 80, discipline: 30,
-    poops: 0, poopTimer: 0, nextPoop: rand(12, 24),
+    poops: 0, poopTimer: 0, nextPoop: rand(CFG.poopEvery[0], CFG.poopEvery[1]),
     sick: false, medicine: 0, sickMin: 0, sickMistake: false,
     sleeping: false,
     call: false, callMin: 0,
@@ -78,6 +93,8 @@ function newState() {
     food: { veg: 0, meat: 0, candy: 0 },
     lp: 0, inv: {}, owned: [], bg: 'none',
     skills: {}, words: {}, cause: '',
+    study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
+    stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
     born: Date.now(), lastSeen: Date.now()
   };
@@ -91,6 +108,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
+    study: Object.assign(b.study, d.study),
     meta: L.progress.fixMeta(d.meta)
   });
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
@@ -112,6 +130,8 @@ const Store = {
 
 let state = newState();
 let diedNow = false;
+let simT = null;              // reloj simulado (ms) al recuperar una ausencia; null = tiempo real
+const clockNow = () => (simT === null ? Date.now() : simT);
 let quiet = false;            // true mientras se simula la ausencia (sin sonidos ni avisos)
 
 /* ============================== DOM ===================================== */
@@ -200,36 +220,43 @@ function tick(dt) {
 
   const obese = isObese();
 
+  const ph = cycleOn() ? L.world.phaseAt(clockNow()) : 'day', night = ph === 'night';
   if (s.sleeping) {
     s.energy = clamp(s.energy + R.sleep * dt);
-    if (s.energy >= 100) {
+    if (cycleOn() && L.world.isMorningAt(clockNow()) && s.energy >= 50) {            // amanece: se despierta solo
+      s.sleeping = false;
+      if (!quiet) setMsg('☀️ ¡Ha amanecido! Se despierta');
+    } else if (s.energy >= 100 && !night) {                                         // de noche sigue durmiendo hasta que amanezca
       s.sleeping = false; s.happy = clamp(s.happy + 5);
       if (!quiet) setMsg('¡Buenos días! Ha descansado');
-    } else if (!quiet && cycleOn() && L.world.phase() === 'day' && s.energy >= 50) {      // amanece: se despierta solo
-      s.sleeping = false;
-      setMsg('☀️ ¡Ha amanecido! Se despierta');
     }
-  } else s.energy = clamp(s.energy - R.energy * dt * (!quiet && cycleOn() && L.world.isNight() ? 1.6 : 1));   // de noche se cansa antes
+  } else {
+    s.energy = clamp(s.energy - R.energy * dt);
+    if (night && s.energy < 70 && clockNow() > (s.stayUp || 0)) {                 // de noche se duerme solo
+      s.sleeping = true;
+      if (!quiet) { setMsg('🌙 Se ha quedado dormido'); Sound.play('lightOff'); }
+    }
+  }
 
   const k = s.sleeping ? 0.35 : 1;
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   s.hunger = clamp(s.hunger - R.hunger * dt * k);
-  s.happy = clamp(s.happy - (R.happy * k * toy + s.poops * 0.25 + (s.sick ? 0.5 : 0)) * dt);
+  s.happy = clamp(s.happy - (R.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0)) * dt);
   s.discipline = clamp(s.discipline - R.discipline * dt);
-  s.sweetLoad = Math.max(0, s.sweetLoad - 0.1 * dt);
-  if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.04 * dt);
+  s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
+  if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
 
   if (!s.sleeping) {
     s.poopTimer += dt;
-    if (s.poopTimer >= s.nextPoop) { s.poopTimer = 0; s.nextPoop = rand(12, 24); if (s.poops < 4) s.poops++; }
+    if (s.poopTimer >= s.nextPoop) { s.poopTimer = 0; s.nextPoop = rand(CFG.poopEvery[0], CFG.poopEvery[1]); if (s.poops < 4) s.poops++; }
   }
 
   if (!s.sick) {
-    const risk = 0.002 + s.poops * 0.004 + (s.hunger < 10 ? 0.01 : 0) + (s.energy <= 0 ? 0.005 : 0) + (obese ? 0.006 : 0);
+    const risk = CFG.sickRisk + s.poops * 0.0008 + (s.hunger < 10 ? 0.002 : 0) + (s.energy <= 0 ? 0.001 : 0) + (obese ? 0.0012 : 0);
     if (Math.random() < risk * dt) makeSick();
   } else {
     s.sickMin += dt;
-    if (s.sickMin > 15 && !s.sickMistake) { s.sickMistake = true; mistake(); }
+    if (s.sickMin > CFG.sickMistakeMin && !s.sickMistake) { s.sickMistake = true; mistake(); }
   }
 
   flag('hunger', s.hunger <= 0, s.hunger > 20);
@@ -238,8 +265,8 @@ function tick(dt) {
 
   if (s.call) {
     s.callMin += dt;
-    if (s.callMin > 10) { s.call = false; mistake(); if (!quiet) setMsg('Ignoraste su llamada de atención'); }
-  } else if (!s.sleeping && Math.random() < 0.012 * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; }
+    if (s.callMin > CFG.callWindowMin) { s.call = false; mistake(); if (!quiet) setMsg('Ignoraste su llamada de atención'); }
+  } else if (!s.sleeping && Math.random() < CFG.callChance * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; }
 
   if (s.hunger <= 0 || s.sick || s.poops >= 4) s.neglect += dt; else s.neglect = Math.max(0, s.neglect - dt);
   if (s.neglect >= CFG.deathNeglectMin) { die('descuido'); return; }
@@ -255,8 +282,9 @@ function tick(dt) {
 
 function step(dtMin) {
   let left = Math.min(dtMin, CFG.maxOfflineMin), guard = 0;
-  while (left > 0 && guard++ < 1000) {
+  while (left > 0 && guard++ < 25000) {
     const d = Math.min(1, left);
+    if (simT !== null) simT += d * 60000;
     tick(d); left -= d;
     if (state.stage === 'dead') break;
   }
@@ -273,7 +301,7 @@ function attention() {
   if (s.sick) a.push({ key: 'sick', text: 'Está enfermo: cúralo' });
   if (s.poops > 0) a.push({ key: 'poop', text: 'Hay que limpiar' });
   if (s.call) a.push({ key: 'call', text: 'Te llama… ¿regañarlo?' });
-  if (s.neglect >= 40) a.push({ key: 'danger', text: '¡Está en peligro! Atiéndelo ya' });
+  if (s.neglect >= CFG.dangerMin) a.push({ key: 'danger', text: '¡Está en peligro! Atiéndelo ya' });
   return a;
 }
 
@@ -379,6 +407,7 @@ function toggleLight() {
     return;
   }
   s.sleeping = !s.sleeping;
+  if (!s.sleeping) s.stayUp = Date.now() + 45 * 60000;          // si lo despiertas de noche, se queda un rato levantado
   if (s.sleeping && cycleOn() && L.world.isNight()) L.progress.stat('nightSleeps');
   if (s.sleeping) { setMsg('Luz apagada: a dormir… Zzz'); Sound.play('lightOff'); }
   else { setMsg('Luz encendida'); Sound.play('lightOn'); if (s.energy < 30) s.happy = clamp(s.happy - 5); }
@@ -401,18 +430,17 @@ function scold() {
 
 function openStatus() {
   const s = state;
-  const days = Math.floor(s.ageMin / CFG.dayMin);
-  const left = CFG.stageMin[s.stage] ? Math.max(0, Math.ceil(CFG.stageMin[s.stage] - s.stageMin)) : null;
+    const left = CFG.stageMin[s.stage] ? Math.max(0, Math.ceil(CFG.stageMin[s.stage] - s.stageMin)) : null;
   const form = s.stage === 'dead' ? '—' : s.stage === 'child' || s.stage === 'adult' ? formName(s.form) : STAGE_NAMES[s.stage];
   const rows = [
-    ['Etapa', STAGE_NAMES[s.stage]], ['Forma', form], ['Edad', `${days} d`],
+    ['Etapa', STAGE_NAMES[s.stage]], ['Forma', form], ['Edad', fmtDur(s.ageMin)],
     ['Peso', `${s.weight.toFixed(1)} g${isObese() ? ' (obeso)' : ''}`],
     ['Disciplina', `${Math.round(s.discipline)}%`], ['Errores', String(s.mistakes)],
     ['Lima Points', `${s.lp} 🪙`]
   ];
   if (L.voice && s.stage !== 'egg' && s.stage !== 'dead') rows.push(['Inteligencia', `${L.voice.iqPct()}%`]);
   if (s.stage === 'adult') rows.push(['Vida restante', `${Math.max(0, Math.round(100 - s.wear / CFG.lifespanMin * 100))}%`]);
-  if (left !== null && s.stage !== 'dead') rows.push(['Evoluciona en', `~${left} min`]);
+  if (left !== null && s.stage !== 'dead') rows.push(['Evoluciona en', `~${fmtDur(left)}`]);
   if (s.stage === 'dead') rows.push(['Causa', s.cause === 'vejez' ? 'Vejez' : 'Descuido']);
   const m = s.meta, ev = L.world.event();
   rows.push(['Logros', `${Object.keys(m.ach).length}/${L.progress.ACH.length}`], ['Álbum', `${Object.keys(m.album).length}/${L.progress.ALBUM.length}`]);
@@ -422,7 +450,7 @@ function openStatus() {
   openPanel([
     ...rows.map(([k, v]) => line(k, v)),
     row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus))),
-    btn('⚙️ Ajustes y copia de seguridad', () => L.backup.openSettings(openStatus)),
+    row(btn('📘 Guía', () => L.guide.open(openStatus)), btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
     row(
       btn('Cerrar', closePanel, 'ghost'),
       btn('Nuevo huevo', () => {
@@ -608,8 +636,8 @@ function drawPet(now, frame, f) {
   const t = f ? f.type : '';
 
   if (s.stage === 'egg') {
-    const wob = s.stageMin > 0.5 ? (frame ? 1 : -1) : 0;
-    drawSprite(set[s.stageMin > 0.7 ? 'crack' : 'idle'], 12 + wob, 11);
+    const wob = s.stageMin > CFG.stageMin.egg * 0.5 ? (frame ? 1 : -1) : 0;
+    drawSprite(set[s.stageMin > CFG.stageMin.egg * 0.8 ? 'crack' : 'idle'], 12 + wob, 11);
     return;
   }
 
@@ -684,6 +712,10 @@ function drawScene(now) {
     const p = (now - f.start) / f.dur;
     R1(Math.round(p * 56) - 6, 0, 4, H, C.light); R1(Math.round(p * 56) - 9, 0, 1, H, C.mid);
   }
+  if (L.voice && L.voice.isListening()) {                 // ondas de «te escucho»
+    const ph = Math.floor(now / 250) % 3;
+    for (let i = 0; i < 3; i++) { R1(5 + i * 2, 12 - (i === ph ? 2 : 0), 1, 8 + (i === ph ? 4 : 0), C.ink); R1(42 - i * 2, 12 - (i === ph ? 2 : 0), 1, 8 + (i === ph ? 4 : 0), C.ink); }
+  }
   if (s.sleeping) { g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(0, 0, W, H); }
 }
 
@@ -751,7 +783,7 @@ function closePanel() {
 }
 
 const ACTIONS = { feed: openFeed, play: startPlay, heal, clean, light: toggleLight, scold,
-                  teach: () => L.voice ? L.voice.open() : setMsg('Voz no disponible'), shop: openShop, status: openStatus };
+                  teach: () => L.voice ? L.voice.talk() : setMsg('Voz no disponible'), shop: openShop, status: openStatus };
 function runAction(name) {
   if (L.mini && L.mini.active()) L.mini.stop(false);
   closePanel();
@@ -820,6 +852,7 @@ function bindUI() {
   $('#speed').addEventListener('change', e => { speed = Number(e.target.value) || 1; });
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
+  $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
   $('#btnLcd').addEventListener('click', () => {
     lcdMode = !lcdMode; try { localStorage.setItem(CFG.lcdKey, lcdMode ? '1' : '0'); } catch { /* */ }
     setToolIcons(); render();
@@ -880,7 +913,7 @@ function predictSchedule() {
   add((s.energy - 15) / R.energy, 'sleepy', 'Tiene sueño: apaga la luz');
   if (!s.poops) add(s.nextPoop - s.poopTimer, 'poop', 'Hay que limpiar');
   if (s.sick) add(0, 'sick', 'Está enfermo: cúralo');
-  add(hungerIn + Math.max(0, 40 - s.neglect), 'danger', '¡Está en peligro! Atiéndelo ya');
+  add(hungerIn + Math.max(0, CFG.dangerMin - s.neglect), 'danger', '¡Está en peligro! Atiéndelo ya');
   // sin molestar de 23:00 a 08:00 (si el ciclo día/noche está activo)
   if (cycleOn()) out.forEach((o, i) => {
     const d = new Date(o.at), h = d.getHours();
@@ -934,16 +967,23 @@ function init() {
     state = saved;
     const away = (Date.now() - state.lastSeen) / 60000;
     if (away >= 1 && state.stage !== 'dead') {
-      quiet = true; step(away); quiet = false;
+      const gone = Math.min(away, CFG.maxOfflineMin);
+      simT = Date.now() - gone * 60000;                  // simula la ausencia con las horas reales (de noche duerme)
+      quiet = true; step(away); quiet = false; simT = null;
       if (state.stage !== 'dead') {
-        const txt = away >= 60 ? `${Math.floor(away / 60)} h ${Math.round(away % 60)} min` : `${Math.round(away)} min`;
+        const txt = fmtDur(away);
         setMsg(`Has vuelto tras ${txt}`, 4000);
       }
     } else if (state.stage === 'dead') openStatus();
   }
   lastTick = Date.now();
   lastKeys = new Set(attention().map(r => r.key));
-  recordCurrent();                                       // formas ya conseguidas por una partida anterior
+  recordCurrent();
+  if (!saved) {                                          // primera vez: abre la guía
+    let seen = false;
+    try { seen = localStorage.getItem('limagochi.guide') === '1'; localStorage.setItem('limagochi.guide', '1'); } catch { /* */ }
+    if (!seen) L.guide.open(closePanel);
+  }                                       // formas ya conseguidas por una partida anterior
   render();
 
   setInterval(() => {                                   // simulación (1 s)
