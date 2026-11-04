@@ -62,8 +62,10 @@ const SHOP_EXTRAS = [
 ];
 
 /* ---- la casa: dónde se dibuja cada objeto (pantalla lógica 48×36) ---- */
-const ROOM = { bed: { x: 0, y: 11 }, sofa: { x: 26, y: 20 }, tv: { x: 34, y: 4 } };
-const itemSize = id => { const r = L.ITEMS[id].sm.rows[0]; return { w: r[0].length, h: r.length }; };
+/* los objetos se dibujan a doble resolución (hd): 1 píxel suyo = ½ píxel lógico = 1 píxel real del canvas */
+const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil(r[0].length / 2), h: Math.ceil(r.length / 2) }; };
+/* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 } };
 /** Peluche: sobre el sofá si lo hay; si no, en el suelo. */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: 28, y: 28 - h } : { x: 38, y: 34 - h }; };
 
@@ -1040,12 +1042,12 @@ function drawGuessArrow() {
 
 /** Dibuja un objeto de la casa (variant 0/1 = tele apagada/encendida). fromRow: solo las filas desde ahí (para «meter» a la mascota). */
 function drawItem(id, x, y, variant = 0, fromRow = 0) {
-  const it = L.ITEMS[id].sm, rows = it.rows[variant] || it.rows[0];
-  for (let j = fromRow; j < rows.length; j++) for (let i = 0; i < rows[j].length; i++) {
+  const it = L.ITEMS[id].hd, rows = it.rows[variant] || it.rows[0];
+  for (let j = fromRow * 2; j < rows.length; j++) for (let i = 0; i < rows[j].length; i++) {
     const c = rows[j][i];
     if (c === '.') continue;
     g.fillStyle = tint(it.pal[c.charCodeAt(0) - 97]);
-    g.fillRect(x + i, y + j, 1, 1);
+    g.fillRect(x + i / 2, y + j / 2, 0.5, 0.5);
   }
 }
 function drawHouse(now) {
@@ -1054,7 +1056,7 @@ function drawHouse(now) {
   if (o.includes('sofa')) drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y);
   if (o.includes('tv')) {
     const t = ROOM.tv, w = itemSize('tv').w;
-    R1(t.x - 1, t.y + 11, w + 2, 1, C.ink); R1(t.x, t.y + 12, w, 1, C.dark);              // estante
+    const th = itemSize('tv').h; R1(t.x - 1, t.y + th, w + 2, 1, C.ink); R1(t.x, t.y + th + 1, w, 1, C.dark);              // estante
     drawItem('tv', t.x, t.y, s.room.tv ? 1 : 0);
   }
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
