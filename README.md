@@ -70,3 +70,6 @@ Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. 
 - Muebles en pixel art (sofá 🛋️, cama 🛏️, tele 📺) y peluche 🧸 nuevo en la 🛒 tienda, con vista previa grande.
 - Toca el mueble en la pantalla: la mascota va hasta él (sentarse/tumbarse, ver la tele, tumbarse en la cama, abrazar el peluche).
 - De noche, al apagar la luz (o al dormirse solo) se acuesta en la cama.
+
+## Avisos con la app cerrada en Cloudflare
+Mira `worker/README.md`: el servidor de avisos también funciona gratis como Cloudflare Worker (D1 + cron), sin necesidad de `server.js`.

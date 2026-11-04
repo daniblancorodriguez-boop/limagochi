@@ -1,2 +1,7 @@
 node_modules/
 data/
+worker/node_modules/
+worker/.wrangler/
+worker/.dev.vars
+.wrangler/
+.dev.vars

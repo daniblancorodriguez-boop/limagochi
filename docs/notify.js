@@ -83,8 +83,11 @@ function b64ToBytes(b64) {
   const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
   return Uint8Array.from(raw, c => c.charCodeAt(0));
 }
+const base = () => String((LIMA.CONFIG && LIMA.CONFIG.pushServer) || '').replace(/\/+$/, '');
+/* text/plain: es una petición «simple» y no necesita permiso previo (CORS) al hablar con otro dominio */
+const TXT = { 'Content-Type': 'text/plain;charset=UTF-8' };
 async function call(path, body) {
-  const r = await fetch(path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const r = await fetch(base() + path, { method: body ? 'POST' : 'GET', headers: body ? TXT : undefined, body: body ? JSON.stringify(body) : undefined });
   if (!r.ok) throw new Error(path + ' ' + r.status);
   return r.json();
 }
@@ -102,7 +105,7 @@ LIMA.push = {
       if (perm !== 'granted') return { ok: false, msg: 'Permiso de notificaciones denegado' };
       const reg = await navigator.serviceWorker.ready;
       let key;
-      try { key = (await call('/api/push/key')).key; } catch { return { ok: false, msg: 'No hay servidor de avisos: ejecuta «node server.js»' }; }
+      try { key = (await call('/api/push/key')).key; } catch { return { ok: false, msg: 'No hay servidor de avisos configurado' }; }
       const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
       await call('/api/push/subscribe', { id: pushId(), subscription: sub.toJSON(), schedule: schedule() });
       setPushOn(true);
@@ -128,8 +131,8 @@ LIMA.push = {
     if (!pushOn) return;
     const body = JSON.stringify({ id: pushId(), schedule: list });
     try {
-      if (beacon && navigator.sendBeacon) navigator.sendBeacon('/api/push/schedule', new Blob([body], { type: 'application/json' }));
-      else fetch('/api/push/schedule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+      if (beacon && navigator.sendBeacon) navigator.sendBeacon(base() + '/api/push/schedule', new Blob([body], { type: 'text/plain;charset=UTF-8' }));
+      else fetch(base() + '/api/push/schedule', { method: 'POST', headers: TXT, body, keepalive: true }).catch(() => {});
     } catch { /* */ }
   }
 };

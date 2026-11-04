@@ -1,0 +1,10 @@
+{
+  "name": "limagochi-push",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor de avisos Web Push de Limagochi para Cloudflare Workers (D1 + cron)",
+  "scripts": { "dev": "wrangler dev --test-scheduled", "deploy": "wrangler deploy" },
+  "dependencies": { "@block65/webcrypto-web-push": "^2.0.0" },
+  "devDependencies": { "wrangler": "^4.0.0" }
+}

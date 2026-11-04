@@ -100,7 +100,7 @@ function readBody(req) {
     req.on('error', reject);
   });
 }
-const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
+const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
 
 async function api(req, res, url) {
   if (req.method === 'GET' && url === '/api/push/key') return send(res, 200, { key: VAPID.publicKey });

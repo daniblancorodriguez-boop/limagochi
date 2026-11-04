@@ -1,0 +1,19 @@
+name = "limagochi-push"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Cada minuto revisa si hay avisos que enviar
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+# Contacto que se envía a los servicios push (cualquier mailto: o https:)
+VAPID_SUBJECT = "https://github.com/daniblancorodriguez-boop/limagochi"
+# Clave pública VAPID (la privada va como secreto: VAPID_PRIVATE)
+VAPID_PUBLIC = "BKuFF0HbXK2JW8hKrxoe1uDP53cL5f-jge9Jk7OOCQ8oLkhbGLrIY52TXkiUly4ZgsaMwm7ZqlnV71IMSjQltKM"
+
+# Base de datos D1: crea una llamada «limagochi» en el panel y pega aquí su ID
+[[d1_databases]]
+binding = "DB"
+database_name = "limagochi"
+database_id = "REEMPLAZAR_CON_EL_ID_DE_D1"
