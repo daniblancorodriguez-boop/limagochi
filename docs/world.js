@@ -10,7 +10,7 @@ const params = new URLSearchParams(location.search);
 
 /* ------------------------------ ajustes -------------------------------- */
 const SKEY = 'limagochi.settings';
-const settings = { cycle: true, events: true };
+const settings = { cycle: true, events: true, nick: '', cid: '' };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SKEY) || '{}')); } catch { /* */ }
 const persist = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch { /* */ } };
 L.settings = {

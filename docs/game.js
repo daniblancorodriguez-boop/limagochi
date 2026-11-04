@@ -22,7 +22,7 @@ const CFG = {
   minWeight: { egg: 3, baby: 3, child: 8, teen: 12, adult: 15 },
   obese: { baby: 10, child: 22, teen: 30, adult: 40 },   // peso a partir del cual está obeso
   /* por minuto (despierto): hambre vacía en ~8 h, felicidad en ~10 h, energía en ~14 h; dormir recupera en ~8 h */
-  rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21 },
+  rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21, dirt: 0.06 },   // dirt: sucio del todo en ~28 h despierto
   poopEvery: [90, 180],               // minutos entre caquitas
   callChance: 0.0015,                 // probabilidad por minuto de llamar la atención (~1,4 al día)
   callWindowMin: 45,                  // tiempo para responder antes de que cuente como error
@@ -94,6 +94,8 @@ function newState() {
     lp: 0, inv: {}, owned: [], bg: 'none',
     skills: {}, words: {}, cause: '',
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
+    dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
+    hat: null,                                 // gorro de recuerdo elegido (id de evento)
     pause: null,                               // {since} mientras está de vacaciones (el tiempo se detiene)
     stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
@@ -194,6 +196,7 @@ function toStage(st, text, from) {
   state.stage = st; state.stageMin = 0;
   state.weight = Math.max(state.weight, CFG.minWeight[st]);
   if (st !== 'egg') L.progress.record(spriteId());
+  if (st !== 'egg' && st !== 'baby' && L.mail) L.mail.on('evolve', { name: formName(state.form) });
   if (quiet) return;
   evo = { start: Date.now(), dur: 3800, from: from || 'egg', to: spriteId() };       // animación de evolución
   fx('happy', 3800 + 1800); peek(3800); setMsg(text, 5500); Sound.play('evolve');
@@ -249,7 +252,8 @@ function tick(dt) {
   const k = s.sleeping ? 0.35 : 1;
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   s.hunger = clamp(s.hunger - R.hunger * dt * k);
-  s.happy = clamp(s.happy - (R.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0)) * dt);
+  s.happy = clamp(s.happy - (R.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
+  s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
   s.discipline = clamp(s.discipline - R.discipline * dt);
   s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
   if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
@@ -260,7 +264,7 @@ function tick(dt) {
   }
 
   if (!s.sick) {
-    const risk = CFG.sickRisk + s.poops * 0.0008 + (s.hunger < 10 ? 0.002 : 0) + (s.energy <= 0 ? 0.001 : 0) + (obese ? 0.0012 : 0);
+    const risk = CFG.sickRisk + s.poops * 0.0008 + (s.hunger < 10 ? 0.002 : 0) + (s.energy <= 0 ? 0.001 : 0) + (obese ? 0.0012 : 0) + (s.dirt > 85 ? 0.0006 : 0);
     if (Math.random() < risk * dt) makeSick();
   } else {
     s.sickMin += dt;
@@ -270,6 +274,7 @@ function tick(dt) {
   flag('hunger', s.hunger <= 0, s.hunger > 20);
   flag('poop', s.poops >= 3, s.poops === 0);
   flag('energy', s.energy <= 0 && !s.sleeping, s.energy > 30);
+  flag('dirty', s.dirt >= 95, s.dirt < 60);
 
   if (s.call) {
     s.callMin += dt;
@@ -309,6 +314,7 @@ function attention() {
   else if (cycleOn() && L.world.isNight() && s.energy < 60) a.push({ key: 'night', text: '🌙 Es de noche: apaga la luz para que duerma' });
   if (s.sick) a.push({ key: 'sick', text: 'Está enfermo: cúralo' });
   if (s.poops > 0) a.push({ key: 'poop', text: 'Hay que limpiar' });
+  if (s.dirt >= 60) a.push({ key: 'dirty', text: '🧼 Está sucio: dale una ducha' });
   if (s.call) a.push({ key: 'call', text: 'Te llama… ¿regañarlo?' });
   if (s.neglect >= CFG.dangerMin) a.push({ key: 'danger', text: '¡Está en peligro! Atiéndelo ya' });
   return a;
@@ -394,6 +400,24 @@ function clean() {
   Store.save();
 }
 
+/* ---- ducha: se frota con el dedo para quitar la suciedad ---- */
+function startShower() {
+  if (!canInteract() || !awake()) return;
+  if (state.dirt < 15) { setMsg('Ya está limpísimo ✨'); return; }
+  if (state.sick) { setMsg('Está enfermo: mejor no mojarlo'); return; }
+  L.mini.start('shower');
+}
+/** frac = parte de la suciedad que se ha quitado (0–1). */
+function showered(frac) {
+  const s = state, before = s.dirt;
+  s.dirt = clamp(s.dirt * (1 - frac));
+  if (frac > 0.5) { s.happy = clamp(s.happy + 10); L.progress.stat('showers'); }
+  fx('happy', 1800); Sound.play(frac > 0.5 ? 'clean' : 'click');
+  setMsg(frac > 0.9 ? '🚿 ¡Reluciente!' : frac > 0.5 ? '🚿 ¡Mucho mejor!' : 'Aún queda suciedad…', 3000);
+  L.progress.check(); Store.save(); render();
+  return before - s.dirt;
+}
+
 function heal() {
   if (!canInteract()) return;
   const s = state;
@@ -444,7 +468,7 @@ function openStatus() {
   const rows = [
     ['Etapa', STAGE_NAMES[s.stage]], ['Forma', form], ['Edad', fmtDur(s.ageMin)],
     ['Peso', `${s.weight.toFixed(1)} g${isObese() ? ' (obeso)' : ''}`],
-    ['Disciplina', `${Math.round(s.discipline)}%`], ['Errores', String(s.mistakes)],
+    ['Disciplina', `${Math.round(s.discipline)}%`], ['Higiene', `${Math.round(100 - s.dirt)}%`], ['Errores', String(s.mistakes)],
     ['Lima Points', `${s.lp} 🪙`]
   ];
   if (L.voice && s.stage !== 'egg' && s.stage !== 'dead') rows.push(['Inteligencia', `${L.voice.iqPct()}%`]);
@@ -459,6 +483,7 @@ function openStatus() {
   openPanel([
     ...rows.map(([k, v]) => line(k, v)),
     row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus))),
+    row(btn(`✉️ Buzón${L.mail && L.mail.unread() ? ` (${L.mail.unread()})` : ''}`, () => L.mail.open(openStatus)), btn('🤝 Visitas', () => L.visit.open(openStatus))),
     row(btn('📘 Guía', () => L.guide.open(openStatus)), btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
     row(
       btn('Cerrar', closePanel, 'ghost'),
@@ -499,7 +524,7 @@ function endVacation() {
 
 function newEgg() {
   closePanel();
-  const keep = { lp: state.lp, owned: state.owned.slice(), bg: state.bg, meta: state.meta };     // tienda, álbum y logros se conservan
+  const keep = { lp: state.lp, owned: state.owned.slice(), bg: state.bg, hat: state.hat, meta: state.meta };     // tienda, álbum y logros se conservan
   state = newState();
   Object.assign(state, keep);
   Store.save(); setMsg('¡Un huevo nuevo!'); render();
@@ -721,6 +746,28 @@ function drawSickness(now, x, y, rows) {
   }
 }
 
+/** Manchas y moscas según la suciedad (posiciones fijas por mascota). */
+const dirtCache = {};
+function drawDirt(now, x, y, rows) {
+  const top = topRow(rows), key = spriteId() + top;
+  if (!dirtCache[key]) {                                              // píxeles del cuerpo, elegidos con una semilla estable
+    let seed = (state.born % 9973) + 7; const rnd = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+    const cells = [];
+    rows.forEach((r, j) => { if (j > top + 1 && j < 22) [...r].forEach((c, i) => { if (c !== '.' && c !== 'K' && i > 3 && i < 20) cells.push([i, j]); }); });
+    dirtCache[key] = Array.from({ length: 9 }, () => cells[Math.floor(rnd() * cells.length)] || [12, 14]);
+  }
+  const n = Math.min(9, Math.floor((state.dirt - 20) / 9));
+  for (let i = 0; i < n; i++) { const [px, py] = dirtCache[key][i]; R1(x + px, y + py, 2, 1, tint('#6b4a1f')); R1(x + px + 1, y + py + 1, 1, 1, tint('#6b4a1f')); }
+  if (state.dirt >= 60) for (let i = 0; i < 2; i++) {                 // moscas
+    const a = now / (160 + i * 70) + i * 3;
+    R1(Math.round(x + 12 + Math.cos(a) * 13), Math.round(y + top - 1 + Math.sin(a * 1.3) * 5), 1, 1, C.ink);
+  }
+  if (state.dirt >= 80) for (let i = 0; i < 2; i++) {                 // olor
+    const q = (now / 700 + i * 0.5) % 1;
+    R1(x + 5 + i * 14 + Math.round(Math.sin(now / 200 + i) * 1), y + top - Math.round(q * 6), 1, 3, C.dark);
+  }
+}
+
 /** Playa de vacaciones: arena, sombrilla y olas. */
 function drawBeach(now) {
   R1(0, 30, W, 6, tint('#ecd49a'));
@@ -784,12 +831,14 @@ function drawPet(now, frame, f) {
   else if (t === 'eat') face = p < 0.3 ? 'eat' : p < 0.88 ? (Math.floor(now / 160) % 2 ? 'eat' : 'idle') : 'happy';
   else if (t === 'refuse' || t === 'confused') face = 'sad';
   else if (t === 't_dead') face = 'sleep';
+  else if (t === 't_zen') face = 'sleep';
+  else if (t === 't_yawn') face = 'eat';
   else if (t === 'happy' || t.startsWith('t_') || t === 'heal' || s.pause) face = 'happy';
   else if (s.sick || avg < 30) face = 'sad';
   else if (avg > 78) face = 'happy';
   const rows = set[face] || set.idle;
 
-  let x = 12, y = 11, flip = false, rot = false;
+  let x = 12, y = 11, flip = false, rot = false, inv = false;
   if (guess.active) y = 1;                                                    // arriba, para que el panel de Adivina no lo tape
   if (s.pause) { x = 16; y = 12; }                                          // tumbado bajo la sombrilla
   else if (!s.sleeping && !f && !guess.active) { x += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); y -= frame; if (s.sick) x += Math.floor(now / 90) % 2; }   // enfermo: tiembla
@@ -800,16 +849,25 @@ function drawPet(now, frame, f) {
   if (t === 't_spin') { flip = Math.floor(now / 110) % 2 === 1; y -= Math.round(Math.abs(Math.sin(p * Math.PI * 2)) * 3); }
   if (t === 't_dance') { x += Math.round(Math.sin(now / 130) * 5); y -= (Math.floor(now / 130) % 2) * 2; flip = Math.floor(now / 260) % 2 === 1; }
   if (t === 't_dead') rot = p > 0.12 && p < 0.88;
+  if (t === 't_kiss') x -= 2;
+  if (t === 't_zen') y -= 3 + Math.round(Math.sin(now / 380) * 1);
+  if (t === 't_yawn') y += Math.floor(now / 300) % 2;
+  if (t === 't_pino') { inv = true; x += Math.round(Math.sin(now / 140) * 1); y -= Math.round(Math.abs(Math.sin(p * Math.PI * 3)) * 2); }
   if (t === 'confused') x += Math.round(Math.sin(now / 90) * 1);
 
-  if (rot) {
+  if (inv) {                                                                // pino: boca abajo
+    g.save(); g.translate(x + 12, y + topRow(rows) + 11); g.scale(1, -1);
+    drawSprite(rows, -12, -12, { sick: s.sick });
+    g.restore();
+  } else if (rot) {
     g.save(); g.translate(x + 1, y + 11); g.rotate(Math.PI / 2);
     drawSprite(rows, -12, -22, { sick: s.sick });
     g.restore();
   } else {
     drawSprite(rows, x, y, { flip, sick: s.sick });
-    const ev = L.world.event();
-    if (ev) L.world.hat(g, ev.id, x, y + topRow(rows) + 1);
+    const ev = L.world.event(), hatId = ev ? ev.id : s.hat;
+    if (hatId) L.world.hat(g, hatId, x, y + topRow(rows) + 1);
+    if (s.dirt >= 30 && !s.pause) drawDirt(now, x, y, rows);
   }
 
   if (s.sleeping && !rot) { drawBlanket(x, y, rows); drawZzz(now, x, y); }
@@ -821,6 +879,15 @@ function drawPet(now, frame, f) {
     const up = Math.floor(now / 160) % 2;
     R1(x + 21, y + (up ? 7 : 12), 3, 3, C.ink); R1(x + 22, y + (up ? 8 : 13), 1, 1, C.light);
   }
+  if (t === 't_clap') {
+    const k = Math.abs(Math.sin(now / 110)), hy = y + topRow(rows) + Math.round((22 - topRow(rows)) * 0.5);
+    const lx = x + 4 + Math.round(k * 7), rx = x + 19 - Math.round(k * 7);
+    R1(lx, hy, 3, 3, C.ink); R1(lx + 1, hy + 1, 1, 1, C.light); R1(rx, hy, 3, 3, C.ink); R1(rx + 1, hy + 1, 1, 1, C.light);
+    if (k < 0.15) { R1(x + 11, hy - 3, 1, 2, C.ink); R1(x + 8, hy - 2, 1, 1, C.ink); R1(x + 14, hy - 2, 1, 1, C.ink); }
+  }
+  if (t === 't_kiss') for (let i = 0; i < 2; i++) { const q = ((now / 700) + i * 0.5) % 1; drawHeart(Math.round(x + 22 + q * 12), Math.round(y + topRow(rows) + 3 - q * 8)); }
+  if (t === 't_zen') for (let i = 0; i < 3; i++) { const a = now / 500 + i * 2.1; R1(Math.round(x + 12 + Math.cos(a) * 14), Math.round(y + 12 + Math.sin(a) * 6), 2, 2, tint('#ffd84d')); }
+  if (t === 't_yawn') { const q = (now / 600) % 1; R1(x + 13, y + topRow(rows) + 6, 1, 1, C.dark); drawZ(Math.round(x + 22 + q * 3), Math.round(y + 4 - q * 6), false); }
   if (t === 't_sing') {
     drawNote(x + 24 + Math.round(Math.sin(now / 200) * 2), Math.round(y + 8 - p * 12));
     drawNote(x - 5 + Math.round(Math.cos(now / 220) * 2), Math.round(y + 12 - ((p * 12 + 5) % 12)));
@@ -878,7 +945,7 @@ function render() {
 
 function renderMeters() {
   meterEls.forEach(m => {
-    const n = Math.ceil(state[m.dataset.stat] / 20);
+    const n = Math.ceil((m.dataset.stat === 'clean' ? 100 - state.dirt : state[m.dataset.stat]) / 20);
     $$('i', m).forEach((h, i) => h.classList.toggle('on', i < n));
     m.classList.toggle('low', n <= 1 && state.stage !== 'dead' && state.stage !== 'egg');
   });
@@ -927,7 +994,7 @@ function closePanel() {
   panel.hidden = true; panel.replaceChildren(); panelBtns = []; panelSel = -1;
 }
 
-const ACTIONS = { feed: openFeed, play: startPlay, heal, clean, light: toggleLight, scold,
+const ACTIONS = { feed: openFeed, play: startPlay, heal, clean, shower: startShower, light: toggleLight, scold,
                   teach: () => L.voice ? L.voice.talk() : setMsg('Voz no disponible'), shop: openShop, status: openStatus };
 function runAction(name) {
   if (L.mini && L.mini.active()) L.mini.stop(false);
@@ -972,12 +1039,21 @@ function bindUI() {
   $('#keyC').addEventListener('click', keyC);
   alertEl.addEventListener('click', () => setMsg(alertEl.dataset.reason || '…'));
 
+  const pt = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
   canvas.addEventListener('pointerdown', e => {
     if (!L.mini.active()) return;
     e.preventDefault();
-    const r = canvas.getBoundingClientRect();
-    L.mini.pointer((e.clientX - r.left) / r.width);
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* */ }
+    const [fx, fy] = pt(e);
+    L.mini.pointer(fx, fy);
   });
+  canvas.addEventListener('pointermove', e => {
+    if (!L.mini.active() || !(e.buttons || e.pointerType === 'touch')) return;
+    e.preventDefault();
+    const [fx, fy] = pt(e);
+    L.mini.drag(fx, fy);
+  });
+  canvas.addEventListener('pointerup', () => { if (L.mini.active()) L.mini.up(); });
 
   document.addEventListener('keydown', e => {
     if (L.mini.active()) {
@@ -1059,6 +1135,7 @@ function predictSchedule() {
   add((s.energy - 15) / R.energy, 'sleepy', 'Tiene sueño: apaga la luz');
   if (!s.poops) add(s.nextPoop - s.poopTimer, 'poop', 'Hay que limpiar');
   if (s.sick) add(0, 'sick', 'Está enfermo: cúralo');
+  if (s.dirt < 60) add((60 - s.dirt) / R.dirt, 'dirty', '🧼 Está sucio: dale una ducha');
   add(hungerIn + Math.max(0, CFG.dangerMin - s.neglect), 'danger', '¡Está en peligro! Atiéndelo ya');
   // sin molestar de 23:00 a 08:00 (si el ciclo día/noche está activo)
   if (cycleOn()) out.forEach((o, i) => {
@@ -1073,7 +1150,7 @@ function predictSchedule() {
 L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
-  tint, isQuiet: () => quiet, startVacation, getSave: () => JSON.stringify(state), replaceState, setLcd,
+  tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
   speed: () => speed, predictSchedule
 };
 
@@ -1087,6 +1164,7 @@ function watch() {
   if (fresh.length && !document.hidden) { Sound.play('alert'); Sound.vibrate([100, 60, 100]); }
   L.notify && L.notify.check(reasons.filter(r => r.key !== 'night'));      // de noche no molestamos con avisos locales
   trackEvent();
+  L.mail && L.mail.poll();
   L.progress.check();
   document.title = reasons.length ? '❗ Limagochi' : 'Limagochi';
 }
@@ -1125,12 +1203,14 @@ function init() {
   lastTick = Date.now();
   lastKeys = new Set(attention().map(r => r.key));
   recordCurrent();
+  L.mail && L.mail.poll();
   if (!saved) {                                          // primera vez: abre la guía
     let seen = false;
     try { seen = localStorage.getItem('limagochi.guide') === '1'; localStorage.setItem('limagochi.guide', '1'); } catch { /* */ }
     if (!seen) L.guide.open(closePanel);
   }                                       // formas ya conseguidas por una partida anterior
   render();
+  setTimeout(() => L.visit && L.visit.checkHash(), 600);
 
   setInterval(() => {                                   // simulación (1 s)
     const now = Date.now();

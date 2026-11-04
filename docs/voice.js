@@ -20,7 +20,12 @@ const TRICKS = [
   { id: 'saluda', icon: '👋', name: 'Saludar',           keys: ['saluda', 'saludo', 'adios'],             fx: 't_wave',  dur: 1800 },
   { id: 'baila',  icon: '💃', name: 'Bailar',            keys: ['baila', 'bailar', 'baile'],              fx: 't_dance', dur: 2500 },
   { id: 'muerto', icon: '💀', name: 'Hacerse el muerto', keys: ['muerto', 'hazte el muerto', 'pum'],      fx: 't_dead',  dur: 2300 },
-  { id: 'canta',  icon: '🎵', name: 'Cantar',            keys: ['canta', 'cantar', 'cancion'],            fx: 't_sing',  dur: 2700 }
+  { id: 'canta',  icon: '🎵', name: 'Cantar',            keys: ['canta', 'cantar', 'cancion'],            fx: 't_sing',  dur: 2700 },
+  { id: 'aplaude', icon: '👏', name: 'Aplaudir',         keys: ['aplaude', 'aplaudir', 'aplauso'],        fx: 't_clap', dur: 2000 },
+  { id: 'besa',   icon: '😘', name: 'Mandar un beso',    keys: ['besa', 'beso', 'un beso'],               fx: 't_kiss', dur: 2000 },
+  { id: 'pino',   icon: '🤸', name: 'Hacer el pino',     keys: ['pino', 'haz el pino', 'al reves'],       fx: 't_pino', dur: 2400 },
+  { id: 'medita', icon: '🧘', name: 'Meditar',           keys: ['medita', 'meditar', 'relajate'],         fx: 't_zen',  dur: 2800 },
+  { id: 'bosteza', icon: '🥱', name: 'Bostezar',         keys: ['bosteza', 'bostezar', 'sueno'],          fx: 't_yawn', dur: 2000 }
 ];
 const WORDS = [
   { id: 'hola',    icon: '🙋', say: 'hola',      keys: ['hola'] },
@@ -29,7 +34,13 @@ const WORDS = [
   { id: 'papa',    icon: '👨', say: 'papá',      keys: ['papa', 'papi'] },
   { id: 'comer',   icon: '🍽️', say: 'comer',     keys: ['comer', 'comida', 'come'] },
   { id: 'gracias', icon: '🙏', say: 'gracias',   keys: ['gracias'] },
-  { id: 'quiero',  icon: '💚', say: 'te quiero', keys: ['te quiero', 'quiero'] }
+  { id: 'quiero',  icon: '💚', say: 'te quiero', keys: ['te quiero', 'quiero'] },
+  { id: 'agua',    icon: '💧', say: 'agua',      keys: ['agua', 'ducha'] },
+  { id: 'amigo',   icon: '🤝', say: 'amigo',     keys: ['amigo', 'amiga', 'amigos'] },
+  { id: 'jugar',   icon: '🎲', say: 'jugar',     keys: ['jugar', 'juega', 'juego'] },
+  { id: 'noches',  icon: '🌙', say: 'buenas noches', keys: ['buenas noches', 'noches'] },
+  { id: 'feliz',   icon: '😄', say: 'feliz',     keys: ['feliz', 'contento'] },
+  { id: 'abrazo',  icon: '🤗', say: 'abrazo',    keys: ['abrazo', 'abrazame', 'abrazar'] }
 ];
 const WORD_CAP = { baby: 35, child: 75, teen: 90, adult: 100 };       // un bebé solo balbucea
 const FORM_IQ = { child_good: 0.1, child_naughty: 0, teen_good: 0.15, teen_naughty: 0.02, estrella: 0.5, flor: 0.3, guerrera: 0.3, piruleta: 0.25,
@@ -133,7 +144,7 @@ function trick(id) {
   lessonDone();
   if (ok) { perform(t); a.setMsg(`${t.icon} ¡Casi lo tiene! ${Math.round(s.skills[id])}%`); }
   else { a.fx('confused', 1100); a.peek(1100); a.setMsg(`No lo ha entendido… ${Math.round(s.skills[id])}%`); }
-  if (s.skills[id] >= 100) { s.lp += 5; L.sound.play('learn'); a.setMsg(`🎓 ¡Ha aprendido a ${t.name.toLowerCase()}! +5 🪙`, 4000); }
+  if (s.skills[id] >= 100) { s.lp += 5; L.sound.play('learn'); a.setMsg(`🎓 ¡Ha aprendido a ${t.name.toLowerCase()}! +5 🪙`, 4000); L.mail && L.mail.on('learn', { name: t.name }); }
   refresh(); a.save();
 }
 
@@ -152,7 +163,7 @@ function word(id) {
   s.energy = a.clamp(s.energy - 1);
   lessonDone();
   say(w, s.words[id]);
-  if (lv < 100 && s.words[id] >= 100) { s.lp += 5; L.sound.play('learn'); setTimeout(() => a.setMsg(`🎓 ¡Dice «${w.say}» perfectamente! +5 🪙`, 4000), 1200); }
+  if (lv < 100 && s.words[id] >= 100) { s.lp += 5; L.sound.play('learn'); setTimeout(() => a.setMsg(`🎓 ¡Dice «${w.say}» perfectamente! +5 🪙`, 4000), 1200); L.mail && L.mail.on('word', { name: w.say }); }
   refresh(); a.save();
 }
 

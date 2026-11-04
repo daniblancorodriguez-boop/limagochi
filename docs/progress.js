@@ -59,20 +59,27 @@ const ACH = [
   { id: 'tricks3',  icon: '🎓', name: 'Domador',            desc: 'Domina 3 trucos o palabras.',               prog: (m, s) => [mastered(s) + Object.values(s.words || {}).filter(v => v >= 100).length, 3] },
   { id: 'night5',   icon: '🌙', name: 'Búho nocturno',      desc: 'Acuéstalo de noche 5 veces.',               prog: (m) => [m.stats.nightSleeps || 0, 5] },
   { id: 'events3',  icon: '🎃', name: 'Fiestero',           desc: 'Vive 3 eventos de temporada distintos.',    prog: (m) => [Object.keys(m.stats.events).length, 3] },
+  { id: 'shower5',  icon: '🚿', name: 'Limpio y reluciente', desc: 'Dale 5 duchas.',                           prog: (m) => [m.stats.showers || 0, 5] },
+  { id: 'visit1',   icon: '🤝', name: 'Sociable',           desc: 'Recibe la visita de un amigo.',              prog: (m) => [m.stats.visits || 0, 1] },
+  { id: 'friends3', icon: '🎉', name: 'Popular',            desc: 'Ten 3 amigos distintos.',                    prog: (m) => [Object.keys(m.friends).length, 3] },
+  { id: 'story',    icon: '📜', name: 'Aventurero',         desc: 'Completa la historia de un evento.',         prog: (m) => [Object.keys(m.souvenirs).length, 1] },
   { id: 'oldage',   icon: '🌈', name: 'Larga vida',         desc: 'Que tu Limagochi muera de viejo.',          prog: (m, s) => [s.cause === 'vejez' && s.stage === 'dead' ? 1 : 0, 1] }
 ];
 const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;
 
 /* ---- datos ---- */
-function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {} } }; }
+function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {} }; }
 /** Rellena huecos de una meta antigua o incompleta. */
 function fixMeta(m) {
   const b = blankMeta();
   m = m && typeof m === 'object' ? m : {};
   const st = Object.assign(b.stats, m.stats || {});
   st.wins = Object.assign({}, m.stats && m.stats.wins); st.best = Object.assign({}, m.stats && m.stats.best); st.events = Object.assign({}, m.stats && m.stats.events);
-  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st };
+  const clean = (o, n) => { const r = {}; for (const k of Object.keys(o && typeof o === 'object' ? o : {}).slice(0, n)) r[k] = o[k]; return r; };
+  const letters = (Array.isArray(m.letters) ? m.letters : []).filter(x => x && typeof x.text === 'string').slice(-40)
+    .map(x => ({ id: String(x.id || '').slice(0, 40), ts: Number(x.ts) || 0, from: String(x.from || '').slice(0, 30), icon: String(x.icon || '✉️').slice(0, 4), text: String(x.text).slice(0, 400), read: !!x.read }));
+  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20) };
 }
 const meta = () => A().S().meta;
 

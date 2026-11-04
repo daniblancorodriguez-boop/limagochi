@@ -26,6 +26,24 @@ function keywords() {
 }
 
 const TOPICS = [
+  { icon: '🚿', title: 'Higiene y ducha', body: () => [
+    H('La barra 🧼 de higiene'),
+    LI('Con el tiempo (y con cada caquita sin limpiar) se ensucia. A partir del 60% te avisa.'),
+    LI('Si la higiene llega a casi 0 baja la felicidad y aumenta el riesgo de enfermar.'),
+    H('Cómo se ducha'),
+    LI('Pulsa 🚿 y FROTA con el dedo (o el ratón) las manchas marrones con la esponja. Cuanto más limpies, mejor.'),
+    LI('Una ducha al día es lo ideal. No se puede duchar enfermo, dormido ni si ya está limpio.')
+  ] },
+  { icon: '✉️', title: 'Buzón e historias', body: () => [
+    LI('📊 Estado → ✉️ Buzón: tu Limagochi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
+    LI('Durante cada evento de temporada llega una historia de 3 capítulos (días 1, 3 y 5).'),
+    LI('Al leer el capítulo final ganas 10 🪙 y un 🎩 recuerdo: elige gorro en Buzón → Recuerdos.')
+  ] },
+  { icon: '🤝', title: 'Visitas de amigos', body: () => [
+    LI('📊 Estado → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
+    LI('Para recibir una visita pega el enlace de tu amigo, o ábrelo directamente.'),
+    LI('Cada amigo da premio una vez cada 20 horas. Hay logros por tener amigos.')
+  ] },
   { icon: '🍔', title: 'Cuidados básicos', body: () => [
     H('Los 4 medidores'),
     LI('🍖 Hambre: corazones llenos = saciado. Dale de comer antes de que se vacíen.'),

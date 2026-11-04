@@ -3,6 +3,8 @@
    · Lima Vuela  (tipo Flappy Bird)
    · Esquiva     (esquivar rocas, recoger estrellas)
    · Eco Lima    (memoria: repite la secuencia de luces y sonidos)
+   · Ducha       (frota con el dedo para quitar la suciedad)
+   · Visita      (un amigo viene de visita con su tarjeta)
    El juego "Adivina" vive en game.js (es de menú, no de acción).
    ========================================================================== */
 (() => {
@@ -29,26 +31,24 @@ function loop() {
   });
 }
 
-function end(kind, title, lines, rewardObj) {
+function end(kind, title, lines, rewardObj, opts = {}) {
   const a = A();
   cur = null; cancelAnimationFrame(raf);
   a.hud(null);
-  a.reward({ ...rewardObj, game: kind }, title);
+  a.reward(opts.noStats ? rewardObj : { ...rewardObj, game: kind }, title);
   a.openPanel([
     a.p(title), ...lines.map(t => a.p(t)),
-    a.row(
-      a.btn('Otra vez', () => { a.closePanel(); if (a.canPlay()) L.mini.start(kind); }),
-      a.btn('Salir', a.closePanel, 'ghost')
-    )
+    opts.noAgain ? a.btn('Cerrar', a.closePanel)
+      : a.row(a.btn('Otra vez', () => { a.closePanel(); if (a.canPlay()) L.mini.start(kind); }), a.btn('Salir', a.closePanel, 'ghost'))
   ]);
 }
 
 const L = LIMA;
 L.mini = {
   active: () => !!cur,
-  start(kind) {
+  start(kind, arg) {
     this.stop(false);
-    cur = ({ flappy, dodge, memory })[kind]();
+    cur = ({ flappy, dodge, memory, shower, visit })[kind](arg);
     last = performance.now();
     loop();
   },
@@ -57,7 +57,9 @@ L.mini = {
     const was = !!cur; cur = null;
     if (was) { A().hud(null); if (redraw) A().render(); }
   },
-  pointer(fx) { cur && cur.pointer && cur.pointer(fx); },
+  pointer(fx, fy) { cur && cur.pointer && cur.pointer(fx, fy); },
+  drag(fx, fy) { cur && cur.drag && cur.drag(fx, fy); },
+  up() { cur && cur.up && cur.up(); },
   key(k) { cur && cur.key && cur.key(k); }
 };
 
@@ -252,6 +254,136 @@ function memory() {
       }
       g.fillStyle = C.ink;
       for (let i = 0; i < s.seq.length && i < MAXR; i++) g.fillRect(4 + i * 3, 17.5, 2, 1);          // progreso de la secuencia
+    }
+  };
+}
+
+/* ================================ DUCHA ==================================== */
+function shower() {
+  const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H;
+  const rows = a.petRows('happy'), dirt = a.S().dirt;
+  const PX = 12, PY = 6, DUR = 25;
+  // manchas sobre píxeles del cuerpo
+  const cells = [];
+  rows.forEach((r, j) => [...r].forEach((c, i) => { if (c !== '.' && c !== 'K' && j > 3 && j < 22) cells.push([i, j]); }));
+  const n = Math.max(4, Math.min(14, Math.round(dirt / 100 * 12) + 3));
+  const spots = [];
+  for (let tries = 0; spots.length < n && cells.length && tries < 300; tries++) {
+    const [cx, cy] = cells[Math.floor(Math.random() * cells.length)];
+    if (spots.some(s => Math.hypot(s.x - (PX + cx), s.y - (PY + cy)) < 3.2)) continue;
+    spots.push({ x: PX + cx, y: PY + cy, hp: 1 });
+  }
+  const total = spots.length;
+  const s = { t: 0, px: -9, py: -9, down: false, bubbles: [], removed: 0, phase: 'scrub', rinse: 0 };
+  const hud = () => a.hud(`🧼 ${s.removed}/${total} · ⏱${Math.max(0, Math.ceil(DUR - s.t))}`);
+  hud();
+  const toL = (fx, fy) => [fx * W, fy * H];
+  const finish = () => {
+    cur = null; cancelAnimationFrame(raf); a.hud(null);
+    a.showered(total ? s.removed / total : 1);
+  };
+  return {
+    pointer(fx, fy) { [s.px, s.py] = toL(fx, fy); s.down = true; },
+    up() { s.down = false; },
+    drag(fx, fy) {
+      if (s.phase !== 'scrub') return;
+      const [x, y] = toL(fx, fy), d = Math.hypot(x - s.px, y - s.py);
+      s.px = x; s.py = y; s.down = true;
+      if (d < 0.2) return;
+      if (Math.random() < 0.7) s.bubbles.push({ x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 4, r: 1 + Math.random() * 1.5, life: 0.9 });
+      for (const sp of spots) {
+        if (sp.hp <= 0 || Math.hypot(sp.x - x, sp.y - y) > 4.5) continue;
+        sp.hp -= d * 0.06;
+        if (sp.hp <= 0) { s.removed++; a.sound.play('click'); hud(); for (let k = 0; k < 5; k++) s.bubbles.push({ x: sp.x + (Math.random() - 0.5) * 4, y: sp.y + (Math.random() - 0.5) * 4, r: 1.5 + Math.random(), life: 1.2 }); }
+      }
+      if (s.removed >= total) { s.phase = 'rinse'; s.rinse = 0; a.sound.play('win'); }
+    },
+    key() { /* solo táctil / ratón */ },
+    update(dt) {
+      s.t += dt;
+      s.bubbles.forEach(b => { b.life -= dt; b.y -= dt * 3; });
+      s.bubbles = s.bubbles.filter(b => b.life > 0);
+      if (s.phase === 'scrub') { if (Math.floor(s.t * 2) !== Math.floor((s.t - dt) * 2)) hud(); if (s.t >= DUR) { s.phase = 'rinse'; s.rinse = 0; } }
+      else { s.rinse += dt; if (s.rinse > 1.2) finish(); }
+    },
+    draw() {
+      g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+      g.fillStyle = C.dark; g.fillRect(0, H - 3, W, 3);
+      a.drawSprite(rows, PX, PY, {});
+      g.fillStyle = '#6b4a1f';
+      for (const sp of spots) if (sp.hp > 0) {
+        const k = Math.max(0.4, sp.hp);                                       // se desvanece al frotar
+        g.globalAlpha = k; g.fillRect(r5(sp.x), r5(sp.y), 2.5, 1.5); g.fillRect(r5(sp.x + 0.5), r5(sp.y + 1), 1.5, 1); g.globalAlpha = 1;
+      }
+      g.fillStyle = '#f7fbe6';
+      for (const b of s.bubbles) { g.fillRect(r5(b.x), r5(b.y), r5(b.r), r5(b.r)); g.fillStyle = C.ink; g.fillRect(r5(b.x), r5(b.y), 0.5, 0.5); g.fillStyle = '#f7fbe6'; }
+      if (s.phase === 'rinse') {                                              // ducha: gotas cayendo
+        g.fillStyle = '#6ec6ff';
+        for (let i = 0; i < 24; i++) g.fillRect(2 + i * 2, (s.rinse * 40 + i * 7) % H, 0.5, 2);
+      }
+      if (s.px >= 0 && s.phase === 'scrub') {                                 // esponja
+        box(g, s.px - 3.5, s.py - 2, 7, 4, s.down ? '#ffd84d' : '#f2c14a', C.ink);
+        g.fillStyle = C.ink; g.fillRect(r5(s.px - 1.5), r5(s.py - 0.5), 0.5, 0.5); g.fillRect(r5(s.px + 0.5), r5(s.py + 0.5), 0.5, 0.5);
+      } else if (s.phase === 'scrub' && s.t < 3) { g.fillStyle = C.ink; g.fillRect(2, 2, 0, 0); }
+    }
+  };
+}
+
+/* ================================= VISITA ================================== */
+function visit(card) {
+  const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H;
+  const mine = a.petRows('happy');
+  const SP = L.SPR[card.form] || L.SPR.child_good;
+  const guestRows = SP.happy || SP.idle;
+  const PADY = 26, PADW = 14, PADX = (W - PADW * 3 - 4) / 2;
+  const s = { t: 0, phase: 'arrive', gx: W + 4, n: 0, act: -1, actT: 0, cursor: 0, hearts: [] };
+  const GX = 24;
+  a.hud(`${card.nick ? card.nick + ' · ' : ''}visita de ${card.name}`);
+  const ICON = [
+    [".k.k.k.", ".kkkkk.", "kkkkkkk", "kkkkkkk", ".kkkkk.", "..kkk..", "..kkk.."],           // saludar
+    ["...k...", "..kkk..", ".kkkkk.", "kkkkkkk", "k.....k", "kkkkkkk", "......."],             // tarta
+    [".kkkkk.", "k..k..k", "k.kkk.k", "kk.k.kk", "k.kkk.k", "k..k..k", ".kkkkk."]              // pelota
+  ];
+  const press = i => {
+    if (s.phase !== 'play' || s.actT > 0) return;
+    s.act = i; s.actT = 1.7; s.n++; a.sound.play(['happy', 'eat', 'coin'][i]);
+    for (let k = 0; k < 3; k++) s.hearts.push({ x: 24 + (k - 1) * 3, y: 10, v: 6 + k, life: 1.6 });
+    a.hud(`${'♥'.repeat(s.n)}${'♡'.repeat(3 - s.n)}`);
+  };
+  return {
+    pointer(fx) { press(Math.max(0, Math.min(2, Math.floor((fx * W - PADX + 1) / (PADW + 2))))); },
+    key(k) { if (k === 'left') s.cursor = (s.cursor + 1) % 3; else if (k === 'right' || k === 'action') press(s.cursor); else if (/^[1-3]$/.test(String(k))) press(Number(k) - 1); },
+    update(dt) {
+      s.t += dt; s.actT = Math.max(0, s.actT - dt);
+      s.hearts.forEach(h => { h.y -= h.v * dt; h.life -= dt; });
+      s.hearts = s.hearts.filter(h => h.life > 0);
+      if (s.phase === 'arrive') { s.gx = Math.max(GX, s.gx - dt * 20); if (s.gx <= GX && s.t > 1.6) { s.phase = 'play'; s.t = 0; a.hud('Toca un botón: ♡♡♡'); } }
+      else if (s.phase === 'play' && s.n >= 3 && s.actT <= 0) { s.phase = 'bye'; s.t = 0; a.sound.play('win'); }
+      else if (s.phase === 'bye' && s.t > 1.4) {
+        const r = card.finish ? card.finish() : { happy: 20, lp: 0, lines: [] };
+        end('visit', r.title || '¡Qué buena visita!', r.lines || [], { happy: r.happy, energy: -2, lp: r.lp || 0 }, { noAgain: true, noStats: true });
+      }
+    },
+    draw() {
+      g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+      g.fillStyle = C.dark; g.fillRect(0, 24, W, 0.5);
+      const bob = k => (s.act >= 0 && s.actT > 0 && ((Math.floor(s.actT * 6) + k) % 2)) ? -2 : 0;
+      const jy = s.phase === 'arrive' ? Math.abs(Math.sin(s.t * 9)) * -2 : 0;
+      a.drawSprite(mine, 0, 2 + bob(0), {});
+      a.drawSprite(guestRows, Math.round(s.gx), Math.round(2 + bob(1) + jy), { flip: true });
+      // objeto que viaja entre los dos
+      if (s.actT > 0 && s.act >= 1) {
+        const q = 1 - s.actT / 1.7, px = 12 + Math.abs(Math.sin(q * Math.PI * 2)) * 0 + q * 24, py = 12 - Math.sin(q * Math.PI * (s.act === 2 ? 4 : 1)) * (s.act === 2 ? 5 : 3);
+        g.fillStyle = s.act === 1 ? '#ff8fb1' : '#e0523f'; g.fillRect(r5(px), r5(py), 3, 3); g.fillStyle = C.ink; g.fillRect(r5(px), r5(py), 3, 0.5);
+      }
+      for (const h of s.hearts) a.drawHeart(Math.round(h.x), Math.round(h.y));
+      for (let i = 0; i < 3; i++) {
+        const x = PADX + i * (PADW + 2), on = s.act === i && s.actT > 0;
+        box(g, x, PADY, PADW, 9, on ? C.ink : C.light, C.ink);
+        g.fillStyle = on ? C.bg : C.ink;
+        ICON[i].forEach((row, j) => [...row].forEach((c, k) => { if (c === 'k') g.fillRect(r5(x + 3.5 + k), r5(PADY + 1 + j * 1.0 * 1), 1, 1); }));
+        if (s.phase === 'play' && s.cursor === i && !on) { g.fillStyle = C.ink; g.fillRect(x, PADY + 9.5, PADW, 0.5); }
+      }
     }
   };
 }

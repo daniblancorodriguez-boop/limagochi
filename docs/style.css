@@ -71,7 +71,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 
 .icons {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  grid-template-columns: repeat(10, 1fr);
   gap: 2px;
   padding: 4px;
   background: var(--lcd-2);
@@ -171,7 +171,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 /* ---------- Medidores ---------- */
 .meters {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 2px;
   padding: 6px 4px;
   background: var(--lcd-2);
@@ -270,3 +270,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .gh { margin-top: 5px; font-size: 12px; font-weight: 800; border-bottom: 1px solid var(--ink); }
 .gp { font-size: 11px; line-height: 1.35; font-weight: 600; }
 .gli { padding-left: 2px; }
+
+/* ---------- Visitas ---------- */
+.qr { display: block; margin: 6px auto; width: 168px; height: 168px; image-rendering: pixelated; background: #fff; border: 2px solid var(--ink); border-radius: 6px; }
+.vtext { width: 100%; box-sizing: border-box; padding: 6px; margin: 4px 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--lcd); border: 2px solid var(--ink); border-radius: 6px; }

@@ -47,7 +47,7 @@ Sobre iPhone, el push solo funciona con la app instalada en la pantalla de inici
 ## Estructura
 ```
 docs/   app (index.html, style.css, sprites.js, audio.js, world.js, notify.js, progress.js, backup.js,
-          minigames.js, voice.js, game.js, sw.js, manifest.json, icons/)
+          lib/qrcode.js, mail.js, visit.js, minigames.js, voice.js, game.js, sw.js, manifest.json, icons/)
 server.js servidor estático + Web Push
 tools/    build_sprites.py · build_icons.py · bundle.py
 data/     claves VAPID y suscripciones (se crea sola; no distribuir)
@@ -57,3 +57,11 @@ Al cambiar archivos de `docs/`, sube `VERSION` en `docs/sw.js` para que los móv
 ## Publicar en GitHub Pages
 Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. La app queda en `https://USUARIO.github.io/REPO/`
 (solo web: PWA y offline sí; el Web Push necesita además `node server.js` en un hosting con Node).
+
+
+## Novedades 3.3
+- 🚿 **Ducha**: barra de higiene (🧼) y minijuego de frotar con el dedo/ratón. Ideal: una al día.
+- ✉️ **Buzón**: cartas de tu Limagochi (con el tono de su forma) y mini-historias de 3 capítulos por evento, con recuerdo (gorro) y 🪙.
+- 🤝 **Visitas por tarjeta**: enlace `#visit=…` y QR (sin servidor); un amigo da premio una vez cada 20 h.
+- 🎤 5 trucos nuevos (aplaudir, beso, pino, meditar, bostezar) y 6 palabras (agua, amigo, jugar, buenas noches, feliz, abrazo).
+- Librería QR: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT) en `docs/lib/`.
