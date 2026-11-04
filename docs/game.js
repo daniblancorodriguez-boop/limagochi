@@ -54,7 +54,7 @@ const SHOP_EXTRAS = [
   { id: 'bg_clouds', type: 'bg',  key: 'clouds', icon: '☁️', name: 'Fondo nubes',     cost: 20 },
   { id: 'bg_stars',  type: 'bg',  key: 'stars',  icon: '✨', name: 'Fondo estrellas', cost: 25 },
   { id: 'bg_bricks', type: 'bg',  key: 'bricks', icon: '🧱', name: 'Fondo ladrillos', cost: 20 },
-  { id: 'ball',      type: 'toy', icon: '⚽', name: 'Pelota',  cost: 20, desc: 'se aburre un 15% menos' },
+  { id: 'ball',      type: 'toy', icon: '⚽', name: 'Pelota',  cost: 20, desc: 'se aburre un 15% menos', img: 'ball' },
   { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos', img: 'teddy' },
   { id: 'sofa',      type: 'furn', icon: '🛋️', name: 'Sofá',    cost: 40, desc: 'tócalo para sentarse o tumbarse', img: 'sofa' },
   { id: 'bed',       type: 'furn', icon: '🛏️', name: 'Cama',    cost: 50, desc: 'duerme en ella de noche', img: 'bed' },
@@ -662,8 +662,6 @@ function openShop() {
     wrap.append(itemThumb(i.img), right);
     nodes.push(wrap);
   });
-  nodes.push(p('Pelota'));
-  { const i = SHOP_EXTRAS.find(x => x.id === 'ball'); nodes.push(s.owned.includes('ball') ? btn(`${i.icon} ${i.name} ✓ en casa`, () => {}, '', true) : btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost)); }
   nodes.push(p('Gana 🪙 en los minijuegos y aprendiendo trucos'));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes, { full: true });
@@ -1060,6 +1058,7 @@ function drawHouse(now) {
     drawItem('tv', t.x, t.y, s.room.tv ? 1 : 0);
   }
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
+  if (o.includes('ball')) drawItem('ball', 2, 34 - itemSize('ball').h);
 }
 
 function drawScene(now) {
@@ -1074,7 +1073,6 @@ function drawScene(now) {
   for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
   drawHouse(now);
-  if (s.owned.includes('ball')) { R1(21, 29, 5, 5, C.ink); R1(22, 30, 3, 3, '#e0523f'); R1(23, 31, 1, 1, '#f7fbe6'); }
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   drawPet(now, frame, f);
   drawGuessArrow();
