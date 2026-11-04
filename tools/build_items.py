@@ -80,6 +80,6 @@ ta,tf=tvhalf(0,500); tb,tbf=tvhalf(512,1024)
 # align: bottom half is offset by ~11px
 tb=tb[:488]; tbf=tbf[:488]; ta=ta[:488]; tf=tf[:488]
 build('tv',[(ta,tf),(tb,tbf)],13,36)
-a,f=prep('teddy'); build('teddy',[(a,f)],10,28)
+a,f=prep('teddy'); build('teddy',[(a,f)],8,24)
 json.dump(out,open('items.json','w'))
 for n in out: print(n,{k:(len(v['rows'][0]),len(v['rows'][0][0])) for k,v in out[n].items()})

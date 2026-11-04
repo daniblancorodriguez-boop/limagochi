@@ -65,7 +65,7 @@ const SHOP_EXTRAS = [
 const ROOM = { bed: { x: 0, y: 11 }, sofa: { x: 26, y: 20 }, tv: { x: 34, y: 4 } };
 const itemSize = id => { const r = L.ITEMS[id].sm.rows[0]; return { w: r[0].length, h: r.length }; };
 /** Peluche: sobre el sofá si lo hay; si no, en el suelo. */
-const teddyPos = () => state.owned.includes('sofa') ? { x: 27, y: 17 } : { x: 37, y: 22 };
+const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: 28, y: 28 - h } : { x: 38, y: 34 - h }; };
 
 /* rama por dieta dominante × cuidado (0-1 · 2-5 · 6+ errores) */
 const FORMS = { veg: ['flor', 'brote', 'marchita'], meat: ['guerrera', 'grunona', 'rebelde'], candy: ['piruleta', 'glotona', 'gominola'] };
