@@ -17,6 +17,7 @@ LIME, OLIVE, CANDY = ('l', 'g', 'G'), ('N', 'm', 'M'), ('f', 'q', 'Q')
 # Siluetas (ancho de cada fila, de arriba a abajo). Se alinean al suelo (fila 21).
 BABY  = [4, 8, 10, 10, 10, 10, 8, 4]
 CHILD = [6, 10, 12, 14, 14, 14, 14, 12, 10, 6]
+TEEN  = [6, 10, 12, 14, 14, 16, 16, 16, 14, 14, 12, 8]
 ADULT = [6, 10, 12, 14, 14, 16, 16, 16, 16, 14, 14, 12, 10, 6]
 WIDE  = [8, 12, 16, 18, 20, 20, 20, 20, 18, 16, 12, 8]
 
@@ -132,6 +133,26 @@ def child_naughty(face=None):
     return finish(g)
 
 
+def teen_good(face=None):
+    g, t, n = body(TEEN); leaf(g, t)
+    put(g, 8, t - 3, ["l.", "lg"]); put(g, 15, t - 2, [".l", "gl"])             # dos hojitas más: ya es mayorcito
+    ey = t + 4; e, m = fc(face, 'round', 'smile'); eyes(g, ey, e, 3); mouth(g, ey + 3, m); cheeks(g, ey + 2, 5)
+    put(g, 18, t + 1, [".y.", "yyy", ".y."])                                        # brillo de confianza
+    return finish(g)
+
+
+def teen_naughty(face=None):
+    g, t, n = body(TEEN)
+    put(g, 8, t - 4, ["G..G..G.", "GG.GG.GG", ".GGGGGG."])                          # cresta
+    x0 = (W - TEEN[3]) // 2
+    for x in range(x0 + 1, x0 + TEEN[3] - 1):                                       # pañuelo en la frente
+        g[t + 3][x] = 'o'
+    put(g, x0 + TEEN[3] - 1, t + 3, ["oo"])
+    ey = t + 5; e, m = fc(face, 'angry', 'smirk'); eyes(g, ey, e, 3); mouth(g, ey + 3, m)
+    put(g, 4, ey + 4, ["y"]); put(g, 4, ey + 5, ["y"])                              # pendiente
+    return finish(g)
+
+
 def flor(face=None):
     g, t, n = body(ADULT)
     put(g, 9, t - 5, ["..pp..", ".pppp.", "ppyypp", ".pppp.", "..pp.."])
@@ -231,6 +252,7 @@ def egg(face=None):
 SPRITES = [
     ('baby', 'Limabebé', 'base', baby), ('child_good', 'Limita', 'base', child_good),
     ('child_naughty', 'Limón travieso', 'base', child_naughty),
+    ('teen_good', 'Lima Joven', 'base', teen_good), ('teen_naughty', 'Lima Macarra', 'base', teen_naughty),
     ('flor', 'Lima Flor', 'veg', flor), ('brote', 'Lima Brote', 'veg', brote), ('marchita', 'Lima Marchita', 'veg', marchita),
     ('guerrera', 'Lima Guerrera', 'meat', guerrera), ('grunona', 'Lima Gruñona', 'meat', grunona), ('rebelde', 'Lima Rebelde', 'meat', rebelde),
     ('piruleta', 'Lima Piruleta', 'candy', piruleta), ('glotona', 'Lima Glotona', 'candy', glotona), ('gominola', 'Lima Gominola', 'candy', gominola),

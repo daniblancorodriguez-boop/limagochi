@@ -31,8 +31,8 @@ const WORDS = [
   { id: 'gracias', icon: '🙏', say: 'gracias',   keys: ['gracias'] },
   { id: 'quiero',  icon: '💚', say: 'te quiero', keys: ['te quiero', 'quiero'] }
 ];
-const WORD_CAP = { baby: 35, child: 75, adult: 100 };       // un bebé solo balbucea
-const FORM_IQ = { child_good: 0.1, child_naughty: 0, estrella: 0.5, flor: 0.3, guerrera: 0.3, piruleta: 0.25,
+const WORD_CAP = { baby: 35, child: 75, teen: 90, adult: 100 };       // un bebé solo balbucea
+const FORM_IQ = { child_good: 0.1, child_naughty: 0, teen_good: 0.15, teen_naughty: 0.02, estrella: 0.5, flor: 0.3, guerrera: 0.3, piruleta: 0.25,
                   brote: 0.2, grunona: 0.15, glotona: 0.1, rebelde: 0.1, marchita: 0.05, gominola: 0.05 };
 
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -43,7 +43,7 @@ const IQ_MAX = 1.6;
 /** Inteligencia 0.15–1.6: etapa + forma − errores + disciplina + lecciones recibidas (hasta +0.3). */
 function iq() {
   const s = A().S();
-  const base = { baby: 0.2, child: 0.4, adult: 0.55 }[s.stage] || 0;
+  const base = { baby: 0.2, child: 0.4, teen: 0.48, adult: 0.55 }[s.stage] || 0;
   const pen = Math.min(0.25, s.mistakes * 0.03);
   const study = Math.min(0.3, (s.study ? s.study.n : 0) * 0.006);
   return Math.max(0.15, Math.min(IQ_MAX, base + (FORM_IQ[s.form] || 0) - pen + s.discipline / 400 + study));
@@ -241,7 +241,7 @@ function decay(dt) {
 setInterval(() => {
   if (!L.api) return;
   const s = L.api.S();
-  if (s.sleeping || s.stage === 'dead' || s.stage === 'egg' || document.hidden || !L.sound.enabled()) return;
+  if (s.sleeping || s.pause || s.stage === 'dead' || s.stage === 'egg' || document.hidden || !L.sound.enabled()) return;
   const known = WORDS.filter(w => (s.words[w.id] || 0) >= 10);
   if (!known.length || Math.random() > 0.2) return;
   const w = known[Math.floor(Math.random() * known.length)];

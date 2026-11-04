@@ -8,14 +8,16 @@ window.LIMA = window.LIMA || {};
 const L = LIMA;
 const A = () => L.api;
 
-/* las 13 formas coleccionables: bebé, 2 de niño, 10 adultas */
-const ALBUM = ['baby', 'child_good', 'child_naughty',
+/* las 15 formas coleccionables: bebé, 2 de niño, 2 de adolescente, 10 adultas */
+const ALBUM = ['baby', 'child_good', 'child_naughty', 'teen_good', 'teen_naughty',
   'estrella', 'flor', 'brote', 'marchita', 'guerrera', 'grunona', 'rebelde', 'piruleta', 'glotona', 'gominola'];
 
 const HINT = {
   baby: 'Eclosiona tu primer huevo.',
   child_good: 'Crece de bebé con 0–1 errores de cuidado.',
   child_naughty: 'Crece de bebé con 2 o más errores de cuidado.',
+  teen_good: 'Llega a adolescente (día 3) con 0–2 errores de cuidado.',
+  teen_naughty: 'Llega a adolescente (día 3) con 3 o más errores de cuidado.',
   estrella: 'Adulto perfecto: ≤1 error, disciplina ≥80% y dieta variada.',
   flor: 'Dieta de verduras y cuidado excelente (0–1 errores).',
   brote: 'Dieta de verduras y cuidado normal (2–5 errores).',
@@ -28,7 +30,7 @@ const HINT = {
   gominola: 'Dieta de dulces y cuidado flojo (6+ errores).'
 };
 
-const ADULTS = ALBUM.slice(3);
+const ADULTS = ALBUM.slice(5);
 const mastered = s => Object.values(s.skills || {}).filter(v => v >= 100).length;
 const sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 
@@ -36,11 +38,12 @@ const sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 const ACH = [
   { id: 'hatch',    icon: '🐣', name: 'Primer aliento',     desc: 'Eclosiona un huevo.',                       prog: (m) => [has(m, 'baby') ? 1 : 0, 1] },
   { id: 'child',    icon: '🧒', name: 'Creciendo',          desc: 'Llega a la etapa de niño.',                 prog: (m) => [has(m, 'child_good') || has(m, 'child_naughty') ? 1 : 0, 1] },
+  { id: 'teen',     icon: '😎', name: 'Edad del pavo',      desc: 'Llega a la etapa de adolescente.',          prog: (m) => [has(m, 'teen_good') || has(m, 'teen_naughty') ? 1 : 0, 1] },
   { id: 'adult',    icon: '🌟', name: 'Mayor de edad',      desc: 'Consigue una forma adulta.',                prog: (m) => [adultsSeen(m), 1] },
   { id: 'star',     icon: '⭐', name: 'Cuidador perfecto',   desc: 'Consigue la forma Estrella.',               prog: (m) => [has(m, 'estrella') ? 1 : 0, 1] },
   { id: 'coll5',    icon: '📖', name: 'Coleccionista',      desc: 'Descubre 5 formas en el álbum.',            prog: (m) => [Object.keys(m.album).length, 5] },
   { id: 'coll10',   icon: '📚', name: 'Gran coleccionista', desc: 'Descubre 10 formas en el álbum.',           prog: (m) => [Object.keys(m.album).length, 10] },
-  { id: 'collAll',  icon: '👑', name: 'Maestro de limas',   desc: 'Completa el álbum: las 13 formas.',         prog: (m) => [Object.keys(m.album).length, ALBUM.length] },
+  { id: 'collAll',  icon: '👑', name: 'Maestro de limas',   desc: 'Completa el álbum: todas las formas.',         prog: (m) => [Object.keys(m.album).length, ALBUM.length] },
   { id: 'veg',      icon: '🥬', name: 'Vegetariano',        desc: 'Consigue una forma de dieta verde.',        prog: (m) => [['flor', 'brote', 'marchita'].filter(f => has(m, f)).length, 1] },
   { id: 'meat',     icon: '🍖', name: 'Carnívoro',          desc: 'Consigue una forma de dieta de carne.',     prog: (m) => [['guerrera', 'grunona', 'rebelde'].filter(f => has(m, f)).length, 1] },
   { id: 'sweet',    icon: '🍭', name: 'Dientes dulces',     desc: 'Consigue una forma de dieta de dulces.',    prog: (m) => [['piruleta', 'glotona', 'gominola'].filter(f => has(m, f)).length, 1] },

@@ -22,7 +22,7 @@ todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic 
 | Web Push con la app cerrada | `server.js` + `docs/notify.js` (`LIMA.push`) |
 
 ## Tiempos (como el Tamagotchi original)
-Huevo 5 min · Bebé ~65 min · Niño hasta el día 6 de vida · Adulto ~12 días. Hambre vacía en ~8 h, felicidad en ~10 h.
+Huevo 5 min · Bebé ~65 min · Niño hasta el día 3 · Adolescente hasta el día 6 · Adulto ~12 días. Hambre vacía en ~8 h, felicidad en ~10 h.
 Por la noche (22:00–07:00, tu hora real) se duerme solo. Valores en `CFG` de `docs/game.js`.
 El selector «Vel.» (x10, x60) del pie acelera el tiempo para probar.
 

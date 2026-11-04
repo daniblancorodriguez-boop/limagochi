@@ -17,10 +17,10 @@ const CFG = {
   shellKey: 'limagochi.shell',
   maxOfflineMin: 14 * 1440,           // máximo que se simula al volver (14 días)
   dayMin: 1440,                       // 1 día de vida = 24 h reales
-  /* tiempos como el Tamagotchi original: bebé 65 min · niño hasta el día 6 de vida · adulto ~12 días */
-  stageMin: { egg: 5, baby: 65, child: 6 * 1440 - 70 },
-  minWeight: { egg: 3, baby: 3, child: 8, adult: 15 },
-  obese: { baby: 10, child: 22, adult: 40 },   // peso a partir del cual está obeso
+  /* tiempos como el Tamagotchi original: bebé 65 min · niño hasta el día 3 · adolescente hasta el día 6 · adulto ~12 días */
+  stageMin: { egg: 5, baby: 65, child: 3 * 1440 - 70, teen: 3 * 1440 },     // niño hasta el día 3 · adolescente hasta el día 6
+  minWeight: { egg: 3, baby: 3, child: 8, teen: 12, adult: 15 },
+  obese: { baby: 10, child: 22, teen: 30, adult: 40 },   // peso a partir del cual está obeso
   /* por minuto (despierto): hambre vacía en ~8 h, felicidad en ~10 h, energía en ~14 h; dormir recupera en ~8 h */
   rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21 },
   poopEvery: [90, 180],               // minutos entre caquitas
@@ -60,7 +60,7 @@ const SHOP_EXTRAS = [
 
 /* rama por dieta dominante × cuidado (0-1 · 2-5 · 6+ errores) */
 const FORMS = { veg: ['flor', 'brote', 'marchita'], meat: ['guerrera', 'grunona', 'rebelde'], candy: ['piruleta', 'glotona', 'gominola'] };
-const STAGE_NAMES = { egg: 'Huevo', baby: 'Bebé', child: 'Niño', adult: 'Adulto', dead: 'Fallecido' };
+const STAGE_NAMES = { egg: 'Huevo', baby: 'Bebé', child: 'Niño', teen: 'Adolescente', adult: 'Adulto', dead: 'Fallecido' };
 const SHELLS = ['#7ed957', '#ff8fb1', '#6ec6ff', '#ffd84d', '#b99cff'];
 
 /* ============================== UTILIDADES ============================== */
@@ -94,6 +94,7 @@ function newState() {
     lp: 0, inv: {}, owned: [], bg: 'none',
     skills: {}, words: {}, cause: '',
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
+    pause: null,                               // {since} mientras está de vacaciones (el tiempo se detiene)
     stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
     born: Date.now(), lastSeen: Date.now()
@@ -130,6 +131,8 @@ const Store = {
 
 let state = newState();
 let diedNow = false;
+let vacHud = false;
+let evo = null;               // animación de evolución en curso
 let simT = null;              // reloj simulado (ms) al recuperar una ausencia; null = tiempo real
 const clockNow = () => (simT === null ? Date.now() : simT);
 let quiet = false;            // true mientras se simula la ausencia (sin sonidos ni avisos)
@@ -155,6 +158,7 @@ function spriteId() {
   if (s.stage === 'egg') return 'egg';
   if (s.stage === 'baby') return 'baby';
   if (s.stage === 'dead') return null;
+  if (s.stage === 'teen') return s.form || 'teen_good';
   return s.form || 'child_good';
 }
 
@@ -186,24 +190,28 @@ function adultForm() {
   return FORMS[diet][care];
 }
 
-function toStage(st, text) {
+function toStage(st, text, from) {
   state.stage = st; state.stageMin = 0;
   state.weight = Math.max(state.weight, CFG.minWeight[st]);
   if (st !== 'egg') L.progress.record(spriteId());
   if (quiet) return;
-  fx('happy', 1800); setMsg(text, 5000); Sound.play('evolve');
+  evo = { start: Date.now(), dur: 3800, from: from || 'egg', to: spriteId() };       // animación de evolución
+  fx('happy', 3800 + 1800); peek(3800); setMsg(text, 5500); Sound.play('evolve');
   L.notify && L.notify.event('¡Limagochi ha evolucionado!', text);
 }
 
 function evolve() {
-  const s = state;
-  if (s.stage === 'egg' && s.stageMin >= CFG.stageMin.egg) toStage('baby', '¡El huevo ha eclosionado!');
+  const s = state, from = spriteId();
+  if (s.stage === 'egg' && s.stageMin >= CFG.stageMin.egg) toStage('baby', '¡El huevo ha eclosionado!', from);
   else if (s.stage === 'baby' && s.stageMin >= CFG.stageMin.baby) {
     s.form = s.mistakes <= 1 ? 'child_good' : 'child_naughty';
-    toStage('child', `¡Ha crecido! Ahora es ${formName(s.form)}`);
+    toStage('child', `¡Ha crecido! Ahora es ${formName(s.form)}`, from);
   } else if (s.stage === 'child' && s.stageMin >= CFG.stageMin.child) {
+    s.form = s.mistakes <= 2 ? 'teen_good' : 'teen_naughty';
+    toStage('teen', `¡Ya es adolescente! Ahora es ${formName(s.form)}`, from);
+  } else if (s.stage === 'teen' && s.stageMin >= CFG.stageMin.teen) {
     s.form = adultForm();
-    toStage('adult', `¡Evolución! Es ${formName(s.form)}`);
+    toStage('adult', `¡Evolución! Es ${formName(s.form)}`, from);
   }
 }
 
@@ -281,6 +289,7 @@ function tick(dt) {
 }
 
 function step(dtMin) {
+  if (state.pause) return;                                // de vacaciones: el tiempo no corre
   let left = Math.min(dtMin, CFG.maxOfflineMin), guard = 0;
   while (left > 0 && guard++ < 25000) {
     const d = Math.min(1, left);
@@ -293,7 +302,7 @@ function step(dtMin) {
 
 function attention() {
   const s = state, a = [];
-  if (s.stage === 'dead' || s.stage === 'egg' || s.sleeping) return a;
+  if (s.stage === 'dead' || s.stage === 'egg' || s.sleeping || s.pause) return a;
   if (s.hunger < 25) a.push({ key: 'hunger', text: 'Tiene hambre' });
   if (s.happy < 25) a.push({ key: 'sad', text: 'Está triste: ¡juega con él!' });
   if (s.energy < 15) a.push({ key: 'sleepy', text: 'Tiene sueño: apaga la luz' });
@@ -369,7 +378,7 @@ function feed(f) {
   s.food[f.diet]++;
   L.progress.stat('fed'); if (f.cat === 'snack') L.progress.stat('snacks'); if (f.gourmet) L.progress.stat('gourmet');
   s.sweetLoad += f.sweet || 0;
-  fx('eat', 1800); Sound.play('eat');
+  fx('eat', 2600, { food: f }); Sound.play('eat');
   if (s.sweetLoad >= 3 && !s.sick) makeSick('¡Caries! Demasiados dulces');
   else if (isObese()) setMsg('¡Está muy gordito! Hazlo jugar', 3500);
   else setMsg(`¡Ñam! ${f.name}`);
@@ -431,7 +440,7 @@ function scold() {
 function openStatus() {
   const s = state;
     const left = CFG.stageMin[s.stage] ? Math.max(0, Math.ceil(CFG.stageMin[s.stage] - s.stageMin)) : null;
-  const form = s.stage === 'dead' ? '—' : s.stage === 'child' || s.stage === 'adult' ? formName(s.form) : STAGE_NAMES[s.stage];
+  const form = s.stage === 'dead' ? '—' : s.stage === 'child' || s.stage === 'teen' || s.stage === 'adult' ? formName(s.form) : STAGE_NAMES[s.stage];
   const rows = [
     ['Etapa', STAGE_NAMES[s.stage]], ['Forma', form], ['Edad', fmtDur(s.ageMin)],
     ['Peso', `${s.weight.toFixed(1)} g${isObese() ? ' (obeso)' : ''}`],
@@ -458,6 +467,34 @@ function openStatus() {
       })
     )
   ], { full: true });
+}
+
+/* ---- vacaciones: el tiempo se detiene (no crece, no pasa hambre, no enferma ni muere) ---- */
+function openVacation() {
+  const s = state;
+  openPanel([
+    p('🏖️ Limagochi está de vacaciones'),
+    p(`Lleva ${fmtDur((Date.now() - s.pause.since) / 60000)} descansando. Mientras tanto no crece ni necesita cuidados.`),
+    btn('☀️ Volver de vacaciones', endVacation),
+    row(btn('📘 Guía', () => L.guide.open(openVacation)), btn('⚙️ Ajustes', () => L.backup.openSettings(openVacation))),
+    btn('Cerrar', closePanel, 'ghost')
+  ], { full: true });
+}
+function startVacation() {
+  const s = state;
+  if (s.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
+  if (s.pause) { openVacation(); return; }
+  if (!confirm('¿Mandar a Limagochi de vacaciones? El tiempo se detiene (no crece ni necesita cuidados) hasta que lo recojas.')) return;
+  L.mini && L.mini.stop(false);
+  s.pause = { since: Date.now() };
+  closePanel(); Store.save(); setMsg('🏖️ ¡Felices vacaciones!', 3500); render();
+}
+function endVacation() {
+  const s = state;
+  if (!s.pause) return;
+  s.pause = null; s.lastSeen = Date.now(); lastTick = Date.now();
+  lastKeys = new Set(attention().map(r => r.key));
+  closePanel(); Sound.play('happy'); fx('happy', 1800); setMsg('☀️ ¡Bienvenido de vuelta!'); Store.save(); render();
 }
 
 function newEgg() {
@@ -542,10 +579,10 @@ function startGuess() {
   renderGuess();
 }
 function renderGuess() {
+  // panel compacto (una línea + 3 botones) para que la mascota se vea encima
   openPanel([
-    p(`Ronda ${Math.min(guess.round + 1, 5)}/5 · Aciertos: ${guess.wins}`), p(guess.text),
-    row(btn('◀ Izquierda', () => pick(-1), '', guess.locked), btn('Derecha ▶', () => pick(1), '', guess.locked)),
-    btn('Salir', closePanel, 'ghost')
+    p(`Ronda ${Math.min(guess.round + 1, 5)}/5 · ✔ ${guess.wins} · ${guess.text}`),
+    row(btn('◀ Izq.', () => pick(-1), '', guess.locked), btn('✕', closePanel, 'ghost'), btn('Der. ▶', () => pick(1), '', guess.locked))
   ]);
   guess.active = true;
 }
@@ -588,7 +625,7 @@ function drawSprite(rows, x, y, o = {}) {
     for (let i = 0; i < 24; i++) {
       const c = r[i];
       if (c === '.') continue;
-      g.fillStyle = colorOf(c, o.sick);
+      g.fillStyle = o.solid || colorOf(c, o.sick);
       g.fillRect(x + (o.flip ? 23 - i : i) * sc, y + j * sc, sc, sc);
     }
   }
@@ -603,7 +640,7 @@ function petRows(face) {
 }
 
 let current = null;                       // efecto visual activo
-function fx(type, dur = 1500) { current = { type, start: Date.now(), dur }; render(); }
+function fx(type, dur = 1500, data = null) { current = { type, start: Date.now(), dur, data }; render(); }
 
 const R1 = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 
@@ -620,7 +657,107 @@ function drawPoop(x, y, frame) {
   R1(x + 3, y, 1, 1, C.poop); R1(x + 2, y + 1, 3, 1, C.poop); R1(x + 1, y + 2, 5, 1, C.poop); R1(x, y + 3, 7, 1, C.poop);
   R1(x + 1, y - 3 - frame, 1, 2, C.dark); R1(x + 5, y - 2 + frame, 1, 2, C.dark);
 }
-function drawZ(x, y) { R1(x, y, 3, 1, C.ink); R1(x + 1, y + 1, 1, 1, C.ink); R1(x, y + 2, 3, 1, C.ink); }
+function drawZ(x, y, big) {
+  const n = big ? 5 : 3;
+  R1(x, y, n, 1, C.ink); R1(x, y + n - 1, n, 1, C.ink);
+  for (let i = 1; i < n - 1; i++) R1(x + n - 1 - i, y + i, 1, 1, C.ink);
+}
+
+/* ---- iconos de comida (7x7) para la animación de comer ---- */
+const ICON_COL = { k: '#1d2a12', g: '#3f7a35', G: '#7ed957', n: '#6b4a1f', R: '#a8362b', o: '#d27a3c', w: '#f7fbe6', p: '#ff8fb1', P: '#d95f86', y: '#ffd84d' };
+const FOOD_ICON = {
+  veg:    ['..gGg..', '.gGGGg.', 'gGgGgGg', 'kkkkkkk', '.kwwwk.', '..kkk..', '.......'],
+  meat:   ['..nnn..', '.noooR.', '.noooR.', '..nRn..', '...w...', '..www..', '...w...'],
+  candy:  ['.......', 'p.ppp.p', 'pppPppp', '.pPPPp.', 'pppPppp', 'p.ppp.p', '.......'],
+  gourmet:['..yyy..', '.yyyyy.', 'yyyyyyy', 'kkkkkkk', 'wwwwwww', '.kkkkk.', '.......']
+};
+function drawIcon(rows, x, y, cols = 7) {
+  rows.forEach((r, j) => { for (let i = 0; i < Math.min(cols, r.length); i++) if (r[i] !== '.') R1(x + i, y + j, 1, 1, tint(ICON_COL[r[i]])); });
+}
+const HEART = ['.pp.pp.', 'ppppppp', 'ppppppp', '.ppppp.', '..ppp..', '...p...'];
+function drawHeart(x, y) { HEART.forEach((r, j) => [...r].forEach((c, i) => c !== '.' && R1(x + i, y + j, 1, 1, tint('#ff6fa8')))); }
+
+/** La comida vuela hacia la boca, se mastica a bocados y sale un corazón. p = progreso 0..1 */
+function drawEating(f, now, p, x, y, rows) {
+  const food = f.data && f.data.food; if (!food) return;
+  const ic = FOOD_ICON[food.gourmet ? 'gourmet' : food.diet] || FOOD_ICON.veg;
+  const top = topRow(rows), mx = x + 12, my = y + top + Math.round((22 - top) * 0.55);
+  if (p < 0.3) {
+    const q = p / 0.3;
+    drawIcon(ic, Math.round(mx + 22 * (1 - q) - 3), Math.round(my - 3 - Math.sin(q * Math.PI) * 8 * (1 - q * 0.3)));
+  } else if (p < 0.88) {
+    const bite = (p - 0.3) / 0.58;
+    drawIcon(ic, mx - 3, my - 1, Math.max(1, Math.ceil(7 * (1 - bite))));
+    for (let i = 0; i < 3; i++) {                                          // migas
+      const ph = ((now / 400) + i * 0.33) % 1;
+      R1(mx - 4 + i * 4 + Math.round(Math.sin(now / 150 + i) * 1), my + 3 + Math.round(ph * 8), 1, 1, C.dark);
+    }
+  } else drawHeart(mx + 6, y + top - 4 - Math.round((p - 0.88) * 30));
+}
+
+/** Pijama: manta a rayas sobre la mitad inferior del cuerpo. */
+function drawBlanket(x, y, rows) {
+  const top = topRow(rows), h = 22 - top, by = y + top + Math.round(h * 0.55), bh = Math.ceil(h * 0.45) + 1;
+  R1(x + 3, by, 18, bh, C.ink);
+  for (let i = 0; i < 16; i++) for (let j = 0; j < bh - 1; j++) R1(x + 4 + i, by + 1 + j, 1, 1, tint((i >> 2) % 2 ? '#f7fbe6' : '#6ec6ff'));
+}
+/** Zzz que suben flotando y crecen. */
+function drawZzz(now, x, y) {
+  for (let i = 0; i < 3; i++) {
+    const ph = ((now / 1500) + i / 3) % 1;
+    drawZ(Math.round(x + 22 + ph * 6 + Math.sin(now / 400 + i) * 1), Math.round(y + 4 - ph * 16), ph > 0.5);
+  }
+}
+/** Enfermo: termómetro, gota de sudor y estornudo ocasional. */
+function drawSickness(now, x, y, rows) {
+  const top = topRow(rows);
+  R1(x + 19, y + top - 1, 3, 8, C.ink); R1(x + 20, y + top, 1, 5, tint('#f7fbe6')); R1(x + 20, y + top + 3, 1, 2, tint('#e0523f'));
+  R1(x + 19, y + top + 7, 3, 3, C.ink); R1(x + 20, y + top + 8, 1, 1, tint('#e0523f'));
+  R1(x + 3, y + top + 2 + Math.floor((now / 220) % 7), 1, 2, tint('#6ec6ff'));          // sudor
+  const sn = (now / 1000) % 8;
+  if (sn > 6.4) {                                                                       // ¡achís!
+    const q = (sn - 6.4) / 1.6;
+    for (let i = 0; i < 3; i++) R1(x + 24 + Math.round(q * 6) + i * 2, y + top + 8 + (i - 1) * 2 - Math.round(q * 2), 2, 1, C.dark);
+  }
+}
+
+/** Playa de vacaciones: arena, sombrilla y olas. */
+function drawBeach(now) {
+  R1(0, 30, W, 6, tint('#ecd49a'));
+  for (let x = 0; x < W; x += 6) R1((x + Math.floor(now / 500)) % W, 33, 3, 1, tint('#6ec6ff'));
+  const rowsC = [[8, 25, 31], [9, 23, 33], [10, 21, 35]];                                // sombrilla centrada en x=28
+  rowsC.forEach(([yy, a, b]) => { for (let xx = a; xx <= b; xx++) R1(xx, yy, 1, 1, tint(((xx - a) >> 1) % 2 ? '#f7fbe6' : '#e0523f')); });
+  R1(28, 11, 1, 19, tint('#6b4a1f'));
+}
+
+/** Animación de evolución: parpadeo cada vez más rápido (viejo ↔ silueta nueva), destello y reaparición. */
+function drawEvo(now) {
+  const p = (now - evo.start) / evo.dur;
+  const oldS = SPR[evo.from] || SPR.baby, newS = SPR[evo.to] || SPR.baby;
+  const oldRows = oldS[evo.from === 'egg' ? 'crack' : 'idle'] || oldS.idle, newRows = newS.happy || newS.idle;
+  const sparkle = (rad, n, col) => {
+    for (let i = 0; i < n; i++) {
+      const a = now / 350 + i * Math.PI * 2 / n;
+      R1(Math.round(24 + Math.cos(a) * rad * 1.5), Math.round(21 + Math.sin(a) * rad), 2, 2, col);
+    }
+  };
+  if (p < 0.7) {
+    const period = 380 - 320 * (p / 0.7);
+    const showNew = Math.floor((now - evo.start) / period) % 2 === 1;
+    const jx = Math.round(Math.sin(now / 40) * (p * 2));
+    drawSprite(showNew ? newRows : oldRows, 12 + jx, 11, showNew ? { solid: C.ink } : {});
+    sparkle(6 + p * 12, 6, tint('#ffd84d'));
+  } else if (p < 0.85) {
+    const q = (p - 0.7) / 0.15;
+    g.fillStyle = Math.floor(now / 60) % 2 ? C.bg : C.light; g.fillRect(0, 0, W, 33);
+    const r = Math.round(q * 30);
+    R1(24 - r, 20, r * 2, 2, tint('#ffd84d')); R1(23, 21 - Math.round(r / 2), 2, r, tint('#ffd84d'));
+  } else {
+    const q = (p - 0.85) / 0.15;
+    drawSprite(newRows, 12, 11 - Math.round(Math.abs(Math.sin(q * Math.PI * 2)) * 4 * (1 - q)));
+    sparkle(8 + q * 12, 8, tint('#ffd84d'));
+  }
+}
 function drawTomb() {
   R1(18, 15, 12, 18, C.ink); R1(19, 14, 10, 1, C.ink); R1(19, 16, 10, 17, C.light);
   R1(23, 19, 2, 8, C.ink); R1(21, 21, 6, 2, C.ink);
@@ -630,6 +767,7 @@ function drawNote(x, y) { R1(x + 2, y, 1, 4, C.ink); R1(x, y + 3, 2, 2, C.ink); 
 function drawPet(now, frame, f) {
   const s = state;
   if (s.stage === 'dead') { drawTomb(); return; }
+  if (evo) { if (now > evo.start + evo.dur) evo = null; else { drawEvo(now); return; } }
   const id = spriteId(), set = SPR[id];
   const avg = (s.hunger + s.happy) / 2;
   const p = f ? Math.min(1, (now - f.start) / f.dur) : 0;
@@ -643,16 +781,19 @@ function drawPet(now, frame, f) {
 
   let face = 'idle';
   if (s.sleeping) face = 'sleep';
-  else if (t === 'eat') face = Math.floor(now / 200) % 2 ? 'eat' : 'idle';
+  else if (t === 'eat') face = p < 0.3 ? 'eat' : p < 0.88 ? (Math.floor(now / 160) % 2 ? 'eat' : 'idle') : 'happy';
   else if (t === 'refuse' || t === 'confused') face = 'sad';
   else if (t === 't_dead') face = 'sleep';
-  else if (t === 'happy' || t.startsWith('t_') || t === 'heal') face = 'happy';
+  else if (t === 'happy' || t.startsWith('t_') || t === 'heal' || s.pause) face = 'happy';
   else if (s.sick || avg < 30) face = 'sad';
   else if (avg > 78) face = 'happy';
   const rows = set[face] || set.idle;
 
   let x = 12, y = 11, flip = false, rot = false;
-  if (!s.sleeping && !f && !guess.active) { x += Math.round(Math.sin(now / 1800) * 8); y -= frame; }
+  if (guess.active) y = 1;                                                    // arriba, para que el panel de Adivina no lo tape
+  if (s.pause) { x = 16; y = 12; }                                          // tumbado bajo la sombrilla
+  else if (!s.sleeping && !f && !guess.active) { x += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); y -= frame; if (s.sick) x += Math.floor(now / 90) % 2; }   // enfermo: tiembla
+  if (s.sleeping) y += Math.floor(now / 900) % 2;                           // respira
   if (t === 'happy') y -= (Math.floor(now / 150) % 2) * 3;
   if (t === 'refuse') x += frame ? 2 : -2;
   if (t === 't_jump') y -= Math.round(Math.abs(Math.sin(p * Math.PI * 3)) * 9);
@@ -671,8 +812,9 @@ function drawPet(now, frame, f) {
     if (ev) L.world.hat(g, ev.id, x, y + topRow(rows) + 1);
   }
 
-  if (s.sleeping) { drawZ(x + 22, y + 2); if (frame) drawZ(x + 25, y - 3); }
-  if (t === 'eat') R1(x + 25 - Math.round(p * 12), y + 14, 3, 3, C.ink);
+  if (s.sleeping && !rot) { drawBlanket(x, y, rows); drawZzz(now, x, y); }
+  if (s.sick && !s.sleeping && !rot) drawSickness(now, x, y, rows);
+  if (t === 'eat') drawEating(f, now, p, x, y, rows);
   if (t === 'heal' && frame) { R1(x + 21, y + 2, 1, 5, C.ink); R1(x + 19, y + 4, 5, 1, C.ink); }
   if (t === 'confused') { R1(x + 20, y, 3, 1, C.ink); R1(x + 22, y + 1, 1, 2, C.ink); R1(x + 21, y + 3, 1, 1, C.ink); R1(x + 21, y + 5, 1, 1, C.ink); }
   if (t === 't_wave') {
@@ -700,6 +842,7 @@ function drawScene(now) {
   L.world.sky(g, W, H, now, lcdMode);
   drawWallpaper();
   L.world.decor(g, L.world.event(), now, W, H);
+  if (s.pause) drawBeach(now);
   for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
   if (s.owned.includes('ball')) { R1(1, 28, 5, 5, C.ink); R1(2, 29, 3, 3, '#e0523f'); R1(3, 30, 1, 1, '#f7fbe6'); }
@@ -726,6 +869,8 @@ function render() {
   const reasons = attention();
   alertEl.hidden = reasons.length === 0;
   alertEl.dataset.reason = reasons[0] ? reasons[0].text : '';
+  if (s.pause) { if (!(L.mini && L.mini.active())) hud('🏖️ Vacaciones · el tiempo está detenido'); vacHud = true; }
+  else if (vacHud) { hud(null); vacHud = false; }
   $('#lp').textContent = `🪙 ${s.lp}`;
   if (L.mini && L.mini.active()) return;               // los minijuegos dibujan su propia escena
   drawScene(Date.now());
@@ -788,6 +933,7 @@ function runAction(name) {
   if (L.mini && L.mini.active()) L.mini.stop(false);
   closePanel();
   Sound.play('click');
+  if (state.pause) { openVacation(); render(); return; }                  // de vacaciones: solo se puede volver
   (ACTIONS[name] || (() => {}))();
   render();
 }
@@ -879,7 +1025,7 @@ function bindUI() {
 /** Anota la forma actual en el álbum (partidas anteriores o importadas) y revisa los logros, sin avisos. */
 function recordCurrent() {
   quiet = true;
-  if (['baby', 'child', 'adult'].includes(state.stage)) L.progress.record(spriteId());
+  if (['baby', 'child', 'teen', 'adult'].includes(state.stage)) L.progress.record(spriteId());
   L.progress.check();
   quiet = false;
 }
@@ -901,7 +1047,7 @@ function setLcd(v) { lcdMode = !!v; setToolIcons(); render(); }
 /** Próximos avisos si nadie cuida a la mascota: [{at, tag, title, body}] (para el Web Push con la app cerrada). */
 function predictSchedule() {
   const s = state, R = CFG.rate, out = [], now = Date.now();
-  if (s.stage === 'dead') return out;
+  if (s.stage === 'dead' || s.pause) return out;
   const add = (min, tag, body, title = 'Limagochi te necesita') => { if (isFinite(min)) out.push({ at: now + Math.max(1, min) * 60000, tag, title, body }); };
   if (s.stage === 'egg') { add(CFG.stageMin.egg - s.stageMin, 'event-hatch', '¡Tu huevo está a punto de eclosionar!', 'Limagochi'); return out; }
   if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagochi está a punto de evolucionar!', 'Limagochi');
@@ -927,7 +1073,7 @@ function predictSchedule() {
 L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
-  tint, isQuiet: () => quiet, getSave: () => JSON.stringify(state), replaceState, setLcd,
+  tint, isQuiet: () => quiet, startVacation, getSave: () => JSON.stringify(state), replaceState, setLcd,
   speed: () => speed, predictSchedule
 };
 
@@ -966,7 +1112,7 @@ function init() {
   if (saved) {
     state = saved;
     const away = (Date.now() - state.lastSeen) / 60000;
-    if (away >= 1 && state.stage !== 'dead') {
+    if (away >= 1 && state.stage !== 'dead' && !state.pause) {
       const gone = Math.min(away, CFG.maxOfflineMin);
       simT = Date.now() - gone * 60000;                  // simula la ausencia con las horas reales (de noche duerme)
       quiet = true; step(away); quiet = false; simT = null;
@@ -992,7 +1138,8 @@ function init() {
     lastTick = now;
     watch();
   }, 1000);
-  setInterval(render, 250);                             // animación
+  let lastRender = 0;                                   // animación: rápida mientras hay efecto, lenta en reposo
+  setInterval(() => { const n = Date.now(); if (evo || current || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
   setInterval(Store.save, 5000);                        // autoguardado
   setInterval(() => syncPush(), 60000);                 // renueva los avisos del servidor
   setTimeout(() => syncPush(), 3000);

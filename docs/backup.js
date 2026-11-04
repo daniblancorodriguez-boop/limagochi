@@ -116,6 +116,7 @@ function openSettings(back) {
     if (push.on()) nodes.push(a.btn('🔔 Enviar aviso de prueba', async () => { const r = await push.test(); a.setMsg(r.msg, 4500); }));
   } else nodes.push(a.p('📡 Avisos con app cerrada: no disponibles aquí (necesita https y servidor)'));
   nodes.push(
+    a.btn(`🏖️ Vacaciones${a.S().pause ? ' (volver)' : ' (detener el tiempo)'}`, () => { a.closePanel(); a.startVacation(); }),
     a.btn(standalone() ? '📲 App instalada ✓' : '📲 Instalar como app', install, '', standalone()),
     a.p('Copia de seguridad'),
     a.row(a.btn('💾 Exportar', exportFile), a.btn('📤 Compartir', shareFile)),
