@@ -65,9 +65,9 @@ const SHOP_EXTRAS = [
 /* los objetos se dibujan a doble resolución (hd): 1 píxel suyo = ½ píxel lógico = 1 píxel real del canvas */
 const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil(r[0].length / 2), h: Math.ceil(r.length / 2) }; };
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 } };
-/** Peluche: sobre el sofá si lo hay; si no, en el suelo. */
-const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: 28, y: 28 - h } : { x: 38, y: 34 - h }; };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 17, y: 34 - itemSize('sofa').h }, tv: { x: 22, y: 4 } };
+/** Peluche: en el suelo, a la derecha del sofá si lo hay. */
+const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: 39, y: 34 - h } : { x: 38, y: 34 - h }; };
 
 /* rama por dieta dominante × cuidado (0-1 · 2-5 · 6+ errores) */
 const FORMS = { veg: ['flor', 'brote', 'marchita'], meat: ['guerrera', 'grunona', 'rebelde'], candy: ['piruleta', 'glotona', 'gominola'] };
