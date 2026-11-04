@@ -250,7 +250,7 @@ META = {s[0]: {'name': s[1], 'grp': s[2]} for s in SPRITES}
 META['egg'] = {'name': 'Huevo', 'grp': 'base'}
 
 import json as _j
-open('../public/sprites.js', 'w', encoding='utf-8').write(
+open('../docs/sprites.js', 'w', encoding='utf-8').write(
     'window.LIMA = window.LIMA || {};\nLIMA.PAL = ' + _j.dumps(COL) + ';\nLIMA.SPR = ' + _j.dumps(full, separators=(',', ':')) +
     ';\nLIMA.META = ' + _j.dumps(META, ensure_ascii=False) + ';\n')
 

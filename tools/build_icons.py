@@ -4,7 +4,7 @@ import json, re, os
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PUB = os.path.join(HERE, '..', 'public')
+PUB = os.path.join(HERE, '..', 'docs')
 src = open(os.path.join(PUB, 'sprites.js'), encoding='utf-8').read()
 PAL = json.loads(re.search(r'LIMA\.PAL = (\{.*?\});', src, re.S).group(1))
 SPR = json.loads(re.search(r'LIMA\.SPR = (\{.*?\});\nLIMA\.META', src, re.S).group(1))

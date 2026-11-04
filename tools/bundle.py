@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Genera limagochi-single.html: toda la app en un solo archivo (sin PWA ni Web Push; se abre con doble clic)."""
 import re, os
-HERE = os.path.dirname(os.path.abspath(__file__)); PUB = os.path.join(HERE, '..', 'public')
+HERE = os.path.dirname(os.path.abspath(__file__)); PUB = os.path.join(HERE, '..', 'docs')
 rd = lambda n: open(os.path.join(PUB, n), encoding='utf-8').read()
 html = rd('index.html')
 html = re.sub(r'\s*<link rel="(manifest|icon|apple-touch-icon)"[^>]*>', '', html)

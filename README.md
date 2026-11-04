@@ -7,19 +7,19 @@ Mascota virtual retro (HTML5 + CSS + JS vanilla). PWA instalable, funciona offli
 npm install          # solo para el servidor de avisos (web-push)
 node server.js       # http://localhost:3000
 ```
-Sin servidor también vale cualquier servidor estático sobre `public/` (p. ej. `python3 -m http.server -d public`):
+Sin servidor también vale cualquier servidor estático sobre `docs/` (p. ej. `python3 -m http.server -d docs`):
 todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic (sin PWA ni push).
 
 ## Qué trae
 | Función | Dónde |
 |---|---|
-| PWA (icono, offline, instalar) | `public/manifest.json`, `public/sw.js`, `public/icons/` |
-| Exportar / importar partida | ⚙️ Ajustes (📊 Estado → Ajustes) · `public/backup.js` |
-| Logros y álbum de las 13 formas | 📊 Estado → 🏆 / 📖 · `public/progress.js` |
-| Día/noche con tu hora real | `public/world.js` (de noche se cansa antes; de día solo echa siesta si está agotado) |
+| PWA (icono, offline, instalar) | `docs/manifest.json`, `docs/sw.js`, `docs/icons/` |
+| Exportar / importar partida | ⚙️ Ajustes (📊 Estado → Ajustes) · `docs/backup.js` |
+| Logros y álbum de las 13 formas | 📊 Estado → 🏆 / 📖 · `docs/progress.js` |
+| Día/noche con tu hora real | `docs/world.js` (de noche se cansa antes; de día solo echa siesta si está agotado) |
 | Eventos de temporada | Halloween, Navidad, San Valentín, Primavera, Verano: fondo, gorro, comida y premios ×2 |
 | Eco Lima (memoria) | 🎮 Jugar → 🧠 · toca los cuadros, teclas 1–4, o A (siguiente casilla) + B (pulsar) |
-| Web Push con la app cerrada | `server.js` + `public/notify.js` (`LIMA.push`) |
+| Web Push con la app cerrada | `server.js` + `docs/notify.js` (`LIMA.push`) |
 
 ## Probar día/noche y eventos sin esperar
 Añade parámetros a la URL: `?hour=23` (hora) y/o `?date=2026-10-31` (fecha).
@@ -38,10 +38,14 @@ Sobre iPhone, el push solo funciona con la app instalada en la pantalla de inici
 
 ## Estructura
 ```
-public/   app (index.html, style.css, sprites.js, audio.js, world.js, notify.js, progress.js, backup.js,
+docs/   app (index.html, style.css, sprites.js, audio.js, world.js, notify.js, progress.js, backup.js,
           minigames.js, voice.js, game.js, sw.js, manifest.json, icons/)
 server.js servidor estático + Web Push
 tools/    build_sprites.py · build_icons.py · bundle.py
 data/     claves VAPID y suscripciones (se crea sola; no distribuir)
 ```
-Al cambiar archivos de `public/`, sube `VERSION` en `public/sw.js` para que los móviles actualicen la caché.
+Al cambiar archivos de `docs/`, sube `VERSION` en `docs/sw.js` para que los móviles actualicen la caché.
+
+## Publicar en GitHub Pages
+Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. La app queda en `https://USUARIO.github.io/REPO/`
+(solo web: PWA y offline sí; el Web Push necesita además `node server.js` en un hosting con Node).

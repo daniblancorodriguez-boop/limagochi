@@ -16,7 +16,7 @@ const path = require('path');
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
-const PUBLIC = path.join(__dirname, 'public');
+const PUBLIC = path.join(__dirname, 'docs');
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DRY = process.env.PUSH_DRY_RUN === '1';
 const TICK_MS = Number(process.env.PUSH_TICK_MS) || 15000;
