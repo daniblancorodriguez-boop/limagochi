@@ -58,14 +58,18 @@ const SHOP_EXTRAS = [
   { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos', img: 'teddy' },
   { id: 'sofa',      type: 'furn', icon: '🛋️', name: 'Sofá',    cost: 40, desc: 'tócalo para sentarse o tumbarse', img: 'sofa' },
   { id: 'bed',       type: 'furn', icon: '🛏️', name: 'Cama',    cost: 50, desc: 'duerme en ella de noche', img: 'bed' },
-  { id: 'tv',        type: 'furn', icon: '📺', name: 'Tele',    cost: 60, desc: 'tócala para encenderla y verla', img: 'tv' }
+  { id: 'tv',        type: 'furn', icon: '📺', name: 'Tele',    cost: 60, desc: 'tócala para encenderla y verla', img: 'tv' },
+  { id: 'lamp',      type: 'furn', icon: '💡', name: 'Lámpara', cost: 30, desc: 'tócala para encenderla: da felicidad', img: 'lamp' },
+  { id: 'plant',     type: 'furn', icon: '🪴', name: 'Planta',  cost: 25, desc: 'tócala para regarla', img: 'plant' },
+  { id: 'picture',   type: 'furn', icon: '🖼️', name: 'Cuadro',  cost: 20, desc: 'decora la pared', img: 'picture' },
+  { id: 'rug',       type: 'furn', icon: '🟣', name: 'Alfombra', cost: 25, desc: 'decora el suelo', img: 'rug' }
 ];
 
 /* ---- la casa: dónde se dibuja cada objeto (pantalla lógica 48×36) ---- */
 /* los objetos se dibujan a doble resolución (hd): 1 píxel suyo = ½ píxel lógico = 1 píxel real del canvas */
 const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil(r[0].length / 2), h: Math.ceil(r.length / 2) }; };
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 } };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 19, y: 3 }, rug: { x: 12, y: 24 } };
 /** Peluche: en el suelo; si hay sofá, sentado encima (a la derecha del asiento). */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: ROOM.sofa.x + itemSize('sofa').w - itemSize('teddy').w - 2, y: ROOM.sofa.y + 9 - h } : { x: 38, y: 34 - h }; };
 
@@ -107,7 +111,7 @@ function newState() {
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
     hat: null,                                 // gorro de recuerdo elegido (id de evento)
-    room: { use: null, tv: false, min: 0, auto: false, hug: 0, ball: 0 },   // casa: dónde está (sit|lie|bed|tv), tele encendida
+    room: { use: null, tv: false, min: 0, auto: false, hug: 0, ball: 0, lamp: false, water: 0 },   // casa: dónde está (sit|lie|bed|tv), tele encendida
     pause: null,                               // {since} mientras está de vacaciones (el tiempo se detiene)
     stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
@@ -549,15 +553,16 @@ function newEgg() {
 /** Efectos de usar los muebles y entradas/salidas automáticas (cama de noche). */
 function roomTick(dt) {
   const s = state, r = s.room;
-  if (s.stage === 'dead' || s.stage === 'egg' || s.pause) { r.use = null; r.tv = false; return; }
+  if (s.stage === 'dead' || s.stage === 'egg' || s.pause) { r.use = null; r.tv = false; r.lamp = false; return; }
   if (s.sleeping) {
-    r.tv = false;
+    r.tv = false; r.lamp = false;
     if (s.owned.includes('bed') && !s.sick) { r.use = 'bed'; r.auto = true; s.energy = clamp(s.energy + CFG.rate.sleep * 0.2 * dt); }
     else if (r.use) r.use = null;
     return;
   }
   if (r.auto) { r.auto = false; if (r.use === 'bed') r.use = null; }              // se despierta: se levanta de la cama
   if (r.use && (s.sick || s.call || s.hunger <= 0)) { r.use = null; r.min = 0; if (!quiet) setMsg('Se ha levantado'); return; }
+  if (r.lamp) s.happy = clamp(s.happy + 0.03 * dt);
   if (r.use === 'tv' && !r.tv) r.use = null;
   if (!r.use) { r.min = 0; return; }
   r.min += dt;
@@ -605,6 +610,19 @@ function openObject(id) {
     return;
   }
   if (!awake()) return;
+  if (id === 'lamp') {
+    ask('💡 Lámpara', btn(r.lamp ? 'Apagar' : 'Encender', () => { r.lamp = !r.lamp; Sound.play(r.lamp ? 'lightOn' : 'lightOff'); setMsg(r.lamp ? '💡 Lámpara encendida: se siente a gusto' : '💡 Lámpara apagada'); Store.save(); render(); closePanel(); }));
+    return;
+  }
+  if (id === 'plant') {
+    ask('🪴 Planta', btn('Regar', () => {
+      closePanel();
+      if (Date.now() - (r.water || 0) < 30 * 60000) { setMsg('La planta ya está regada 🪴'); return; }
+      r.water = Date.now(); s.happy = clamp(s.happy + 4);
+      Sound.play('happy'); setMsg('🪴 Riega la planta: +felicidad'); Store.save(); render();
+    }));
+    return;
+  }
   if (id === 'ball') {
     ask('⚽ Pelota', btn('Jugar con la pelota', () => {
       closePanel();
@@ -641,6 +659,8 @@ function hitObject(x, y) {
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
   if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
+  if (o.includes('lamp') && inside('lamp', ROOM.lamp)) return 'lamp';
+  if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';
   return null;
 }
@@ -1063,6 +1083,10 @@ function drawItem(id, x, y, variant = 0, fromRow = 0) {
 }
 function drawHouse(now) {
   const s = state, o = s.owned;
+  if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
+  if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
+  if (o.includes('plant')) drawItem('plant', ROOM.plant.x, ROOM.plant.y);
+  if (o.includes('lamp')) drawItem('lamp', ROOM.lamp.x, ROOM.lamp.y, s.room.lamp ? 1 : 0);
   if (o.includes('bed')) drawItem('bed', ROOM.bed.x, ROOM.bed.y);
   if (o.includes('sofa')) drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y);
   if (o.includes('tv')) {

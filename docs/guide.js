@@ -32,7 +32,11 @@ const TOPICS = [
     LI('🛋️ Sofá: Sentarse (sube la felicidad) o Tumbarse (recupera energía). Se levanta solo al rato.'),
     LI('📺 Tele: Encender, Ver la tele (mucha felicidad, pero baja un poco la disciplina) y Apagar.'),
     LI('🛏️ Cama: Tumbarse de día para descansar. De noche, al apagar la luz (o al irse a dormir solo) se acuesta en ella y descansa mejor.'),
-    LI('🧸 Peluche: toca para Abrazar (+felicidad, cada 15 min).')
+    LI('🧸 Peluche: toca para Abrazar (+felicidad, cada 15 min).'),
+    LI('⚽ Pelota: toca para jugar con ella (+felicidad, cada 10 min).'),
+    LI('💡 Lámpara: enciéndela y sube la felicidad poco a poco (se apaga al dormir).'),
+    LI('🪴 Planta: toca para regarla (+felicidad, cada 30 min).'),
+    LI('🖼️ Cuadro y 🟣 alfombra: solo decoran la casa.')
   ] },
   { icon: '🚿', title: 'Higiene y ducha', body: () => [
     H('La barra 🧼 de higiene'),
