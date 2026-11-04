@@ -973,7 +973,7 @@ function drawPet(now, frame, f) {
   let bx = 12, by = 11, slot = null;
   if (guess.active) by = 1;                                                   // arriba, para que el panel de Adivina no lo tape
   else if (s.pause) { bx = 16; by = 12; }                                    // tumbado bajo la sombrilla
-  else if (u === 'sit') { bx = ROOM.sofa.x + 11 - 12; by = ROOM.sofa.y - 11; slot = 'sofa'; }
+  else if (u === 'sit') { bx = ROOM.sofa.x - 3; by = ROOM.sofa.y - 13; slot = 'sofa'; }
   else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
   else if (u === 'bed' || (s.sleeping && s.owned.includes('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
   else if (u === 'tv') { bx = 18; by = 11; }
@@ -1017,7 +1017,7 @@ function drawPet(now, frame, f) {
 
   if (s.sleeping && !rot) { if (!(arrived && slot === 'bed')) drawBlanket(x, y, rows); drawZzz(now, x, y); }
   else if ((u === 'lie' || u === 'bed') && !rot) drawZzz(now, x, y);
-  if (arrived && slot === 'sofa') drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y, 0, u === 'lie' ? 4 : 6);     // el sofá tapa sus piernas
+  if (arrived && slot === 'sofa') drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y, 0, u === 'lie' ? 4 : 7);     // el sofá tapa sus piernas
   if (arrived && slot === 'bed') drawItem('bed', ROOM.bed.x, ROOM.bed.y, 0, 8);                          // y la manta, el cuerpo
   if (u === 'tv' && s.room.tv && Math.floor(now / 700) % 2) R1(31, 8, 1, 1, tint('#f7fbe6'));
   if (now < hugUntil) { const t = teddyPos(); for (let i = 0; i < 2; i++) { const q = ((now / 600) + i * 0.5) % 1; drawHeart(t.x + 2 + i * 4, Math.round(t.y - 2 - q * 8)); } }
