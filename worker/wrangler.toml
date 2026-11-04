@@ -16,4 +16,4 @@ VAPID_PUBLIC = "BKuFF0HbXK2JW8hKrxoe1uDP53cL5f-jge9Jk7OOCQ8oLkhbGLrIY52TXkiUly4Z
 [[d1_databases]]
 binding = "DB"
 database_name = "limagochi"
-database_id = "REEMPLAZAR_CON_EL_ID_DE_D1"
+database_id = "8661e0b7-aa4e-4628-8d92-27c67332a51f"
