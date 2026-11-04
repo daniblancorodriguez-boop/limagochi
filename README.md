@@ -65,3 +65,8 @@ Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. 
 - 🤝 **Visitas por tarjeta**: enlace `#visit=…` y QR (sin servidor); un amigo da premio una vez cada 20 h.
 - 🎤 5 trucos nuevos (aplaudir, beso, pino, meditar, bostezar) y 6 palabras (agua, amigo, jugar, buenas noches, feliz, abrazo).
 - Librería QR: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT) en `docs/lib/`.
+
+## Novedades 3.4 · la casa
+- Muebles en pixel art (sofá 🛋️, cama 🛏️, tele 📺) y peluche 🧸 nuevo en la 🛒 tienda, con vista previa grande.
+- Toca el mueble en la pantalla: la mascota va hasta él (sentarse/tumbarse, ver la tele, tumbarse en la cama, abrazar el peluche).
+- De noche, al apagar la luz (o al dormirse solo) se acuesta en la cama.

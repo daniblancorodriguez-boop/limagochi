@@ -26,6 +26,14 @@ function keywords() {
 }
 
 const TOPICS = [
+  { icon: '🛋️', title: 'Muebles de la casa', body: () => [
+    H('Compra muebles en la 🛒 tienda'),
+    LI('Una vez en casa, TOCA el mueble en la pantalla para usarlo.'),
+    LI('🛋️ Sofá: Sentarse (sube la felicidad) o Tumbarse (recupera energía). Se levanta solo al rato.'),
+    LI('📺 Tele: Encender, Ver la tele (mucha felicidad, pero baja un poco la disciplina) y Apagar.'),
+    LI('🛏️ Cama: Tumbarse de día para descansar. De noche, al apagar la luz (o al irse a dormir solo) se acuesta en ella y descansa mejor.'),
+    LI('🧸 Peluche: toca para Abrazar (+felicidad, cada 15 min).')
+  ] },
   { icon: '🚿', title: 'Higiene y ducha', body: () => [
     H('La barra 🧼 de higiene'),
     LI('Con el tiempo (y con cada caquita sin limpiar) se ensucia. A partir del 60% te avisa.'),

@@ -55,8 +55,17 @@ const SHOP_EXTRAS = [
   { id: 'bg_stars',  type: 'bg',  key: 'stars',  icon: '✨', name: 'Fondo estrellas', cost: 25 },
   { id: 'bg_bricks', type: 'bg',  key: 'bricks', icon: '🧱', name: 'Fondo ladrillos', cost: 20 },
   { id: 'ball',      type: 'toy', icon: '⚽', name: 'Pelota',  cost: 20, desc: 'se aburre un 15% menos' },
-  { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos' }
+  { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos', img: 'teddy' },
+  { id: 'sofa',      type: 'furn', icon: '🛋️', name: 'Sofá',    cost: 40, desc: 'tócalo para sentarse o tumbarse', img: 'sofa' },
+  { id: 'bed',       type: 'furn', icon: '🛏️', name: 'Cama',    cost: 50, desc: 'duerme en ella de noche', img: 'bed' },
+  { id: 'tv',        type: 'furn', icon: '📺', name: 'Tele',    cost: 60, desc: 'tócala para encenderla y verla', img: 'tv' }
 ];
+
+/* ---- la casa: dónde se dibuja cada objeto (pantalla lógica 48×36) ---- */
+const ROOM = { bed: { x: 0, y: 11 }, sofa: { x: 26, y: 20 }, tv: { x: 34, y: 4 } };
+const itemSize = id => { const r = L.ITEMS[id].sm.rows[0]; return { w: r[0].length, h: r.length }; };
+/** Peluche: sobre el sofá si lo hay; si no, en el suelo. */
+const teddyPos = () => state.owned.includes('sofa') ? { x: 27, y: 17 } : { x: 37, y: 22 };
 
 /* rama por dieta dominante × cuidado (0-1 · 2-5 · 6+ errores) */
 const FORMS = { veg: ['flor', 'brote', 'marchita'], meat: ['guerrera', 'grunona', 'rebelde'], candy: ['piruleta', 'glotona', 'gominola'] };
@@ -96,6 +105,7 @@ function newState() {
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
     hat: null,                                 // gorro de recuerdo elegido (id de evento)
+    room: { use: null, tv: false, min: 0, auto: false },   // casa: dónde está (sit|lie|bed|tv), tele encendida
     pause: null,                               // {since} mientras está de vacaciones (el tiempo se detiene)
     stayUp: 0,                                 // hasta cuándo (ms) se le deja despierto de noche
     meta: L.progress.blankMeta(),            // álbum, logros y estadísticas (sobreviven a un huevo nuevo)
@@ -111,7 +121,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
-    study: Object.assign(b.study, d.study),
+    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room),
     meta: L.progress.fixMeta(d.meta)
   });
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
@@ -271,6 +281,7 @@ function tick(dt) {
     if (s.sickMin > CFG.sickMistakeMin && !s.sickMistake) { s.sickMistake = true; mistake(); }
   }
 
+  roomTick(dt);
   flag('hunger', s.hunger <= 0, s.hunger > 20);
   flag('poop', s.poops >= 3, s.poops === 0);
   flag('energy', s.energy <= 0 && !s.sleeping, s.energy > 30);
@@ -444,6 +455,7 @@ function toggleLight() {
   if (s.sleeping && cycleOn() && L.world.isNight()) L.progress.stat('nightSleeps');
   if (s.sleeping) { setMsg('Luz apagada: a dormir… Zzz'); Sound.play('lightOff'); }
   else { setMsg('Luz encendida'); Sound.play('lightOn'); if (s.energy < 30) s.happy = clamp(s.happy - 5); }
+  roomTick(0);
   Store.save(); render();
 }
 
@@ -531,6 +543,104 @@ function newEgg() {
 }
 
 /* ============================== TIENDA ================================== */
+/* ============================== LA CASA ================================= */
+/** Efectos de usar los muebles y entradas/salidas automáticas (cama de noche). */
+function roomTick(dt) {
+  const s = state, r = s.room;
+  if (s.stage === 'dead' || s.stage === 'egg' || s.pause) { r.use = null; r.tv = false; return; }
+  if (s.sleeping) {
+    r.tv = false;
+    if (s.owned.includes('bed') && !s.sick) { r.use = 'bed'; r.auto = true; s.energy = clamp(s.energy + CFG.rate.sleep * 0.2 * dt); }
+    else if (r.use) r.use = null;
+    return;
+  }
+  if (r.auto) { r.auto = false; if (r.use === 'bed') r.use = null; }              // se despierta: se levanta de la cama
+  if (r.use && (s.sick || s.call || s.hunger <= 0)) { r.use = null; r.min = 0; if (!quiet) setMsg('Se ha levantado'); return; }
+  if (r.use === 'tv' && !r.tv) r.use = null;
+  if (!r.use) { r.min = 0; return; }
+  r.min += dt;
+  if (r.use === 'sit') { s.happy = clamp(s.happy + 0.08 * dt); s.energy = clamp(s.energy + 0.04 * dt); }
+  else if (r.use === 'lie') { s.energy = clamp(s.energy + 0.22 * dt); s.happy = clamp(s.happy + 0.03 * dt); }
+  else if (r.use === 'bed') { s.energy = clamp(s.energy + 0.4 * dt); }
+  else if (r.use === 'tv') { s.happy = clamp(s.happy + 0.3 * dt); s.discipline = clamp(s.discipline - 0.01 * dt); }
+  const done = ((r.use === 'lie' || r.use === 'bed') && s.energy >= 100) || (r.use === 'sit' && r.min > 40) || (r.use === 'tv' && r.min > 45);
+  if (done) {
+    if (r.use === 'tv') r.tv = false;
+    r.use = null; r.min = 0;
+    if (!quiet) setMsg('Ya ha tenido bastante: se levanta');
+  }
+}
+
+function setUse(u, text) {
+  const r = state.room;
+  r.use = u; r.min = 0; r.auto = false;
+  if (text) setMsg(text);
+  Sound.play('click'); Store.save(); render(); closePanel();
+}
+
+function openObject(id) {
+  if (!canInteract()) return;
+  const s = state, r = s.room;
+  const night = cycleOn() && L.world.phase() === 'night';
+  const ask = (title, ...opts) => openPanel([p(title), row(...opts), btn('Cerrar', closePanel, 'ghost')]);
+  if (s.pause) { setMsg('Está de vacaciones'); return; }
+  if (id === 'teddy') {
+    if (s.sleeping) { setMsg('Zzz… duerme'); return; }
+    ask('🧸 Peluche', btn('Abrazar', () => {
+      closePanel();
+      if (Date.now() - (r.hug || 0) < 15 * 60000) { setMsg('Ya se ha abrazado hace poco 🧸'); return; }
+      r.hug = Date.now(); hugUntil = Date.now() + 3500; s.happy = clamp(s.happy + 5);
+      Sound.play('happy'); setMsg('🧸 ¡Qué abrazo! +felicidad'); Store.save(); render();
+    }));
+    return;
+  }
+  if (id === 'bed') {
+    if (s.sleeping) { ask('🛏️ Está durmiendo', btn('Despertar', () => { closePanel(); toggleLight(); })); return; }
+    if (r.use === 'bed') { ask('🛏️ Cama', btn('Levantarse', () => setUse(null, 'Se levanta de la cama'))); return; }
+    const opts = [btn('Tumbarse', () => setUse('bed', '🛏️ Se tumba a descansar'))];
+    if (night) opts.push(btn('Dormir', () => { closePanel(); toggleLight(); }));
+    ask('🛏️ Cama', ...opts);
+    return;
+  }
+  if (!awake()) return;
+  if (id === 'sofa') {
+    const opts = [];
+    if (r.use === 'sit' || r.use === 'lie') {
+      opts.push(btn('Levantarse', () => setUse(null, 'Se levanta del sofá')));
+      opts.push(r.use === 'sit' ? btn('Tumbarse', () => setUse('lie', '🛋️ Se tumba en el sofá')) : btn('Sentarse', () => setUse('sit', '🛋️ Se sienta')));
+    } else opts.push(btn('Sentarse', () => setUse('sit', '🛋️ Se sienta')), btn('Tumbarse', () => setUse('lie', '🛋️ Se tumba en el sofá')));
+    ask('🛋️ Sofá', ...opts);
+    return;
+  }
+  if (id === 'tv') {
+    const opts = [];
+    if (!r.tv) opts.push(btn('Encender', () => { r.tv = true; Sound.play('lightOn'); setMsg('📺 Tele encendida'); Store.save(); render(); closePanel(); }));
+    else {
+      opts.push(r.use === 'tv' ? btn('Dejar de ver', () => setUse(null, 'Deja de ver la tele')) : btn('Ver la tele', () => setUse('tv', '📺 Ve la tele')));
+      opts.push(btn('Apagar', () => { r.tv = false; if (r.use === 'tv') r.use = null; Sound.play('lightOff'); setMsg('📺 Tele apagada'); Store.save(); render(); closePanel(); }));
+    }
+    ask('📺 Tele', ...opts);
+  }
+}
+
+/** ¿Qué objeto hay en el punto (x, y) de la pantalla lógica? */
+function hitObject(x, y) {
+  const o = state.owned, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
+  if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
+  if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
+  if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
+  if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
+  return null;
+}
+
+function itemThumb(id) {
+  const c = document.createElement('canvas'), it = L.ITEMS[id].lg, rows = it.rows[0];
+  c.width = rows[0].length; c.height = rows.length; c.className = 'thumb';
+  const k = c.getContext('2d');
+  rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.') { k.fillStyle = it.pal[ch.charCodeAt(0) - 97]; k.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+
 function openShop() {
   if (state.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
   const s = state;
@@ -542,11 +652,18 @@ function openShop() {
     if (s.owned.includes(i.id)) nodes.push(btn(`${i.icon} ${i.name} · ${s.bg === i.key ? 'quitar' : 'usar'}`, () => { s.bg = s.bg === i.key ? 'none' : i.key; Store.save(); render(); openShop(); }));
     else nodes.push(btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost));
   });
-  nodes.push(p('Juguetes'));
-  SHOP_EXTRAS.filter(i => i.type === 'toy').forEach(i => {
-    if (s.owned.includes(i.id)) nodes.push(btn(`${i.icon} ${i.name} ✓ en casa`, () => {}, '', true));
-    else nodes.push(btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost));
+  nodes.push(p('Muebles y juguetes'));
+  SHOP_EXTRAS.filter(i => i.img).forEach(i => {
+    const own = s.owned.includes(i.id);
+    const b = btn(own ? `${i.name} ✓ en casa` : `${i.name} · ${i.cost}🪙`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost);
+    const wrap = document.createElement('div'); wrap.className = 'shopitem';
+    const info = document.createElement('div'); info.className = 'shopdesc'; info.textContent = i.desc || '';
+    const right = document.createElement('div'); right.className = 'shopcol'; right.append(b, info);
+    wrap.append(itemThumb(i.img), right);
+    nodes.push(wrap);
   });
+  nodes.push(p('Pelota'));
+  { const i = SHOP_EXTRAS.find(x => x.id === 'ball'); nodes.push(s.owned.includes('ball') ? btn(`${i.icon} ${i.name} ✓ en casa`, () => {}, '', true) : btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost)); }
   nodes.push(p('Gana 🪙 en los minijuegos y aprendiendo trucos'));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes, { full: true });
@@ -811,6 +928,8 @@ function drawTomb() {
 }
 function drawNote(x, y) { R1(x + 2, y, 1, 4, C.ink); R1(x, y + 3, 2, 2, C.ink); R1(x + 2, y, 2, 1, C.ink); }
 
+let hugUntil = 0, moving = false;
+const pos = { x: 12, y: 11, ok: false };
 function drawPet(now, frame, f) {
   const s = state;
   if (s.stage === 'dead') { drawTomb(); return; }
@@ -829,6 +948,7 @@ function drawPet(now, frame, f) {
   let face = 'idle';
   if (s.sleeping) face = 'sleep';
   else if (t === 'eat') face = p < 0.3 ? 'eat' : p < 0.88 ? (Math.floor(now / 160) % 2 ? 'eat' : 'idle') : 'happy';
+  else if ((s.room.use === 'lie' || s.room.use === 'bed') && !t.startsWith('t_')) face = 'sleep';
   else if (t === 'refuse' || t === 'confused') face = 'sad';
   else if (t === 't_dead') face = 'sleep';
   else if (t === 't_zen') face = 'sleep';
@@ -838,10 +958,24 @@ function drawPet(now, frame, f) {
   else if (avg > 78) face = 'happy';
   const rows = set[face] || set.idle;
 
-  let x = 12, y = 11, flip = false, rot = false, inv = false;
-  if (guess.active) y = 1;                                                    // arriba, para que el panel de Adivina no lo tape
-  if (s.pause) { x = 16; y = 12; }                                          // tumbado bajo la sombrilla
-  else if (!s.sleeping && !f && !guess.active) { x += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); y -= frame; if (s.sick) x += Math.floor(now / 90) % 2; }   // enfermo: tiembla
+  let flip = false, rot = false, inv = false;
+  const u = s.room.use;
+  let bx = 12, by = 11, slot = null;
+  if (guess.active) by = 1;                                                   // arriba, para que el panel de Adivina no lo tape
+  else if (s.pause) { bx = 16; by = 12; }                                    // tumbado bajo la sombrilla
+  else if (u === 'sit') { bx = ROOM.sofa.x + 11 - 12; by = ROOM.sofa.y - 11; slot = 'sofa'; }
+  else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
+  else if (u === 'bed' || (s.sleeping && s.owned.includes('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
+  else if (u === 'tv') { bx = 18; by = 11; }
+  else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
+  else if (!s.sleeping && !f) { bx += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); by -= frame; }   // pasea
+  if (!pos.ok) { pos.x = bx; pos.y = by; pos.ok = true; }
+  const ddx = bx - pos.x, ddy = by - pos.y;
+  pos.x += Math.max(-2, Math.min(2, ddx)); pos.y += Math.max(-2, Math.min(2, ddy));
+  moving = Math.abs(ddx) > 0.5 || Math.abs(ddy) > 0.5;
+  const arrived = slot && Math.abs(ddx) < 1.5 && Math.abs(ddy) < 1.5;
+  let x = Math.round(pos.x), y = Math.round(pos.y);
+  if (s.sick && !s.sleeping && !f && !u && !guess.active && !s.pause) x += Math.floor(now / 90) % 2;   // enfermo: tiembla
   if (s.sleeping) y += Math.floor(now / 900) % 2;                           // respira
   if (t === 'happy') y -= (Math.floor(now / 150) % 2) * 3;
   if (t === 'refuse') x += frame ? 2 : -2;
@@ -870,7 +1004,12 @@ function drawPet(now, frame, f) {
     if (s.dirt >= 30 && !s.pause) drawDirt(now, x, y, rows);
   }
 
-  if (s.sleeping && !rot) { drawBlanket(x, y, rows); drawZzz(now, x, y); }
+  if (s.sleeping && !rot) { if (!(arrived && slot === 'bed')) drawBlanket(x, y, rows); drawZzz(now, x, y); }
+  else if ((u === 'lie' || u === 'bed') && !rot) drawZzz(now, x, y);
+  if (arrived && slot === 'sofa') drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y, 0, u === 'lie' ? 4 : 6);     // el sofá tapa sus piernas
+  if (arrived && slot === 'bed') drawItem('bed', ROOM.bed.x, ROOM.bed.y, 0, 8);                          // y la manta, el cuerpo
+  if (u === 'tv' && s.room.tv && Math.floor(now / 700) % 2) R1(31, 8, 1, 1, tint('#f7fbe6'));
+  if (now < hugUntil) { const t = teddyPos(); for (let i = 0; i < 2; i++) { const q = ((now / 600) + i * 0.5) % 1; drawHeart(t.x + 2 + i * 4, Math.round(t.y - 2 - q * 8)); } }
   if (s.sick && !s.sleeping && !rot) drawSickness(now, x, y, rows);
   if (t === 'eat') drawEating(f, now, p, x, y, rows);
   if (t === 'heal' && frame) { R1(x + 21, y + 2, 1, 5, C.ink); R1(x + 19, y + 4, 5, 1, C.ink); }
@@ -901,6 +1040,28 @@ function drawGuessArrow() {
   for (let i = 0; i < 3; i++) R1(d < 0 ? x - i + 1 : x + 5 + i, 17 + 2 - i, 1, 1 + i * 2, C.ink);
 }
 
+/** Dibuja un objeto de la casa (variant 0/1 = tele apagada/encendida). fromRow: solo las filas desde ahí (para «meter» a la mascota). */
+function drawItem(id, x, y, variant = 0, fromRow = 0) {
+  const it = L.ITEMS[id].sm, rows = it.rows[variant] || it.rows[0];
+  for (let j = fromRow; j < rows.length; j++) for (let i = 0; i < rows[j].length; i++) {
+    const c = rows[j][i];
+    if (c === '.') continue;
+    g.fillStyle = tint(it.pal[c.charCodeAt(0) - 97]);
+    g.fillRect(x + i, y + j, 1, 1);
+  }
+}
+function drawHouse(now) {
+  const s = state, o = s.owned;
+  if (o.includes('bed')) drawItem('bed', ROOM.bed.x, ROOM.bed.y);
+  if (o.includes('sofa')) drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y);
+  if (o.includes('tv')) {
+    const t = ROOM.tv, w = itemSize('tv').w;
+    R1(t.x - 1, t.y + 11, w + 2, 1, C.ink); R1(t.x, t.y + 12, w, 1, C.dark);              // estante
+    drawItem('tv', t.x, t.y, s.room.tv ? 1 : 0);
+  }
+  if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
+}
+
 function drawScene(now) {
   const s = state, frame = Math.floor(now / 500) % 2;
   if (current && now > current.start + current.dur) current = null;
@@ -912,8 +1073,8 @@ function drawScene(now) {
   if (s.pause) drawBeach(now);
   for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
-  if (s.owned.includes('ball')) { R1(1, 28, 5, 5, C.ink); R1(2, 29, 3, 3, '#e0523f'); R1(3, 30, 1, 1, '#f7fbe6'); }
-  if (s.owned.includes('plush')) { R1(42, 27, 5, 6, C.ink); R1(43, 28, 3, 4, '#a0703a'); R1(44, 29, 1, 1, C.ink); }
+  drawHouse(now);
+  if (s.owned.includes('ball')) { R1(21, 29, 5, 5, C.ink); R1(22, 30, 3, 3, '#e0523f'); R1(23, 31, 1, 1, '#f7fbe6'); }
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   drawPet(now, frame, f);
   drawGuessArrow();
@@ -1040,6 +1201,11 @@ function bindUI() {
   alertEl.addEventListener('click', () => setMsg(alertEl.dataset.reason || '…'));
 
   const pt = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+  canvas.addEventListener('click', e => {                                   // tocar un mueble abre su menú
+    if (L.mini.active() || guess.active || !panel.hidden) return;
+    const [fx, fy] = pt(e), id = hitObject(fx * W, fy * H);
+    if (id) openObject(id);
+  });
   canvas.addEventListener('pointerdown', e => {
     if (!L.mini.active()) return;
     e.preventDefault();
@@ -1219,7 +1385,7 @@ function init() {
     watch();
   }, 1000);
   let lastRender = 0;                                   // animación: rápida mientras hay efecto, lenta en reposo
-  setInterval(() => { const n = Date.now(); if (evo || current || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
+  setInterval(() => { const n = Date.now(); if (evo || current || moving || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
   setInterval(Store.save, 5000);                        // autoguardado
   setInterval(() => syncPush(), 60000);                 // renueva los avisos del servidor
   setTimeout(() => syncPush(), 3000);

@@ -274,3 +274,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 /* ---------- Visitas ---------- */
 .qr { display: block; margin: 6px auto; width: 168px; height: 168px; image-rendering: pixelated; background: #fff; border: 2px solid var(--ink); border-radius: 6px; }
 .vtext { width: 100%; box-sizing: border-box; padding: 6px; margin: 4px 0; font: inherit; font-size: 14px; color: var(--ink); background: var(--lcd); border: 2px solid var(--ink); border-radius: 6px; }
+
+/* ---------- Tienda: muebles ---------- */
+.shopitem { display: flex; gap: 8px; align-items: center; margin: 2px 0; }
+.shopcol { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.shopdesc { font-size: 10px; text-align: center; opacity: .8; }
+.thumb { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex: none; }
