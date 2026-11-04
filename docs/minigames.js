@@ -274,26 +274,28 @@ function shower() {
     spots.push({ x: PX + cx, y: PY + cy, hp: 1 });
   }
   const total = spots.length;
-  const s = { t: 0, px: -9, py: -9, down: false, bubbles: [], removed: 0, phase: 'scrub', rinse: 0 };
+  const s = { t: 0, px: W / 2, py: H - 8, down: false, moved: false, bubbles: [], removed: 0, phase: 'scrub', rinse: 0 };
   const hud = () => a.hud(`🧼 ${s.removed}/${total} · ⏱${Math.max(0, Math.ceil(DUR - s.t))}`);
   hud();
+  a.setMsg('🧽 Frota las manchas con el dedo', 4000);
   const toL = (fx, fy) => [fx * W, fy * H];
   const finish = () => {
     cur = null; cancelAnimationFrame(raf); a.hud(null);
     a.showered(total ? s.removed / total : 1);
   };
   return {
-    pointer(fx, fy) { [s.px, s.py] = toL(fx, fy); s.down = true; },
+    pointer(fx, fy) { if (isFinite(fx) && isFinite(fy)) [s.px, s.py] = toL(fx, fy); s.down = true; },
     up() { s.down = false; },
     drag(fx, fy) {
       if (s.phase !== 'scrub') return;
+      if (!isFinite(fx) || !isFinite(fy)) return;
       const [x, y] = toL(fx, fy), d = Math.hypot(x - s.px, y - s.py);
       s.px = x; s.py = y; s.down = true;
       if (d < 0.2) return;
       if (Math.random() < 0.7) s.bubbles.push({ x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 4, r: 1 + Math.random() * 1.5, life: 0.9 });
       for (const sp of spots) {
-        if (sp.hp <= 0 || Math.hypot(sp.x - x, sp.y - y) > 4.5) continue;
-        sp.hp -= d * 0.06;
+        if (sp.hp <= 0 || Math.hypot(sp.x - x, sp.y - y) > 6) continue;
+        sp.hp -= d * 0.11;
         if (sp.hp <= 0) { s.removed++; a.sound.play('click'); hud(); for (let k = 0; k < 5; k++) s.bubbles.push({ x: sp.x + (Math.random() - 0.5) * 4, y: sp.y + (Math.random() - 0.5) * 4, r: 1.5 + Math.random(), life: 1.2 }); }
       }
       if (s.removed >= total) { s.phase = 'rinse'; s.rinse = 0; a.sound.play('win'); }
@@ -321,7 +323,7 @@ function shower() {
         g.fillStyle = '#6ec6ff';
         for (let i = 0; i < 24; i++) g.fillRect(2 + i * 2, (s.rinse * 40 + i * 7) % H, 0.5, 2);
       }
-      if (s.px >= 0 && s.phase === 'scrub') {                                 // esponja
+      if (s.phase === 'scrub') {                                 // esponja
         box(g, s.px - 3.5, s.py - 2, 7, 4, s.down ? '#ffd84d' : '#f2c14a', C.ink);
         g.fillStyle = C.ink; g.fillRect(r5(s.px - 1.5), r5(s.py - 0.5), 0.5, 0.5); g.fillRect(r5(s.px + 0.5), r5(s.py + 0.5), 0.5, 0.5);
       } else if (s.phase === 'scrub' && s.t < 3) { g.fillStyle = C.ink; g.fillRect(2, 2, 0, 0); }
