@@ -69,7 +69,9 @@ const SHOP_EXTRAS = [
 /* los objetos se dibujan a doble resolución (hd): 1 píxel suyo = ½ píxel lógico = 1 píxel real del canvas */
 const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil(r[0].length / 2), h: Math.ceil(r.length / 2) }; };
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 19, y: 3 }, rug: { x: 12, y: 24 } };
+/* lámpara: al fondo junto al cabecero de la cama, más pequeña (k) y apoyada en y = 26 */
+const LAMP = { x: 21, y: 26, k: 0.8 };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
 /** Peluche: en el suelo; si hay sofá, sentado encima (a la derecha del asiento). */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: ROOM.sofa.x + itemSize('sofa').w - itemSize('teddy').w - 2, y: ROOM.sofa.y + 9 - h } : { x: 38, y: 34 - h }; };
 
@@ -659,7 +661,7 @@ function hitObject(x, y) {
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
   if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
-  if (o.includes('lamp') && inside('lamp', ROOM.lamp)) return 'lamp';
+  if (o.includes('lamp') && x >= LAMP.x && x < LAMP.x + itemSize('lamp').w * LAMP.k && y >= LAMP.y - itemSize('lamp').h * LAMP.k && y < LAMP.y) return 'lamp';
   if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';
   return null;
@@ -723,6 +725,7 @@ function startPlay() {
     p('¿A qué jugamos?'),
     btn('🎯 Adivina', startGuess),
     btn('🐦 Lima Vuela', () => launch('flappy')),
+    btn('⚽ Penaltis', () => launch('penalty')),
     btn('☄️ Esquiva', () => launch('dodge')),
     btn('🧠 Eco Lima', () => launch('memory')),
     btn('Cancelar', closePanel, 'ghost')
@@ -1085,8 +1088,8 @@ function drawHouse(now) {
   const s = state, o = s.owned;
   if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
   if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
+  if (o.includes('lamp')) { const lh = itemSize('lamp').h; g.save(); g.translate(LAMP.x, LAMP.y - lh * LAMP.k); g.scale(LAMP.k, LAMP.k); drawItem('lamp', 0, 0, s.room.lamp ? 1 : 0); g.restore(); }
   if (o.includes('plant')) drawItem('plant', ROOM.plant.x, ROOM.plant.y);
-  if (o.includes('lamp')) drawItem('lamp', ROOM.lamp.x, ROOM.lamp.y, s.room.lamp ? 1 : 0);
   if (o.includes('bed')) drawItem('bed', ROOM.bed.x, ROOM.bed.y);
   if (o.includes('sofa')) drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y);
   if (o.includes('tv')) {

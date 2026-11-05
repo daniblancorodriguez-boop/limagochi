@@ -114,7 +114,7 @@ const TOPICS = [
   ] },
   { icon: '🪙', title: 'Juegos, tienda y logros', body: () => [
     H('Minijuegos'),
-    LI('🎯 Adivina: ¿hacia dónde mirará? · 🐦 Lima Vuela: toca para volar · ☄️ Esquiva: esquiva rocas y recoge estrellas · 🧠 Eco Lima: repite la secuencia.'),
+    LI('🎯 Adivina: ¿hacia dónde mirará? · 🐦 Lima Vuela: toca para volar · ☄️ Esquiva: esquiva rocas y recoge estrellas · ⚽ Penaltis: 5 tiros, toca cuando la mira esté sobre la portería · 🧠 Eco Lima: repite la secuencia.'),
     LI('Ganar da Lima Points (🪙). Necesita estar despierto, sano y con energía.'),
     H('Tienda 🛒'),
     P('Con 🪙 compras comida gourmet, fondos y juguetes (la pelota y el peluche le aburren menos).'),

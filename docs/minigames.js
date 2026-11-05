@@ -2,6 +2,7 @@
    LIMAGOCHI · minijuegos de acción (se dibujan en la propia pantalla LCD)
    · Lima Vuela  (tipo Flappy Bird)
    · Esquiva     (esquivar rocas, recoger estrellas)
+   · Penaltis    (tanda de 5 penaltis: para la mira y chuta)
    · Eco Lima    (memoria: repite la secuencia de luces y sonidos)
    · Ducha       (frota con el dedo para quitar la suciedad)
    · Visita      (un amigo viene de visita con su tarjeta)
@@ -48,7 +49,7 @@ L.mini = {
   active: () => !!cur,
   start(kind, arg) {
     this.stop(false);
-    cur = ({ flappy, dodge, memory, shower, visit })[kind](arg);
+    cur = ({ flappy, dodge, memory, penalty, shower, visit })[kind](arg);
     last = performance.now();
     loop();
   },
@@ -389,4 +390,98 @@ function visit(card) {
     }
   };
 }
+/* ============================== PENALTIS ================================== */
+function penalty() {
+  const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H;
+  const rows = a.petRows('happy');
+  const GX0 = 6, GX1 = 42, GY0 = 7, GY1 = 21, SHOTS = 5, SPOT = { x: 24, y: 30 };
+  const s = { shot: 0, goals: 0, res: [], phase: 'aim', t: 0, cx: 24, speed: 1.0, ball: { x: SPOT.x, y: SPOT.y }, from: 0, to: { x: 24, y: 14 }, kz: 1, kx: 24, text: '', textT: 0, hop: 0, over: false };
+  const hud = () => a.hud(`${s.phase === 'res' || s.phase === 'end' ? s.text + '  ' : ''}⚽ ${Math.min(s.shot + 1, SHOTS)}/${SHOTS}  ✔${s.goals}`);
+  hud();
+
+  const zoneOf = x => Math.max(0, Math.min(2, Math.floor((x - GX0) / ((GX1 - GX0) / 3))));
+  const zoneX = z => GX0 + (GX1 - GX0) / 3 * (z + 0.5);
+
+  function shoot() {
+    if (s.phase !== 'aim' || s.over) return;
+    s.phase = 'shot'; s.t = 0;
+    s.to = { x: s.cx, y: GY0 + 2 + Math.random() * 6 };
+    const out = s.cx < GX0 || s.cx > GX1;
+    s.kz = Math.floor(Math.random() * 3);                      // el portero se lanza a un lado al azar
+    s.out = out; s.save = !out && zoneOf(s.cx) === s.kz;
+    a.sound.play('click');
+  }
+
+  return {
+    key() { shoot(); },
+    pointer() { shoot(); },
+    update(dt) {
+      s.hop = Math.max(0, s.hop - dt);
+      if (s.phase === 'aim') {
+        s.t += dt;
+        s.cx = 24 + Math.sin(s.t * 2.2 * s.speed) * 22;       // la mira va y viene: pulsa en el momento justo
+      } else if (s.phase === 'shot') {
+        s.t += dt;
+        const q = Math.min(1, s.t / 0.45);
+        s.ball.x = SPOT.x + (s.to.x - SPOT.x) * q;
+        s.ball.y = SPOT.y + (s.to.y - SPOT.y) * q - Math.sin(q * Math.PI) * 3;
+        s.kx += (zoneX(s.kz) - s.kx) * Math.min(1, dt * 10);
+        if (q >= 1) {
+          s.phase = 'res'; s.t = 0;
+          if (s.out) { s.text = '¡FUERA!'; a.sound.play('sad'); }
+          else if (s.save) { s.text = '¡PARADA!'; a.sound.play('hit'); }
+          else { s.text = '¡GOL!'; s.goals++; s.hop = 0.8; a.sound.play('win'); }
+          s.res.push(s.out ? 'x' : s.save ? 's' : 'g'); hud();
+        }
+      } else if (s.phase === 'res') {
+        s.t += dt; s.kx += (zoneX(s.kz) - s.kx) * Math.min(1, dt * 10);
+        if (s.t > 1.0) {
+          s.shot++;
+          if (s.shot >= SHOTS) { s.over = true; s.phase = 'end'; s.t = 0; }
+          else { s.phase = 'aim'; s.t = 0; s.kx = 24; s.kz = 1; s.ball = { x: SPOT.x, y: SPOT.y }; s.speed = 1 + s.shot * 0.18; hud(); }
+        }
+      } else if (s.phase === 'end') {
+        s.t += dt;
+        if (s.t > 0.5) {
+          const gl = s.goals, win = gl >= 3;
+          end('penalty', gl >= 5 ? '¡Tanda perfecta!' : win ? '¡Gran tanda!' : 'Otra vez será',
+            [`Goles: ${gl}/${SHOTS}`],
+            { happy: 6 + 4 * gl, energy: -8, hunger: -5, weight: -0.3 - 0.1 * gl, lp: gl + (gl >= 5 ? 3 : 0), win, score: gl });
+        }
+      }
+    },
+    draw() {
+      g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+      g.fillStyle = C.light; g.fillRect(0, 22, W, H - 22);                      // césped
+      g.fillStyle = C.dark; for (let x = 0; x < W; x += 6) g.fillRect(x, 24 + (x % 12 ? 2 : 0), 3, 0.5);
+      // portería
+      g.fillStyle = C.mid;
+      for (let x = GX0 + 2; x < GX1; x += 3) g.fillRect(x, GY0, 0.5, GY1 - GY0);
+      for (let y = GY0 + 2; y < GY1; y += 3) g.fillRect(GX0, y, GX1 - GX0, 0.5);
+      g.fillStyle = C.ink; g.fillRect(GX0 - 1, GY0 - 1, GX1 - GX0 + 2, 1); g.fillRect(GX0 - 1, GY0 - 1, 1, GY1 - GY0 + 1); g.fillRect(GX1, GY0 - 1, 1, GY1 - GY0 + 1);
+      // portero
+      const dive = s.phase === 'shot' || s.phase === 'res', kx = dive ? s.kx : 24, tilt = dive ? (s.kz - 1) * 3 : 0;
+      g.fillStyle = C.ink; g.fillRect(r5(kx - 2 + tilt * 0.3), GY1 - 9, 4, 6); g.fillRect(r5(kx - 4 + tilt), GY1 - 8 - (dive ? 1 : 0), 8, 1.5);
+      g.fillStyle = C.bg; g.fillRect(r5(kx - 1.5 + tilt * 0.3), GY1 - 12, 3, 3); g.fillStyle = C.ink; g.fillRect(r5(kx - 1.5 + tilt * 0.3), GY1 - 12, 3, 0.5);
+      // mira
+      if (s.phase === 'aim') {
+        const x = r5(s.cx), y = (GY0 + GY1) / 2;
+        g.fillStyle = C.ink; g.fillRect(x - 3, y, 7, 1); g.fillRect(x, y - 3, 1, 7);
+        g.fillStyle = s.cx < GX0 || s.cx > GX1 ? C.mid : C.bg; g.fillRect(x, y, 1, 1);
+      }
+      // balón
+      const bx = r5(s.ball.x), by = r5(s.ball.y);
+      g.fillStyle = C.ink; g.fillRect(bx - 2, by - 2, 5, 5); g.fillStyle = C.bg; g.fillRect(bx - 1, by - 1, 3, 3); g.fillStyle = C.ink; g.fillRect(bx, by, 1, 1);
+      // mascota que chuta
+      const hop = s.hop > 0 ? -Math.abs(Math.sin(s.hop * 12)) * 3 : 0;
+      a.drawSprite(rows, r5(SPOT.x - 6 - 10), r5(24 + hop), { scale: 0.5 });
+      // resultado de cada tiro
+      for (let i = 0; i < SHOTS; i++) {
+        const c = s.res[i]; g.fillStyle = C.ink; g.fillRect(28 + i * 4, H - 4, 3.5, 3);
+        g.fillStyle = c === 'g' ? C.bg : c ? C.mid : C.light; g.fillRect(28.5 + i * 4, H - 3.5, 2.5, 2);
+      }
+    }
+  };
+}
+
 })();

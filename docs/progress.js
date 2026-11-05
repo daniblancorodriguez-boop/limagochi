@@ -54,6 +54,7 @@ const ACH = [
   { id: 'play10',   icon: '🎮', name: 'Jugón',              desc: 'Juega 10 partidas.',                        prog: (m) => [m.stats.played || 0, 10] },
   { id: 'flappy10', icon: '🐦', name: 'Piloto de limas',    desc: 'Pasa 10 tubos en Lima Vuela.',              prog: (m) => [m.stats.best.flappy || 0, 10] },
   { id: 'dodgeWin', icon: '☄️', name: 'Intocable',          desc: 'Sobrevive a Esquiva.',                      prog: (m) => [m.stats.wins.dodge || 0, 1] },
+  { id: 'penal5', icon: '⚽', name: 'Pichichi',           desc: 'Marca 5 goles en una tanda de Penaltis.',   prog: (m) => [m.stats.best.penalty || 0, 5] },
   { id: 'mem6',     icon: '🧠', name: 'Memoria de elefante', desc: 'Supera 6 rondas de Eco Lima.',             prog: (m) => [m.stats.best.memory || 0, 6] },
   { id: 'rich',     icon: '🪙', name: 'Ahorrador',          desc: 'Gana 100 Lima Points jugando.',            prog: (m) => [m.stats.lpEarned || 0, 100] },
   { id: 'tricks3',  icon: '🎓', name: 'Domador',            desc: 'Domina 3 trucos o palabras.',               prog: (m, s) => [mastered(s) + Object.values(s.words || {}).filter(v => v >= 100).length, 3] },
