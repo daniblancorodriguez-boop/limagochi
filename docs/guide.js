@@ -69,6 +69,7 @@ const TOPICS = [
     LI('🧹 Limpiar: quita las caquitas; si se acumulan enferma.'),
     LI('💡 Luz: apaga la luz para que duerma.'),
     LI('📢 Regañar: solo cuando te llama (❗). Si lo regañas sin motivo se pone triste.'),
+    LI('😈 Travesuras: de vez en cuando (más si tiene poca disciplina) grita por el altavoz o pinta la pared. Regáñalo con 📢 (+disciplina) y quita los garabatos con 🧹. No hay castigo si tardas.'),
     LI('🎤 Hablarle: ver «Hablarle y enseñar».'),
     H('Avisos'),
     P('El ❗ de la esquina y el título de la pestaña avisan de que algo falla. Pulsa el ❗ para saber qué.'),

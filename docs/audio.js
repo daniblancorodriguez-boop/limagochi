@@ -46,6 +46,7 @@ const SFX = {
   clean:  () => tone(300, 0.5, { type: 'sawtooth', vol: 0.03, slide: 900 }),
   lightOff: () => tone(520, 0.3, { type: 'triangle', slide: -300 }),
   lightOn:  () => tone(300, 0.3, { type: 'triangle', slide: 300 }),
+  shout:  () => seq([700, 900, 700, 900, 700, 900], 0.07, { type: 'sawtooth', vol: 0.08 }),
   alert:  () => seq([988, 0, 988, 0, 988], 0.09),
   evolve: () => seq([262, 330, 392, 523, 659, 784, 1047], 0.09),
   die:    () => seq([392, 370, 349, 330, 294, 262], 0.22, { type: 'triangle' }),

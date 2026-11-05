@@ -105,6 +105,7 @@ function newState() {
     sick: false, medicine: 0, sickMin: 0, sickMistake: false,
     sleeping: false,
     call: false, callMin: 0,
+    mess: null, art: [], messIn: 120,           // travesuras: {kind:'shout'|'paint', min} · garabatos en pantalla · minutos hasta la próxima
     mistakes: 0, neglect: 0, sweetLoad: 0,
     flags: { hunger: false, poop: false, energy: false },
     food: { veg: 0, meat: 0, candy: 0 },
@@ -240,6 +241,41 @@ function die(cause) {
   state.stage = 'dead'; state.sleeping = false; state.cause = cause; diedNow = true;
 }
 
+/** Travesuras ocasionales: gritar por el altavoz o pintar las paredes. Cuanto menos disciplina, más a menudo.
+    Sin castigo si las ignoras: los gritos se acaban solos y los garabatos esperan a la 🧹. */
+function mischief(dt, night) {
+  const s = state;
+  if (quiet) return;
+  if (s.mess) { s.mess.min = (s.mess.min || 0) + dt; if (s.mess.kind === 'shout' && s.mess.min > 20) s.mess = null; return; }
+  if (!['child', 'teen', 'adult'].includes(s.stage) || s.sleeping || s.sick || s.pause || night || s.call) return;
+  s.messIn -= dt;
+  if (s.messIn > 0) return;
+  s.messIn = rand(120, 180);
+  if (Math.random() > clamp(1.3 - s.discipline / 70, 0.15, 1)) return;                      // con disciplina alta casi nunca
+  if (!s.art.length && Math.random() < 0.5) {
+    s.art = scribble();
+    s.mess = { kind: 'paint', min: 0 };
+    setMsg('🖍️ ¡Está pintando la pared! Regáñalo', 4500); Sound.play('alert');
+  } else {
+    s.mess = { kind: 'shout', min: 0 };
+    setMsg('📢 ¡Está gritando por el altavoz! Regáñalo', 4500); Sound.play('shout'); Sound.vibrate && Sound.vibrate([80, 40, 80]);
+  }
+  fx('refuse', 1500);
+}
+/** Garabatos: trazos de 1 píxel (x, y, ancho, alto) repartidos por pared y suelo. */
+function scribble() {
+  const out = [], n = 5 + Math.floor(Math.random() * 2);
+  for (let k = 0; k < n; k++) {
+    let x = 3 + Math.floor(Math.random() * 40), y = 3 + Math.floor(Math.random() * 22);
+    for (let i = 0; i < 6; i++) {
+      const horiz = Math.random() < 0.5, len = 2 + Math.floor(Math.random() * 5) * (Math.random() < 0.5 ? 1 : -1);
+      out.push(horiz ? [Math.min(x, x + len), y, Math.abs(len) + 1, 1] : [x, Math.min(y, y + len), 1, Math.abs(len) + 1]);
+      if (horiz) x = Math.max(1, Math.min(46, x + len)); else y = Math.max(1, Math.min(32, y + len));
+    }
+  }
+  return out;
+}
+
 /** Avanza `dt` minutos de juego (dt ≤ 1). */
 function tick(dt) {
   const s = state, R = CFG.rate;
@@ -295,6 +331,7 @@ function tick(dt) {
   flag('energy', s.energy <= 0 && !s.sleeping, s.energy > 30);
   flag('dirty', s.dirt >= 95, s.dirt < 60);
 
+  mischief(dt, night);
   if (s.call) {
     s.callMin += dt;
     if (s.callMin > CFG.callWindowMin) { s.call = false; mistake(); if (!quiet) setMsg('Ignoraste su llamada de atención'); }
@@ -334,6 +371,8 @@ function attention() {
   if (s.sick) a.push({ key: 'sick', text: 'Está enfermo: cúralo' });
   if (s.poops > 0) a.push({ key: 'poop', text: 'Hay que limpiar' });
   if (s.dirt >= 60) a.push({ key: 'dirty', text: '🧼 Está sucio: dale una ducha' });
+  if (s.mess && s.mess.kind === 'shout') a.push({ key: 'shout', text: '📢 Grita por el altavoz: ¡regáñalo!' });
+  if (s.mess && s.mess.kind === 'paint') a.push({ key: 'paint', text: '🖍️ Pinta la pared: ¡regáñalo!' });
   if (s.call) a.push({ key: 'call', text: 'Te llama… ¿regañarlo?' });
   if (s.neglect >= CFG.dangerMin) a.push({ key: 'danger', text: '¡Está en peligro! Atiéndelo ya' });
   return a;
@@ -412,8 +451,8 @@ function feed(f) {
 
 function clean() {
   if (!canInteract()) return;
-  if (!state.poops) { setMsg('Todo está limpio'); return; }
-  state.poops = 0; state.flags.poop = false; L.progress.stat('cleans');
+  if (!state.poops && !state.art.length) { setMsg('Todo está limpio'); return; }
+  state.art = []; state.poops = 0; state.flags.poop = false; L.progress.stat('cleans');
   state.happy = clamp(state.happy + 5);
   fx('clean', 1400); Sound.play('clean'); setMsg('¡Limpio y reluciente!');
   Store.save();
@@ -470,7 +509,12 @@ function toggleLight() {
 function scold() {
   if (!canInteract() || !awake()) return;
   const s = state;
-  if (s.call) {
+  if (s.mess) {
+    const m = s.mess; s.mess = null;
+    s.discipline = clamp(s.discipline + 20); s.happy = clamp(s.happy - 5);
+    L.progress.stat('scolds'); Sound.play('click');
+    setMsg(m.kind === 'paint' ? 'Ha entendido la lección. Limpia los garabatos con 🧹' : 'Ha entendido la lección. ¡Silencio!');
+  } else if (s.call) {
     s.call = false; s.callMin = 0;
     s.discipline = clamp(s.discipline + 20); s.happy = clamp(s.happy - 5);
     L.progress.stat('scolds'); setMsg('Ha entendido la lección'); Sound.play('click');
@@ -1119,6 +1163,7 @@ function drawScene(now) {
   if (s.pause) drawBeach(now);
   for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
+  for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);                 // garabatos (los muebles quedan por delante)
   drawHouse(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   drawPet(now, frame, f);
