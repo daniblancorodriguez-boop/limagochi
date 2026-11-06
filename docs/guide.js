@@ -59,6 +59,8 @@ const TOPICS = [
   { icon: '🍔', title: 'Cuidados básicos', body: () => [
     H('Los 4 medidores'),
     LI('🍖 Hambre: corazones llenos = saciado. Dale de comer antes de que se vacíen.'),
+    LI('⏱ De bebé y de niño los corazones se vacían MUCHO más deprisa (y hace más caca) que de adulto.'),
+    LI('🤒 Poco antes de crecer se pone malito (no cuenta como error). De viejo enferma cada día y necesita dosis doble.'),
     LI('😊 Felicidad: juega con él y dale snacks de vez en cuando.'),
     LI('⚡ Energía: se gasta despierto y se recupera durmiendo.'),
     LI('🎓 Disciplina: sube regañándolo (📢) cuando te llama sin motivo; baja sola con el tiempo.'),
@@ -73,7 +75,7 @@ const TOPICS = [
     LI('🎤 Hablarle: ver «Hablarle y enseñar».'),
     H('Avisos'),
     P('El ❗ de la esquina y el título de la pestaña avisan de que algo falla. Pulsa el ❗ para saber qué.'),
-    P('Un error de cuidado es: dejar que el hambre llegue a 0, 3 caquitas sin limpiar, enfermo sin curar durante 1 hora o ignorar una llamada 45 minutos. Los errores afectan a la evolución.')
+    P('Cada regaño acertado sube la disciplina un 25%. Un error de cuidado es: dejar que el hambre llegue a 0, 3 caquitas sin limpiar, enfermo sin curar durante 1 hora o ignorar una llamada 45 minutos. Los errores afectan a la evolución.')
   ] },
   { icon: '📈', title: 'Crecimiento y evolución', body: () => [
     H('Tiempos (como el Tamagotchi original)'),

@@ -23,8 +23,14 @@ const CFG = {
   obese: { baby: 10, child: 22, teen: 30, adult: 40 },   // peso a partir del cual está obeso
   /* por minuto (despierto): hambre vacía en ~8 h, felicidad en ~10 h, energía en ~14 h; dormir recupera en ~8 h */
   rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21, dirt: 0.06 },   // dirt: sucio del todo en ~28 h despierto
-  poopEvery: [90, 180],               // minutos entre caquitas
-  callChance: 0.0015,                 // probabilidad por minuto de llamar la atención (~1,4 al día)
+  poopEvery: [90, 180],               // minutos entre caquitas (adulto)
+  poopByStage: { baby: [10, 20], child: [60, 120] },   // los pequeños hacen caca mucho más a menudo
+  /* los corazones de hambre y felicidad se vacían más deprisa cuanto más pequeño (como el Tamagotchi original) */
+  needMult: { baby: { hunger: 5, happy: 4 }, child: { hunger: 2, happy: 1.8 }, teen: { hunger: 1.3, happy: 1.2 } },
+  callChance: 0.0033,                 // probabilidad por minuto de llamar la atención (~una cada 5 h despierto)
+  callMax: { baby: 1, child: 5, teen: 5, adult: 6 },   // máximo de llamadas por etapa
+  preSickMin: { baby: 10, child: 180, teen: 180 },      // se pone malito este rato antes de evolucionar
+  oldAgeAt: 0.65,                     // a partir de este % de vida del adulto enferma cada día (dosis doble)
   callWindowMin: 45,                  // tiempo para responder antes de que cuente como error
   sickRisk: 0.0004,                   // riesgo base de enfermar por minuto
   sickMistakeMin: 60,                 // enfermo sin curar durante este tiempo = error de cuidado
@@ -104,7 +110,8 @@ function newState() {
     poops: 0, poopTimer: 0, nextPoop: rand(CFG.poopEvery[0], CFG.poopEvery[1]),
     sick: false, medicine: 0, sickMin: 0, sickMistake: false,
     sleeping: false,
-    call: false, callMin: 0,
+    call: false, callMin: 0, callsN: 0,
+    preSick: false, oldIn: 1440,               // enfermedad previa a evolucionar · cuenta atrás de la enfermedad de vejez
     mess: null, art: [], messIn: 120,           // travesuras: {kind:'shout'|'paint', min} · garabatos en pantalla · minutos hasta la próxima
     mistakes: 0, neglect: 0, sweetLoad: 0,
     flags: { hunger: false, poop: false, energy: false },
@@ -171,6 +178,8 @@ const meterEls = $$('.meter');
 
 /* ============================== LÓGICA ================================== */
 const minW = () => CFG.minWeight[state.stage] || 3;
+const need = () => CFG.needMult[state.stage] || { hunger: 1, happy: 1 };
+const poopRange = () => CFG.poopByStage[state.stage] || CFG.poopEvery;
 const isObese = () => state.weight > (CFG.obese[state.stage] || 99);
 const formName = id => (META[id] && META[id].name) || '—';
 
@@ -212,7 +221,8 @@ function adultForm() {
 }
 
 function toStage(st, text, from) {
-  state.stage = st; state.stageMin = 0;
+  state.stage = st; state.stageMin = 0; state.callsN = 0; state.preSick = false;
+  state.nextPoop = rand(poopRange()[0], poopRange()[1]); state.poopTimer = 0;
   state.weight = Math.max(state.weight, CFG.minWeight[st]);
   if (st !== 'egg') L.progress.record(spriteId());
   if (st !== 'egg' && st !== 'baby' && L.mail) L.mail.on('evolve', { name: formName(state.form) });
@@ -305,8 +315,9 @@ function tick(dt) {
 
   const k = s.sleeping ? 0.35 : 1;
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
-  s.hunger = clamp(s.hunger - R.hunger * dt * k);
-  s.happy = clamp(s.happy - (R.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
+  const nd = need();
+  s.hunger = clamp(s.hunger - R.hunger * nd.hunger * dt * k);
+  s.happy = clamp(s.happy - (R.happy * nd.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
   s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
   s.discipline = clamp(s.discipline - R.discipline * dt);
   s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
@@ -314,7 +325,10 @@ function tick(dt) {
 
   if (!s.sleeping) {
     s.poopTimer += dt;
-    if (s.poopTimer >= s.nextPoop) { s.poopTimer = 0; s.nextPoop = rand(CFG.poopEvery[0], CFG.poopEvery[1]); if (s.poops < 4) s.poops++; }
+    if (s.poopTimer >= s.nextPoop) {
+      s.poopTimer = 0; s.nextPoop = rand(poopRange()[0], poopRange()[1]);
+      if (s.poops < 4) { s.poops++; if (!quiet) { setMsg('💩 ¡Ha hecho caca! Límpiala pronto o enfermará', 3500); Sound.play('alert'); } }    // un aviso por caca
+    }
   }
 
   if (!s.sick) {
@@ -323,6 +337,17 @@ function tick(dt) {
   } else {
     s.sickMin += dt;
     if (s.sickMin > CFG.sickMistakeMin && !s.sickMistake) { s.sickMistake = true; mistake(); }
+  }
+
+  /* se pone malito poco antes de evolucionar (como el original): un aviso de que va a crecer, sin contar como error */
+  const left = (CFG.stageMin[s.stage] || Infinity) - s.stageMin;
+  if (!quiet && !s.sick && !s.preSick && !s.sleeping && CFG.preSickMin[s.stage] && left > 0 && left <= CFG.preSickMin[s.stage]) {
+    s.preSick = true; makeSick('🤒 Se encuentra raro… ¡va a crecer! Cúralo'); s.sickMistake = true;
+  }
+  /* vejez: en el último tramo de su vida enferma cada día y necesita dosis doble */
+  if (!quiet && s.stage === 'adult' && s.wear >= CFG.oldAgeAt * CFG.lifespanMin) {
+    s.oldIn -= dt;
+    if (s.oldIn <= 0) { s.oldIn = 1440; if (!s.sick) { makeSick('👴 Los años pesan: se ha puesto enfermo'); s.medicine = 4; s.sickMistake = true; } }
   }
 
   roomTick(dt);
@@ -335,7 +360,7 @@ function tick(dt) {
   if (s.call) {
     s.callMin += dt;
     if (s.callMin > CFG.callWindowMin) { s.call = false; mistake(); if (!quiet) setMsg('Ignoraste su llamada de atención'); }
-  } else if (!s.sleeping && Math.random() < CFG.callChance * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; }
+  } else if (!s.sleeping && s.callsN < (CFG.callMax[s.stage] || 0) && Math.random() < CFG.callChance * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; s.callsN++; }
 
   if (s.hunger <= 0 || s.sick || s.poops >= 4) s.neglect += dt; else s.neglect = Math.max(0, s.neglect - dt);
   if (s.neglect >= CFG.deathNeglectMin) { die('descuido'); return; }
@@ -511,12 +536,12 @@ function scold() {
   const s = state;
   if (s.mess) {
     const m = s.mess; s.mess = null;
-    s.discipline = clamp(s.discipline + 20); s.happy = clamp(s.happy - 5);
+    s.discipline = clamp(s.discipline + 25); s.happy = clamp(s.happy - 5);
     L.progress.stat('scolds'); Sound.play('click');
     setMsg(m.kind === 'paint' ? 'Ha entendido la lección. Limpia los garabatos con 🧹' : 'Ha entendido la lección. ¡Silencio!');
   } else if (s.call) {
     s.call = false; s.callMin = 0;
-    s.discipline = clamp(s.discipline + 20); s.happy = clamp(s.happy - 5);
+    s.discipline = clamp(s.discipline + 25); s.happy = clamp(s.happy - 5);
     L.progress.stat('scolds'); setMsg('Ha entendido la lección'); Sound.play('click');
   } else {
     s.happy = clamp(s.happy - 10);
@@ -702,12 +727,12 @@ function openObject(id) {
 function hitObject(x, y) {
   const o = state.owned, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
   if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
+  if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';      // la pelota va por delante de la cama
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
   if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
   if (o.includes('lamp') && x >= LAMP.x && x < LAMP.x + itemSize('lamp').w * LAMP.k && y >= LAMP.y - itemSize('lamp').h * LAMP.k && y < LAMP.y) return 'lamp';
   if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
-  if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';
   return null;
 }
 
@@ -1385,9 +1410,9 @@ function predictSchedule() {
   if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagochi está a punto de evolucionar!', 'Limagochi');
   if (s.sleeping) return out;                                               // dormido: no avisamos
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
-  const hungerIn = s.hunger / R.hunger;
-  add((s.hunger - 25) / R.hunger, 'hunger', 'Tiene hambre');
-  add((s.happy - 25) / (R.happy * toy + s.poops * 0.25 + (s.sick ? 0.5 : 0)), 'sad', 'Está triste: ¡juega con él!');
+  const Hn = R.hunger * need().hunger, hungerIn = s.hunger / Hn;
+  add((s.hunger - 25) / Hn, 'hunger', 'Tiene hambre');
+  add((s.happy - 25) / (R.happy * need().happy * toy + s.poops * 0.25 + (s.sick ? 0.5 : 0)), 'sad', 'Está triste: ¡juega con él!');
   add((s.energy - 15) / R.energy, 'sleepy', 'Tiene sueño: apaga la luz');
   if (!s.poops) add(s.nextPoop - s.poopTimer, 'poop', 'Hay que limpiar');
   if (s.sick) add(0, 'sick', 'Está enfermo: cúralo');
