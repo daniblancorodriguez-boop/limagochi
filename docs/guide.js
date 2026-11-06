@@ -100,7 +100,7 @@ const TOPICS = [
     LI('Cuanto más lo entrenas con palabras clave, más listo se vuelve y más rápido aprende (🧠 en Estado).'),
     LI('Pero estudiar cansa: cada lección le quita diversión. Tras unas 8 lecciones seguidas se cansa y no querrá escuchar durante aproximadamente una hora. Si insistes, se enfada.'),
     LI('Un bebé solo balbucea; un adulto bien criado pronuncia perfecto. También olvida poco a poco lo que no practica.'),
-    LI('Si tu navegador no tiene reconocimiento de voz, usa 📊 Estado → Ajustes… o el panel de práctica con botones.'),
+    LI('Si tu navegador no tiene reconocimiento de voz, mira el progreso en 📊 Estado → 🎓 Trucos y palabras (también sirve para practicar con botones).'),
     ...keywords(),
     P('Puedes decir varias en una frase: «salta y baila».')
   ] },

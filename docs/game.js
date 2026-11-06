@@ -573,7 +573,8 @@ function openStatus() {
     ...rows.map(([k, v]) => line(k, v)),
     row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus))),
     row(btn(`✉️ Buzón${L.mail && L.mail.unread() ? ` (${L.mail.unread()})` : ''}`, () => L.mail.open(openStatus)), btn('🤝 Visitas', () => L.visit.open(openStatus))),
-    row(btn('📘 Guía', () => L.guide.open(openStatus)), btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
+    row(btn('🎓 Trucos y palabras', () => L.voice && L.voice.open()), btn('📘 Guía', () => L.guide.open(openStatus))),
+    row(btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
     row(
       btn('Cerrar', closePanel, 'ghost'),
       btn('Nuevo huevo', () => {
