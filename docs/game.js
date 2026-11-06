@@ -88,7 +88,7 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
 /* lámpara: al fondo junto al cabecero de la cama, más pequeña (k) y apoyada en y = 26 */
 const LAMP = { x: 21, y: 26, k: 0.8 };
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 3, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
 /* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
 const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom' };
 const here = () => (state.room.where === 'bedroom' ? 'bedroom' : 'salon');
@@ -1221,7 +1221,7 @@ function drawHouse(now) {
 
 /** Ventana: salón (centro) y habitación (con luna de noche). */
 function drawWindow(now) {
-  const bed = here() === 'bedroom', x = bed ? 31 : 15, y = 3, w = 11, h = 10;
+  const bed = here() === 'bedroom', x = bed ? 31 : 22, y = 3, w = 11, h = 10;
   R1(x - 1, y - 1, w + 2, h + 2, C.ink);
   R1(x, y, w, h, bed ? C.mid : C.light);
   R1(x + w / 2 - 0.5, y, 1, h, C.ink); R1(x, y + h / 2 - 0.5, w, 1, C.ink);
