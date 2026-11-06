@@ -81,6 +81,7 @@ function lessonDone() {
   const a = A(), s = a.S(), st = s.study;
   st.n++; st.fat = Math.min(130, st.fat + FAT_LESSON);
   s.happy = a.clamp(s.happy - 3);
+  s.discipline = a.clamp(s.discipline + 1);                  // aprender también educa
   if (st.fat >= FAT_TIRED_AT && !st.tired) {
     st.tired = true;
     setTimeout(() => { a.fx('refuse', 1200); a.setMsg('😩 ¡Se ha cansado de aprender! Necesita descansar', 4000); }, 900);

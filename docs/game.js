@@ -39,21 +39,32 @@ const CFG = {
   lifespanMin: 12 * 1440              // vida del adulto (la obesidad la acorta x2.5)
 };
 
-/* cat: meal = sacia hambre · snack = sube felicidad (engorda y da caries) · gourmet = se compra con 🪙 */
+/* grp: healthy = sana (sube energía y disciplina, anima menos) · fast = comida rápida (anima mucho, baja disciplina, ensucia, engorda) ·
+   snack = dulce (engorda y da caries) · gourmet = se compra con 🪙. cat: meal = sacia hambre · snack = sube felicidad
+   Efectos extra: energy (±energía) · dirt (suciedad) · el «paladar» (taste) sube con rápida/snacks y baja con sana. */
 const FOODS = [
-  { id: 'rice',  cat: 'meal',  icon: '🍚', name: 'Arroz',       hunger: 25, happy: 2,  weight: 1,   disc: 0,  diet: 'veg' },
-  { id: 'salad', cat: 'meal',  icon: '🥗', name: 'Ensalada',    hunger: 20, happy: 2,  weight: 0.5, disc: 0,  diet: 'veg' },
-  { id: 'lime',  cat: 'meal',  icon: '🍈', name: 'Lima fresca', hunger: 15, happy: 6,  weight: 0.2, disc: 0,  diet: 'veg' },
-  { id: 'pasta', cat: 'meal',  icon: '🍝', name: 'Pasta',       hunger: 32, happy: 5,  weight: 1.5, disc: 0,  diet: 'veg' },
-  { id: 'fish',  cat: 'meal',  icon: '🐟', name: 'Pescado',     hunger: 28, happy: 4,  weight: 1,   disc: 0,  diet: 'meat' },
-  { id: 'burger',cat: 'meal',  icon: '🍔', name: 'Hamburguesa', hunger: 38, happy: 8,  weight: 2,   disc: 0,  diet: 'meat' },
-  { id: 'candy', cat: 'snack', icon: '🍬', name: 'Caramelo',    hunger: 5,  happy: 22, weight: 2,   disc: -6, diet: 'candy', sweet: 1 },
-  { id: 'cookie',cat: 'snack', icon: '🍪', name: 'Galleta',     hunger: 8,  happy: 16, weight: 1.5, disc: -3, diet: 'candy', sweet: 0.8 },
-  { id: 'cake',  cat: 'snack', icon: '🍰', name: 'Tarta',       hunger: 10, happy: 30, weight: 3,   disc: -8, diet: 'candy', sweet: 1.5 },
-  { id: 'sushi', cat: 'meal',  icon: '🍣', name: 'Sushi gourmet', hunger: 40, happy: 15, weight: 1,  disc: 0, diet: 'meat',  gourmet: true, cost: 12 },
-  { id: 'paella',cat: 'meal',  icon: '🥘', name: 'Paella',      hunger: 45, happy: 12, weight: 1.5, disc: 0,  diet: 'meat',  gourmet: true, cost: 15 },
-  { id: 'limecake', cat: 'snack', icon: '🎂', name: 'Tarta de lima', hunger: 15, happy: 40, weight: 2, disc: 0, diet: 'candy', sweet: 0, gourmet: true, cost: 18 }
+  { id: 'rice',  grp: 'healthy', cat: 'meal',  icon: '🍚', name: 'Arroz',          hunger: 25, happy: -1, energy: 3, weight: 1,   disc: 2,  diet: 'veg' },
+  { id: 'salad', grp: 'healthy', cat: 'meal',  icon: '🥗', name: 'Ensalada',       hunger: 20, happy: -2, energy: 4, weight: 0.5, disc: 3,  diet: 'veg' },
+  { id: 'lime',  grp: 'healthy', cat: 'meal',  icon: '🍈', name: 'Lima fresca',    hunger: 15, happy: 0,  energy: 3, weight: 0.2, disc: 2,  diet: 'veg' },
+  { id: 'pasta', grp: 'healthy', cat: 'meal',  icon: '🍝', name: 'Pasta',          hunger: 32, happy: -1, energy: 5, weight: 1.5, disc: 2,  diet: 'veg' },
+  { id: 'fish',  grp: 'healthy', cat: 'meal',  icon: '🐟', name: 'Pescado',        hunger: 28, happy: -1, energy: 4, weight: 1,   disc: 2,  diet: 'meat' },
+  { id: 'lentils', grp: 'healthy', cat: 'meal', icon: '🫘', name: 'Lentejas',      hunger: 30, happy: -2, energy: 6, weight: 0.8, disc: 3,  diet: 'veg' },
+  { id: 'soup',  grp: 'healthy', cat: 'meal',  icon: '🍲', name: 'Sopa de verduras', hunger: 22, happy: -1, energy: 4, weight: 0.4, disc: 2, diet: 'veg' },
+  { id: 'chicken', grp: 'healthy', cat: 'meal', icon: '🍗', name: 'Pollo a la plancha', hunger: 30, happy: -1, energy: 5, weight: 0.8, disc: 2, diet: 'meat' },
+  { id: 'burger',grp: 'fast',  cat: 'meal',  icon: '🍔', name: 'Hamburguesa',      hunger: 38, happy: 11, dirt: 8,  weight: 2.5, disc: -4, diet: 'meat' },
+  { id: 'hotdog',grp: 'fast',  cat: 'meal',  icon: '🌭', name: 'Perrito caliente', hunger: 34, happy: 10, dirt: 8,  weight: 2.5, disc: -4, diet: 'meat' },
+  { id: 'pizza', grp: 'fast',  cat: 'meal',  icon: '🍕', name: 'Pizza',            hunger: 40, happy: 12, dirt: 10, weight: 3,   disc: -5, diet: 'meat' },
+  { id: 'nuggets', grp: 'fast', cat: 'meal', icon: '🥡', name: 'Nuggets',          hunger: 30, happy: 9,  dirt: 8,  weight: 2.5, disc: -4, diet: 'meat' },
+  { id: 'fries', grp: 'fast',  cat: 'meal',  icon: '🍟', name: 'Patatas fritas',   hunger: 20, happy: 9,  dirt: 6,  weight: 2,   disc: -3, diet: 'candy' },
+  { id: 'candy', grp: 'snack', cat: 'snack', icon: '🍬', name: 'Caramelo',    hunger: 5,  happy: 22, weight: 2,   disc: -6, diet: 'candy', sweet: 1 },
+  { id: 'cookie',grp: 'snack', cat: 'snack', icon: '🍪', name: 'Galleta',     hunger: 8,  happy: 16, weight: 1.5, disc: -3, diet: 'candy', sweet: 0.8 },
+  { id: 'cake',  grp: 'snack', cat: 'snack', icon: '🍰', name: 'Tarta',       hunger: 10, happy: 30, weight: 3,   disc: -8, diet: 'candy', sweet: 1.5 },
+  { id: 'sushi', grp: 'gourmet', cat: 'meal',  icon: '🍣', name: 'Sushi gourmet', hunger: 40, happy: 15, weight: 1,  disc: 0, diet: 'meat',  gourmet: true, cost: 12 },
+  { id: 'paella',grp: 'gourmet', cat: 'meal',  icon: '🥘', name: 'Paella',      hunger: 45, happy: 12, weight: 1.5, disc: 0,  diet: 'meat',  gourmet: true, cost: 15 },
+  { id: 'limecake', grp: 'gourmet', cat: 'snack', icon: '🎂', name: 'Tarta de lima', hunger: 15, happy: 40, weight: 2, disc: 0, diet: 'candy', sweet: 0, gourmet: true, cost: 18 }
 ];
+/** Paladar: cuánto se ha acostumbrado a la comida rápida (0–100). Con él alto rechaza la comida sana. */
+const tasteLabel = t => t < 25 ? 'Sano' : t < 50 ? 'Normal' : t < 75 ? 'Caprichoso' : 'Muy caprichoso';
 
 const SHOP_EXTRAS = [
   { id: 'bg_dots',   type: 'bg',  key: 'dots',   icon: '🔹', name: 'Fondo lunares',   cost: 15 },
@@ -112,6 +123,7 @@ function newState() {
     sleeping: false,
     call: false, callMin: 0, callsN: 0,
     preSick: false, oldIn: 1440,               // enfermedad previa a evolucionar · cuenta atrás de la enfermedad de vejez
+    taste: 20, refuseN: 0, refuseCap: 0,        // paladar (0–100) · rechazos seguidos de comida sana y su tope (3–5)
     mess: null, art: [], messIn: 120,           // travesuras: {kind:'shout'|'paint', min} · garabatos en pantalla · minutos hasta la próxima
     mistakes: 0, neglect: 0, sweetLoad: 0,
     flags: { hunger: false, poop: false, energy: false },
@@ -321,6 +333,7 @@ function tick(dt) {
   s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
   s.discipline = clamp(s.discipline - R.discipline * dt);
   s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
+  if (!s.sleeping) s.taste = Math.max(0, s.taste - 0.02 * dt);                  // el paladar se reeduca solo (~30 al día)
   if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
 
   if (!s.sleeping) {
@@ -432,7 +445,8 @@ function openFeed() {
   const nGour = gour.reduce((n, f) => n + state.inv[f.id], 0);
   openPanel([
     p('¿Qué le das?'),
-    btn('🍲 Comidas', () => feedList('meal')),
+    btn('🥗 Sanas', () => feedList('healthy')),
+    btn('🍔 Comida rápida', () => feedList('fast')),
     btn('🍬 Snacks', () => feedList('snack')),
     ...(nGour ? [btn(`🎒 Gourmet (${nGour})`, () => feedList('gourmet'))] : []),
     btn('Cancelar', closePanel, 'ghost')
@@ -441,10 +455,10 @@ function openFeed() {
 
 function feedList(cat) {
   const list = cat === 'gourmet' ? FOODS.filter(f => f.gourmet && state.inv[f.id] > 0)
-                                 : FOODS.filter(f => !f.gourmet && f.cat === cat);
-  const title = cat === 'meal' ? 'Comidas · sacian el hambre' : cat === 'snack' ? 'Snacks · animan, pero engordan' : 'Gourmet';
+                                 : FOODS.filter(f => !f.gourmet && f.grp === cat);
+  const title = { healthy: 'Sanas · dan energía y disciplina', fast: 'Rápida · anima, pero ensucia y engorda', snack: 'Snacks · animan, pero engordan', gourmet: 'Gourmet' }[cat];
   const ev = L.world.event();
-  const seasonal = ev && cat !== 'gourmet' ? L.world.EVENT_FOODS.filter(f => f.event === ev.id && f.cat === cat) : [];
+  const seasonal = ev && (cat === 'healthy' || cat === 'snack') ? L.world.EVENT_FOODS.filter(f => f.event === ev.id && f.cat === (cat === 'snack' ? 'snack' : 'meal')) : [];
   openPanel([
     p(title),
     ...seasonal.map(f => btn(`${ev.icon} ${f.name} (temporada)`, () => feed(f))),
@@ -460,8 +474,20 @@ function feed(f) {
   if (f.cat === 'meal' && s.hunger >= 98) { refuse('No quiere más, está lleno'); return; }
   if (f.cat === 'snack' && s.happy >= 98) { refuse('Ya está muy feliz'); return; }
   if (f.gourmet) { if (!(s.inv[f.id] > 0)) return; s.inv[f.id]--; }
+  if (f.grp === 'healthy' && s.taste >= 40 && s.hunger >= 10) {                // acostumbrado a la rápida: puede rechazar lo sano
+    if (!s.refuseCap) s.refuseCap = 3 + Math.floor(Math.random() * 3);          // aguanta de 3 a 5 rechazos seguidos
+    const pRefuse = Math.min(0.8, (s.taste - 40) / 60) * (1 - s.discipline / 200);
+    if (s.refuseN < s.refuseCap && Math.random() < pRefuse) {
+      s.refuseN++; s.happy = clamp(s.happy - 4); s.taste = Math.max(0, s.taste - 8);
+      refuse(`😠 ¡No quiere ${f.name.toLowerCase()}! Está acostumbrado a la comida rápida`); Store.save(); render(); return;
+    }
+  }
+  if (f.grp === 'healthy') { s.refuseN = 0; s.refuseCap = 0; }
   s.hunger = clamp(s.hunger + f.hunger);
   s.happy = clamp(s.happy + f.happy);
+  if (f.energy) s.energy = clamp(s.energy + f.energy);
+  if (f.dirt) s.dirt = clamp(s.dirt + f.dirt);
+  if (f.grp === 'fast') s.taste = clamp(s.taste + 12); else if (f.grp === 'snack') s.taste = clamp(s.taste + 6); else if (f.grp === 'healthy') s.taste = Math.max(0, s.taste - 6);
   s.discipline = clamp(s.discipline + f.disc);
   s.weight = clamp(s.weight + f.weight, minW(), 99);
   s.food[f.diet]++;
@@ -561,6 +587,7 @@ function openStatus() {
     ['Lima Points', `${s.lp} 🪙`]
   ];
   if (L.voice && s.stage !== 'egg' && s.stage !== 'dead') rows.push(['Inteligencia', `${L.voice.iqPct()}%`]);
+  if (s.stage !== 'egg' && s.stage !== 'dead') rows.push(['Paladar', tasteLabel(s.taste)]);
   if (s.stage === 'adult') rows.push(['Vida restante', `${Math.max(0, Math.round(100 - s.wear / CFG.lifespanMin * 100))}%`]);
   if (left !== null && s.stage !== 'dead') rows.push(['Evoluciona en', `~${fmtDur(left)}`]);
   if (s.stage === 'dead') rows.push(['Causa', s.cause === 'vejez' ? 'Vejez' : 'Descuido']);
