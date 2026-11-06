@@ -579,7 +579,15 @@ function toggleLight() {
   if (!s.sleeping) s.stayUp = Date.now() + 45 * 60000;          // si lo despiertas de noche, se queda un rato levantado
   if (s.sleeping && cycleOn() && L.world.isNight()) L.progress.stat('nightSleeps');
   if (s.sleeping) { setMsg('Luz apagada: a dormir… Zzz'); Sound.play('lightOff'); }
-  else { setMsg('Luz encendida'); Sound.play('lightOn'); if (s.energy < 30) s.happy = clamp(s.happy - 5); }
+  else {
+    Sound.play('lightOn');
+    const missing = 100 - s.energy;                                                // lo despiertas sin haber descansado: se enfada
+    if (missing >= 10) {
+      const pen = Math.min(15, Math.ceil(missing / 8));
+      s.happy = clamp(s.happy - pen);
+      fx('refuse', 1400); setMsg(`😠 ¡Quería dormir más! −${pen} felicidad`, 3200);
+    } else setMsg('Luz encendida');
+  }
   roomTick(0);
   Store.save(); render();
 }
