@@ -280,3 +280,21 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .shopcol { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .shopdesc { font-size: 10px; text-align: center; opacity: .8; }
 .thumb { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; flex: none; }
+
+/* ---------- rejilla de píxeles y esquinas ---------- */
+.stage.grid::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background-image:
+    linear-gradient(to right, rgba(29, 42, 18, .13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(29, 42, 18, .13) 1px, transparent 1px);
+  background-size: calc(100% / 96) calc(100% / 72);
+}
+.chips { position: absolute; left: 0; right: 0; bottom: 0; height: 0; z-index: 2; pointer-events: none; }
+.chip {
+  position: absolute; bottom: 3px; padding: 1px 5px; font-weight: 800; font-size: 9px; line-height: 1.3; font-family: inherit;
+  color: var(--ink); background: rgba(212, 229, 164, .92); border: 1px solid var(--ink); border-radius: 10px;
+}
+#chipName { left: 5px; }
+.chip-go { right: 5px; pointer-events: auto; cursor: pointer; min-height: 22px; min-width: 38px; }
+.chip-go:active { background: var(--lcd); }
+.stage:has(.panel:not([hidden])) .chips { display: none; }

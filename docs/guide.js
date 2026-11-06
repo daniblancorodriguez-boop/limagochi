@@ -28,6 +28,8 @@ function keywords() {
 const TOPICS = [
   { icon: '🛋️', title: 'Muebles de la casa', body: () => [
     H('Compra muebles en la 🛒 tienda'),
+    LI('Hay dos cuartos: 🛋️ Salón (sofá, tele, planta, alfombra, pelota, peluche) y 🛏️ Cuarto (cama, lámpara, cuadro). Cambia con el botón de la esquina inferior derecha de la pantalla. Al dormir con cama, se va solo al cuarto.'),
+    LI('El botón ▦ de abajo muestra u oculta la rejilla de píxeles.'),
     LI('Una vez en casa, TOCA el mueble en la pantalla para usarlo.'),
     LI('🛋️ Sofá: Sentarse (sube la felicidad) o Tumbarse (recupera energía). Se levanta solo al rato.'),
     LI('📺 Tele: Encender, Ver la tele (mucha felicidad, pero baja un poco la disciplina) y Apagar.'),

@@ -89,6 +89,10 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 /* lámpara: al fondo junto al cabecero de la cama, más pequeña (k) y apoyada en y = 26 */
 const LAMP = { x: 21, y: 26, k: 0.8 };
 const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 34, y: 4 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
+/* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
+const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom' };
+const here = () => (state.room.where === 'bedroom' ? 'bedroom' : 'salon');
+const has = id => state.owned.includes(id) && ROOMOF[id] === here();
 /** Peluche: en el suelo; si hay sofá, sentado encima (a la derecha del asiento). */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: ROOM.sofa.x + itemSize('sofa').w - itemSize('teddy').w - 2, y: ROOM.sofa.y + 9 - h } : { x: 38, y: 34 - h }; };
 
@@ -185,6 +189,7 @@ const W = 48, H = 36;                                  // coordenadas lógicas (
 g.setTransform(2, 0, 0, 2, 0, 0);
 g.imageSmoothingEnabled = false;
 const msgEl = $('#msg'), hudEl = $('#hud'), alertEl = $('#alert'), panel = $('#panel');
+const chipsEl = $('#chips'), chipName = $('#chipName'), chipGo = $('#chipGo'), stageEl = $('.stage');
 const iconBtns = $$('#icons button');
 const meterEls = $$('.meter');
 
@@ -655,6 +660,7 @@ function roomTick(dt) {
   if (s.stage === 'dead' || s.stage === 'egg' || s.pause) { r.use = null; r.tv = false; r.lamp = false; return; }
   if (s.sleeping) {
     r.tv = false; r.lamp = false;
+    if (s.owned.includes('bed') && !s.sick && r.where !== 'bedroom') r.where = 'bedroom';       // a dormir: se va a la habitación
     if (s.owned.includes('bed') && !s.sick) { r.use = 'bed'; r.auto = true; s.energy = clamp(s.energy + CFG.rate.sleep * 0.2 * dt); }
     else if (r.use) r.use = null;
     return;
@@ -682,6 +688,14 @@ function setUse(u, text) {
   r.use = u; r.min = 0; r.auto = false;
   if (text) setMsg(text);
   Sound.play('click'); Store.save(); render(); closePanel();
+}
+
+function setRoom(w) {
+  const r = state.room;
+  if (r.where === w) return;
+  r.where = w; r.use = null; r.min = 0; r.auto = false; r.lamp = w === 'bedroom' ? r.lamp : false;
+  hugUntil = 0; ballUntil = 0; closePanel();
+  Sound.play('click'); Store.save(); render();
 }
 
 function openObject(id) {
@@ -753,7 +767,7 @@ function openObject(id) {
 
 /** ¿Qué objeto hay en el punto (x, y) de la pantalla lógica? */
 function hitObject(x, y) {
-  const o = state.owned, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
+  const o = { includes: has }, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
   if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';      // la pelota va por delante de la cama
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
@@ -1095,7 +1109,7 @@ function drawPet(now, frame, f) {
   else if (s.pause) { bx = 16; by = 12; }                                    // tumbado bajo la sombrilla
   else if (u === 'sit') { bx = ROOM.sofa.x - 3; by = ROOM.sofa.y - 13; slot = 'sofa'; }
   else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
-  else if (u === 'bed' || (s.sleeping && s.owned.includes('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
+  else if (u === 'bed' || (s.sleeping && has('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
   else if (u === 'tv') { bx = 18; by = 11; }
   else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
   else if (now < ballUntil) { bx = 14 + Math.round(Math.sin(now / 260) * 3); by = 11 - (Math.floor(now / 130) % 2); }
@@ -1182,7 +1196,7 @@ function drawItem(id, x, y, variant = 0, fromRow = 0) {
   }
 }
 function drawHouse(now) {
-  const s = state, o = s.owned;
+  const s = state, o = { includes: has };
   if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
   if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
   if (o.includes('lamp')) { const lh = itemSize('lamp').h; g.save(); g.translate(LAMP.x, LAMP.y - lh * LAMP.k); g.scale(LAMP.k, LAMP.k); drawItem('lamp', 0, 0, s.room.lamp ? 1 : 0); g.restore(); }
@@ -1205,6 +1219,15 @@ function drawHouse(now) {
   }
 }
 
+/** Ventana: salón (centro) y habitación (con luna de noche). */
+function drawWindow(now) {
+  const bed = here() === 'bedroom', x = bed ? 31 : 15, y = 3, w = 11, h = 10;
+  R1(x - 1, y - 1, w + 2, h + 2, C.ink);
+  R1(x, y, w, h, bed ? C.mid : C.light);
+  R1(x + w / 2 - 0.5, y, 1, h, C.ink); R1(x, y + h / 2 - 0.5, w, 1, C.ink);
+  if (bed && cycleOn() && L.world.isNight()) { R1(x + 2, y + 1, 2, 2, C.bg); }
+}
+
 function drawScene(now) {
   const s = state, frame = Math.floor(now / 500) % 2;
   if (current && now > current.start + current.dur) current = null;
@@ -1213,7 +1236,7 @@ function drawScene(now) {
   L.world.sky(g, W, H, now, lcdMode);
   drawWallpaper();
   L.world.decor(g, L.world.event(), now, W, H);
-  if (s.pause) drawBeach(now);
+  if (s.pause) drawBeach(now); else drawWindow(now);
   for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
   for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);                 // garabatos (los muebles quedan por delante)
@@ -1243,6 +1266,11 @@ function render() {
   if (s.pause) { if (!(L.mini && L.mini.active())) hud('🏖️ Vacaciones · el tiempo está detenido'); vacHud = true; }
   else if (vacHud) { hud(null); vacHud = false; }
   $('#lp').textContent = `🪙 ${s.lp}`;
+  const mini = !!(L.mini && L.mini.active());
+  chipsEl.hidden = mini || s.stage === 'egg' || s.stage === 'dead';
+  chipName.textContent = here() === 'bedroom' ? '🛏️ Cuarto' : '🛋️ Salón';
+  chipGo.textContent = here() === 'bedroom' ? '→ 🛋️' : '→ 🛏️';
+  chipGo.setAttribute('aria-label', here() === 'bedroom' ? 'Ir al salón' : 'Ir a la habitación');
   if (L.mini && L.mini.active()) return;               // los minijuegos dibujan su propia escena
   drawScene(Date.now());
 }
@@ -1384,6 +1412,11 @@ function bindUI() {
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
   $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
+  chipGo.addEventListener('click', () => { if (canInteract()) setRoom(here() === 'bedroom' ? 'salon' : 'bedroom'); });
+  let gridOn = true; try { gridOn = localStorage.getItem('limagochi.grid') !== '0'; } catch { /* */ }
+  const applyGrid = () => { stageEl.classList.toggle('grid', gridOn); $('#btnGrid').textContent = gridOn ? '▦' : '▢'; };
+  applyGrid();
+  $('#btnGrid').addEventListener('click', () => { gridOn = !gridOn; try { localStorage.setItem('limagochi.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); });
   $('#btnLcd').addEventListener('click', () => {
     lcdMode = !lcdMode; try { localStorage.setItem(CFG.lcdKey, lcdMode ? '1' : '0'); } catch { /* */ }
     setToolIcons(); render();
