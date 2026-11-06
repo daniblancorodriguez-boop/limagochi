@@ -59,12 +59,29 @@ const FOODS = [
   { id: 'candy', grp: 'snack', cat: 'snack', icon: '🍬', name: 'Caramelo',    hunger: 5,  happy: 22, weight: 2,   disc: -6, diet: 'candy', sweet: 1 },
   { id: 'cookie',grp: 'snack', cat: 'snack', icon: '🍪', name: 'Galleta',     hunger: 8,  happy: 16, weight: 1.5, disc: -3, diet: 'candy', sweet: 0.8 },
   { id: 'cake',  grp: 'snack', cat: 'snack', icon: '🍰', name: 'Tarta',       hunger: 10, happy: 30, weight: 3,   disc: -8, diet: 'candy', sweet: 1.5 },
+  { id: 'manzana',   stock: true, grp: 'healthy', cat: 'meal',  icon: '🍎', name: 'Manzana',   hunger: 14, happy: -1, energy: 4, weight: 0.2, disc: 2, diet: 'veg' },
+  { id: 'zanahoria', stock: true, grp: 'healthy', cat: 'meal',  icon: '🥕', name: 'Zanahoria', hunger: 18, happy: -1, energy: 3, weight: 0.3, disc: 2, diet: 'veg' },
+  { id: 'tomate',    stock: true, grp: 'healthy', cat: 'meal',  icon: '🍅', name: 'Tomate',    hunger: 12, happy: 2,  energy: 2, weight: 0.2, disc: 1, diet: 'veg' },
+  { id: 'lechuga',   stock: true, grp: 'healthy', cat: 'meal',  icon: '🥬', name: 'Lechuga',   hunger: 10, happy: -1, energy: 2, weight: 0.1, disc: 2, dirt: -6, diet: 'veg' },
+  { id: 'miel',      stock: true, grp: 'snack',   cat: 'snack', icon: '🍯', name: 'Miel',      hunger: 6,  happy: 24, weight: 1, disc: -2, diet: 'candy', sweet: 0.6 },
   { id: 'sushi', grp: 'gourmet', cat: 'meal',  icon: '🍣', name: 'Sushi gourmet', hunger: 40, happy: 15, weight: 1,  disc: 0, diet: 'meat',  gourmet: true, cost: 12 },
   { id: 'paella',grp: 'gourmet', cat: 'meal',  icon: '🥘', name: 'Paella',      hunger: 45, happy: 12, weight: 1.5, disc: 0,  diet: 'meat',  gourmet: true, cost: 15 },
   { id: 'limecake', grp: 'gourmet', cat: 'snack', icon: '🎂', name: 'Tarta de lima', hunger: 15, happy: 40, weight: 2, disc: 0, diet: 'candy', sweet: 0, gourmet: true, cost: 18 }
 ];
 /** Paladar: cuánto se ha acostumbrado a la comida rápida (0–100). Con él alto rechaza la comida sana. */
 const tasteLabel = t => t < 25 ? 'Sano' : t < 50 ? 'Normal' : t < 75 ? 'Caprichoso' : 'Muy caprichoso';
+
+/* ---- jardín: objetos, cultivos y tiempos (en minutos de juego) ---- */
+const GARDEN_ITEMS = [
+  { id: 'flowers', icon: '🌷', name: 'Flores',   cost: 15,  desc: 'decoran el jardín' },
+  { id: 'can',     icon: '🚿', name: 'Regadera', cost: 20,  desc: 'las plantas crecen un 30% más rápido' },
+  { id: 'lounger', icon: '🪑', name: 'Tumbona',  cost: 40,  desc: 'tócala para tomar el sol' },
+  { id: 'plot',    icon: '🥕', name: 'Huerto',   cost: 70,  desc: 'planta semillas y cosecha' },
+  { id: 'apple',   icon: '🌳', name: 'Manzano',  cost: 90,  desc: 'da manzanas con el tiempo' },
+  { id: 'pool',    icon: '🏊', name: 'Piscina',  cost: 500, desc: 'chapuzón: mucha felicidad y se limpia' }
+];
+const CROPS = { zanahoria: { icon: '🥕', name: 'zanahoria', need: 180 }, tomate: { icon: '🍅', name: 'tomate', need: 300 }, lechuga: { icon: '🥬', name: 'lechuga', need: 120 } };
+const SEED_COST = 5, WET = 480, APPLE = { young: 240, adult: 720, every: 180, max: 3 };
 
 const SHOP_EXTRAS = [
   { id: 'bg_dots',   type: 'bg',  key: 'dots',   icon: '🔹', name: 'Fondo lunares',   cost: 15 },
@@ -90,9 +107,12 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 const LAMP = { x: 21, y: 26, k: 0.8 };
 const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 3, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
 /* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
-const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom' };
-const here = () => (state.room.where === 'bedroom' ? 'bedroom' : 'salon');
-const has = id => state.owned.includes(id) && ROOMOF[id] === here();
+const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom', flowers: 'garden', can: 'garden', lounger: 'garden', plot: 'garden', apple: 'garden', pool: 'garden' };
+const NEXTROOM = { salon: 'bedroom', bedroom: 'garden', garden: 'salon' };
+const ROOMNAME = { salon: '🛋️ Salón', bedroom: '🛏️ Cuarto', garden: '🌳 Jardín' };
+const ROOMICON = { salon: '🛋️', bedroom: '🛏️', garden: '🌳' };
+const here = () => (state.room.where === 'bedroom' ? 'bedroom' : state.room.where === 'garden' ? 'garden' : 'salon');
+const has = id => state.owned.includes(id) && (ROOMOF[id] === here() || (id === 'ball' && here() === 'garden'));       // la pelota va en salón y jardín
 /** Peluche: en el suelo; si hay sofá, sentado encima (a la derecha del asiento). */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: ROOM.sofa.x + itemSize('sofa').w - itemSize('teddy').w - 2, y: ROOM.sofa.y + 9 - h } : { x: 38, y: 34 - h }; };
 
@@ -133,6 +153,7 @@ function newState() {
     flags: { hunger: false, poop: false, energy: false },
     food: { veg: 0, meat: 0, candy: 0 },
     lp: 0, inv: {}, owned: [], bg: 'none',
+    garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
     skills: {}, words: {}, cause: '',
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
@@ -153,7 +174,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
-    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room),
+    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden),
     meta: L.progress.fixMeta(d.meta)
   });
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
@@ -368,6 +389,7 @@ function tick(dt) {
     if (s.oldIn <= 0) { s.oldIn = 1440; if (!s.sick) { makeSick('👴 Los años pesan: se ha puesto enfermo'); s.medicine = 4; s.sickMistake = true; } }
   }
 
+  gardenTick(dt);
   roomTick(dt);
   flag('hunger', s.hunger <= 0, s.hunger > 20);
   flag('poop', s.poops >= 3, s.poops === 0);
@@ -460,14 +482,14 @@ function openFeed() {
 
 function feedList(cat) {
   const list = cat === 'gourmet' ? FOODS.filter(f => f.gourmet && state.inv[f.id] > 0)
-                                 : FOODS.filter(f => !f.gourmet && f.grp === cat);
+                                 : FOODS.filter(f => !f.gourmet && f.grp === cat && (!f.stock || state.inv[f.id] > 0));
   const title = { healthy: 'Sanas · dan energía y disciplina', fast: 'Rápida · anima, pero ensucia y engorda', snack: 'Snacks · animan, pero engordan', gourmet: 'Gourmet' }[cat];
   const ev = L.world.event();
   const seasonal = ev && (cat === 'healthy' || cat === 'snack') ? L.world.EVENT_FOODS.filter(f => f.event === ev.id && f.cat === (cat === 'snack' ? 'snack' : 'meal')) : [];
   openPanel([
     p(title),
     ...seasonal.map(f => btn(`${ev.icon} ${f.name} (temporada)`, () => feed(f))),
-    ...list.map(f => btn(`${f.icon} ${f.name}${f.gourmet ? ' ×' + state.inv[f.id] : ''}`, () => feed(f))),
+    ...list.map(f => btn(`${f.icon} ${f.name}${f.gourmet || f.stock ? ' ×' + state.inv[f.id] : ''}`, () => feed(f))),
     btn('Atrás', openFeed, 'ghost')
   ], { full: true });
 }
@@ -478,7 +500,7 @@ function feed(f) {
   if (s.sick) { refuse('Está enfermo: cúralo primero'); return; }
   if (f.cat === 'meal' && s.hunger >= 98) { refuse('No quiere más, está lleno'); return; }
   if (f.cat === 'snack' && s.happy >= 98) { refuse('Ya está muy feliz'); return; }
-  if (f.gourmet) { if (!(s.inv[f.id] > 0)) return; s.inv[f.id]--; }
+  if (f.gourmet || f.stock) { if (!(s.inv[f.id] > 0)) return; s.inv[f.id]--; }
   if (f.grp === 'healthy' && s.taste >= 40 && s.hunger >= 10) {                // acostumbrado a la rápida: puede rechazar lo sano
     if (!s.refuseCap) s.refuseCap = 3 + Math.floor(Math.random() * 3);          // aguanta de 3 a 5 rechazos seguidos
     const pRefuse = Math.min(0.8, (s.taste - 40) / 60) * (1 - s.discipline / 200);
@@ -661,6 +683,7 @@ function roomTick(dt) {
   if (s.sleeping) {
     r.tv = false; r.lamp = false;
     if (s.owned.includes('bed') && !s.sick && r.where !== 'bedroom') r.where = 'bedroom';       // a dormir: se va a la habitación
+    else if (r.where === 'garden') r.where = 'salon';                                            // y sin cama, entra en casa
     if (s.owned.includes('bed') && !s.sick) { r.use = 'bed'; r.auto = true; s.energy = clamp(s.energy + CFG.rate.sleep * 0.2 * dt); }
     else if (r.use) r.use = null;
     return;
@@ -675,8 +698,11 @@ function roomTick(dt) {
   else if (r.use === 'lie') { s.energy = clamp(s.energy + 0.22 * dt); s.happy = clamp(s.happy + 0.03 * dt); }
   else if (r.use === 'bed') { s.energy = clamp(s.energy + 0.4 * dt); }
   else if (r.use === 'tv') { s.happy = clamp(s.happy + 0.3 * dt); s.discipline = clamp(s.discipline - 0.01 * dt); }
-  const done = ((r.use === 'lie' || r.use === 'bed') && s.energy >= 100) || (r.use === 'sit' && r.min > 40) || (r.use === 'tv' && r.min > 45);
+  else if (r.use === 'sun') { s.energy = clamp(s.energy + 0.22 * dt); s.happy = clamp(s.happy + 0.05 * dt); }
+  else if (r.use === 'pool') { s.happy = clamp(s.happy + 0.9 * dt); s.dirt = clamp(s.dirt - 1.0 * dt); s.energy = clamp(s.energy - 0.12 * dt); }
+  const done = ((r.use === 'lie' || r.use === 'bed') && s.energy >= 100) || (r.use === 'sit' && r.min > 40) || (r.use === 'tv' && r.min > 45) || (r.use === 'sun' && r.min > 40) || (r.use === 'pool' && (r.min > 15 || s.energy < 12));
   if (done) {
+    if (r.use === 'pool') { if (s.energy < 25 && !s.sick && !quiet) makeSick('🤧 Se ha resfriado en la piscina'); else if (!quiet) setMsg('🏊 Sale de la piscina, ¡refrescado!'); r.use = null; r.min = 0; return; }
     if (r.use === 'tv') r.tv = false;
     r.use = null; r.min = 0;
     if (!quiet) setMsg('Ya ha tenido bastante: se levanta');
@@ -694,12 +720,13 @@ function setRoom(w) {
   const r = state.room;
   if (r.where === w) return;
   r.where = w; r.use = null; r.min = 0; r.auto = false; r.lamp = w === 'bedroom' ? r.lamp : false;
-  hugUntil = 0; ballUntil = 0; closePanel();
+  hugUntil = 0; ballUntil = 0; bug = null; nextBug = Date.now() + 5000 + Math.random() * 8000; closePanel();
   Sound.play('click'); Store.save(); render();
 }
 
 function openObject(id) {
   if (!canInteract()) return;
+  if (id === 'bug') { catchBug(); return; }
   const s = state, r = s.room;
   const night = cycleOn() && L.world.phase() === 'night';
   const ask = (title, ...opts) => openPanel([p(title), row(...opts), btn('Cerrar', closePanel, 'ghost')]);
@@ -745,6 +772,21 @@ function openObject(id) {
     }));
     return;
   }
+  if (id === 'lounger') {
+    if (r.use === 'sun') { ask('🪑 Tumbona', btn('Levantarse', () => setUse(null, 'Se levanta de la tumbona'))); return; }
+    if (night) { setMsg('🌙 Hace fresquito: mejor dentro'); return; }
+    ask('🪑 Tumbona', btn('Tomar el sol', () => setUse('sun', '☀️ Toma el sol')));
+    return;
+  }
+  if (id === 'pool') {
+    if (r.use === 'pool') { ask('🏊 Piscina', btn('Salir', () => setUse(null, 'Sale de la piscina'))); return; }
+    if (night) { setMsg('🌙 De noche el agua está helada'); return; }
+    if (s.energy < 20) { setMsg('Está demasiado cansado para nadar'); return; }
+    ask('🏊 Piscina', btn('Darse un chapuzón', () => { L.progress.stat('swims'); setUse('pool', '🏊 ¡Chapuzón!'); }));
+    return;
+  }
+  if (id === 'plot') { openPlot(); return; }
+  if (id === 'apple') { openApple(); return; }
   if (id === 'sofa') {
     const opts = [];
     if (r.use === 'sit' || r.use === 'lie') {
@@ -767,6 +809,9 @@ function openObject(id) {
 
 /** ¿Qué objeto hay en el punto (x, y) de la pantalla lógica? */
 function hitObject(x, y) {
+  if (here() === 'garden') {
+    const b = bugBox(); if (b && x >= b.x - 2 && x < b.x + b.w + 2 && y >= b.y - 2 && y < b.y + b.h + 2) return 'bug';
+  }
   const o = { includes: has }, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
   if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';      // la pelota va por delante de la cama
@@ -775,6 +820,10 @@ function hitObject(x, y) {
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
   if (o.includes('lamp') && x >= LAMP.x && x < LAMP.x + itemSize('lamp').w * LAMP.k && y >= LAMP.y - itemSize('lamp').h * LAMP.k && y < LAMP.y) return 'lamp';
   if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
+  if (o.includes('lounger') && x >= 33 && x < 44 && y >= 27 && y < 34) return 'lounger';
+  if (o.includes('pool') && x >= 29 && x < 45 && y >= 18 && y < 28) return 'pool';
+  if (o.includes('plot') && x >= 13 && x < 26 && y >= 20 && y < 29) return 'plot';
+  if (o.includes('apple') && x >= 0 && x < 12 && y >= 10 && y < 25) return 'apple';
   return null;
 }
 
@@ -807,6 +856,13 @@ function openShop() {
     wrap.append(itemThumb(i.img), right);
     nodes.push(wrap);
   });
+  nodes.push(p('Jardín'));
+  GARDEN_ITEMS.forEach(i => {
+    const own = s.owned.includes(i.id);
+    nodes.push(btn(own ? `${i.icon} ${i.name} ✓ en el jardín` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost));
+  });
+  if (s.owned.includes('plot')) Object.keys(CROPS).forEach(k =>
+    nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${SEED_COST}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < SEED_COST)));
   nodes.push(p('Gana 🪙 en los minijuegos y aprendiendo trucos'));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes, { full: true });
@@ -817,9 +873,16 @@ function buy(item) {
   if (s.lp < item.cost) { setMsg('Te faltan Lima Points'); return; }
   s.lp -= item.cost;
   if (item.gourmet) s.inv[item.id] = (s.inv[item.id] || 0) + 1;
-  else { s.owned.push(item.id); if (item.type === 'bg') s.bg = item.key; }
+  else { s.owned.push(item.id); if (item.type === 'bg') s.bg = item.key; if (item.id === 'apple') s.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 }; }
   Sound.play('coin'); setMsg(`Comprado: ${item.name}`);
   Store.save(); render(); openShop();
+}
+
+function buySeed(k) {
+  const s = state;
+  if (s.lp < SEED_COST) { setMsg('Te faltan Lima Points'); return; }
+  s.lp -= SEED_COST; s.inv['seed_' + k] = (s.inv['seed_' + k] || 0) + 1;
+  Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); Store.save(); render(); openShop();
 }
 
 /* ============================== MINIJUEGOS ============================== */
@@ -1093,6 +1156,7 @@ function drawPet(now, frame, f) {
   if (s.sleeping) face = 'sleep';
   else if (t === 'eat') face = p < 0.3 ? 'eat' : p < 0.88 ? (Math.floor(now / 160) % 2 ? 'eat' : 'idle') : 'happy';
   else if ((s.room.use === 'lie' || s.room.use === 'bed') && !t.startsWith('t_')) face = 'sleep';
+  else if ((s.room.use === 'sun' || s.room.use === 'pool') && !t) face = 'happy';
   else if (t === 'refuse' || t === 'confused') face = 'sad';
   else if (t === 't_dead') face = 'sleep';
   else if (t === 't_zen') face = 'sleep';
@@ -1111,6 +1175,8 @@ function drawPet(now, frame, f) {
   else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
   else if (u === 'bed' || (s.sleeping && has('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
   else if (u === 'tv') { bx = 18; by = 11; }
+  else if (u === 'sun') { bx = 31; by = 19; slot = 'sun'; }
+  else if (u === 'pool') { bx = 30; by = 12 - frame; slot = 'pool'; }
   else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
   else if (now < ballUntil) { bx = 14 + Math.round(Math.sin(now / 260) * 3); by = 11 - (Math.floor(now / 130) % 2); }
   else if (!s.sleeping && !f) { bx += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : 8)); by -= frame; }   // pasea
@@ -1143,10 +1209,14 @@ function drawPet(now, frame, f) {
     drawSprite(rows, -12, -22, { sick: s.sick });
     g.restore();
   } else {
-    drawSprite(rows, x, y, { flip, sick: s.sick });
-    const ev = L.world.event(), hatId = ev ? ev.id : s.hat;
-    if (hatId) L.world.hat(g, hatId, x, y + topRow(rows) + 1);
-    if (s.dirt >= 30 && !s.pause) drawDirt(now, x, y, rows);
+    const small = u === 'sun' || u === 'pool';                               // en la tumbona y la piscina se ve más pequeña
+    drawSprite(rows, x, y, { flip, sick: s.sick, scale: small ? 0.6 : 1 });
+    if (!small) {
+      const ev = L.world.event(), hatId = ev ? ev.id : s.hat;
+      if (hatId) L.world.hat(g, hatId, x, y + topRow(rows) + 1);
+      if (s.dirt >= 30 && !s.pause) drawDirt(now, x, y, rows);
+    }
+    if (u === 'pool') gPoolFront(now);
   }
 
   if (s.sleeping && !rot) { if (!(arrived && slot === 'bed')) drawBlanket(x, y, rows); drawZzz(now, x, y); }
@@ -1197,6 +1267,7 @@ function drawItem(id, x, y, variant = 0, fromRow = 0) {
 }
 function drawHouse(now) {
   const s = state, o = { includes: has };
+  if (here() === 'garden') drawGarden(now);
   if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
   if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
   if (o.includes('lamp')) { const lh = itemSize('lamp').h; g.save(); g.translate(LAMP.x, LAMP.y - lh * LAMP.k); g.scale(LAMP.k, LAMP.k); drawItem('lamp', 0, 0, s.room.lamp ? 1 : 0); g.restore(); }
@@ -1219,6 +1290,225 @@ function drawHouse(now) {
   }
 }
 
+
+/* ============================== JARDÍN ================================== */
+/* Se dibuja en una rejilla doble (96×72): P(x, y, w, h, color) usa medios píxeles lógicos */
+let bug = null, nextBug = 0;
+const P = (x, y, w, h, c) => { g.fillStyle = tint(c); g.fillRect(x / 2, y / 2, w / 2, h / 2); };
+const gdisc = (cx, cy, r, c) => { for (let y = -r; y <= r; y++) { const hw = Math.floor(Math.sqrt(r * r + r * 0.6 - y * y)); P(cx - hw, cy + y, hw * 2 + 1, 1, c); } };
+const gspr = (rows, pal, x, y, outline) => {
+  const h = rows.length, w = rows[0].length, at = (i, j) => i >= 0 && j >= 0 && i < w && j < h && rows[j][i] !== '.';
+  if (outline) for (let j = -1; j <= h; j++) for (let i = -1; i <= w; i++) if (!at(i, j) && (at(i - 1, j) || at(i + 1, j) || at(i, j - 1) || at(i, j + 1))) P(x + i, y + j, 1, 1, '#2a2433');
+  rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.') P(x + i, y + j, 1, 1, pal[ch]); }));
+};
+const seeded = n => { let s = 7; return Array.from({ length: n }, () => [(s = (s * 16807) % 2147483647) / 2147483647, (s = (s * 16807) % 2147483647) / 2147483647]); };
+const GRASS = seeded(70).map(([a, b]) => [Math.floor(a * 96), 40 + Math.floor(b * 30)]);
+const LEAVES = seeded(30);
+
+function gardenTick(dt) {
+  const G = state.garden, k = state.owned.includes('can') ? 1.3 : 1;
+  G.plot.forEach(pl => { if (pl && pl.wet > 0) { pl.m += dt * k; pl.wet = Math.max(0, pl.wet - dt); } });
+  const A = G.apple;
+  if (A && A.wet > 0) {
+    A.wet = Math.max(0, A.wet - dt); A.m += dt * k;
+    if (A.m >= APPLE.adult) { A.fm += dt * k; while (A.fm >= APPLE.every) { A.fm -= APPLE.every; if (A.fruits < APPLE.max) A.fruits++; } }
+  }
+}
+const plantStage = pl => { const f = pl.m / CROPS[pl.k].need; return f >= 1 ? 3 : f >= 0.5 ? 2 : f >= 0.2 ? 1 : 0; };
+const appleStage = A => (A.m < APPLE.young ? 1 : A.m < APPLE.adult ? 2 : 3);
+
+function drawGardenBack(now) {
+  const ph = L.world.phase();
+  if (ph !== 'night') {                                                     // el cielo del jardín (de noche vale el del juego, con estrellas)
+    const dusk = ph === 'dusk';
+    P(0, 0, 96, 68, dusk ? '#f6b27a' : '#9fd8ff'); P(0, 40, 96, 16, dusk ? '#f59a7c' : '#bfe6ff'); P(0, 56, 96, 12, dusk ? '#e87f7f' : '#d5efff');
+    gdisc(78, dusk ? 26 : 9, 4, dusk ? '#ffe08a' : '#ffe45c');
+    [[10, 7], [36, 4], [56, 10]].forEach(([x, y], i) => { const cx = Math.floor(x + now / 1500 * (1 + i * 0.3)) % 110 - 14; P(cx, y, 12, 2, '#fff'); P(cx + 2, y - 1, 7, 1, '#fff'); P(cx + 3, y + 2, 7, 1, '#e8f4ff'); });
+  }
+  for (let x = 0; x < 96; x++) { const h = Math.round(3 + 2 * Math.sin(x / 9) + 1.5 * Math.sin(x / 4.3)); P(x, 32 - h, 1, h + 2, '#7bc06a'); }
+  P(0, 31, 96, 1, '#fff8e6'); P(0, 35, 96, 1, '#fff8e6');
+  for (let x = 1; x < 96; x += 6) { P(x, 29, 3, 9, '#fff8e6'); P(x, 29, 3, 1, '#fffdf2'); P(x + 3, 30, 1, 1, '#d6c9a6'); P(x + 3, 31, 1, 7, '#d6c9a6'); }
+  P(0, 38, 96, 34, '#6cc24a');
+  for (let y = 38; y < 72; y += 4) P(0, y, 96, 2, '#62b844');
+  GRASS.forEach(([x, y]) => { P(x, y, 1, 1, '#8fdc66'); P(x, y - 1, 1, 1, '#8fdc66'); });
+}
+
+function gDrop(x, y, now) { if (Math.floor(now / 500) % 2) return; P(x, y, 1, 1, '#4aa8e0'); P(x - 1, y + 1, 3, 2, '#4aa8e0'); P(x, y + 1, 1, 1, '#cfeeff'); }   // 💧 pide agua
+
+function gTree(x, y, A) {
+  const stage = appleStage(A), apples = stage === 3 ? A.fruits : 0;
+  P(x - 9, y - 1, 22, 2, '#3e8f3a88');
+  if (stage === 1) { P(x, y - 5, 1, 5, '#5a9a3c'); gspr(['.g.g.', 'ggggg', '.ggg.'], { g: '#4fb04a' }, x - 2, y - 8); return; }
+  const th = stage === 2 ? 10 : 14, cr = stage === 2 ? 7 : 10;
+  P(x - 2, y - th, 4, th, '#8a5a2c'); P(x - 2, y - th, 1, th, '#a8713a'); P(x + 1, y - th, 1, th, '#6b4a1f');
+  P(x - 4, y - 1, 2, 1, '#6b4a1f'); P(x + 2, y - 1, 2, 1, '#6b4a1f');
+  const cy = y - th - cr + 4;
+  gdisc(x, cy, cr, '#2f7d32'); gdisc(x - (cr / 2 | 0), cy - 1, cr - 3, '#3f9a3c'); gdisc(x + (cr / 2 | 0), cy + 1, cr - 3, '#3f9a3c'); gdisc(x - 2, cy - 3, cr - 5, '#58b84a');
+  LEAVES.forEach(([a, d]) => P(Math.round(x + Math.cos(a * 6.28) * d * cr * 0.8), Math.round(cy + Math.sin(a * 6.28) * d * cr * 0.7), 1, 1, '#7ad266'));
+  [[-6, -2], [3, -6], [6, 1]].slice(0, apples).forEach(([dx, dy]) => { P(x + dx, cy + dy, 2, 2, '#e0392f'); P(x + dx, cy + dy + 1, 1, 1, '#b02620'); P(x + dx, cy + dy - 1, 1, 1, '#3a2a14'); });
+}
+
+function gPlant(x, y, kind, stage) {
+  if (stage === 0) { P(x, y, 1, 1, '#3a2a14'); return; }
+  if (stage === 1) { P(x, y - 2, 1, 2, '#3f9a3c'); P(x - 1, y - 3, 1, 1, '#58b84a'); P(x + 1, y - 3, 1, 1, '#58b84a'); return; }
+  if (kind === 'zanahoria') {
+    P(x, y - 4, 1, 3, '#3f9a3c'); P(x - 1, y - 5, 3, 1, '#58b84a');
+    if (stage === 3) { P(x - 1, y - 1, 3, 1, '#f29a3c'); P(x - 1, y - 2, 1, 1, '#ff8a2a'); P(x + 1, y - 2, 1, 1, '#ff8a2a'); }
+  } else if (kind === 'tomate') {
+    P(x, y - 6, 1, 6, '#2f7d32'); P(x - 1, y - 5, 1, 1, '#3f9a3c'); P(x + 1, y - 3, 1, 1, '#3f9a3c'); P(x - 1, y - 2, 1, 1, '#3f9a3c');
+    if (stage === 3) [[-1, -4], [1, -2], [0, -6]].forEach(([dx, dy]) => { P(x + dx, y + dy, 2, 2, '#e0392f'); P(x + dx, y + dy, 1, 1, '#ff6a5a'); });
+    else P(x + 1, y - 3, 1, 1, '#9ccf5a');
+  } else {
+    gdisc(x, y - 2, stage === 2 ? 2 : 3, stage === 3 ? '#8fdc66' : '#58b84a'); P(x, y - 3, 1, 1, '#c9f2a0'); P(x - 1, y - 2, 1, 1, '#3f9a3c');
+  }
+}
+
+function gPlot(now) {
+  const x = 27, y = 41, w = 23, h = 15, G = state.garden;
+  P(x - 1, y - 1, w + 2, h + 2, '#c8a86a'); P(x - 1, y - 1, w + 2, 1, '#e6cd92'); P(x - 1, y + h, w + 2, 1, '#8a6a3a');
+  P(x, y, w, h, '#8a5a2c');
+  for (let j = 0; j < 2; j++) P(x, y + 5 + j * 6, w, 1, '#6b4a1f');
+  let thirsty = false;
+  G.plot.forEach((pl, n) => {
+    if (!pl) return;
+    const i = n % 3, j = Math.floor(n / 3);
+    gPlant(x + 4 + i * 7, y + 5 + j * 6, pl.k, plantStage(pl));
+    if (pl.wet <= 0 && pl.m < CROPS[pl.k].need) thirsty = true;
+  });
+  if (thirsty) gDrop(x + w - 3, y - 5, now);
+}
+
+function gPool(now) {
+  const x = 58, y = 41, w = 32, h = 12;
+  P(x - 2, y - 2, w + 4, h + 4, '#e9e4d6'); P(x - 2, y - 2, w + 4, 1, '#fffdf2'); P(x - 2, y + h + 1, w + 4, 1, '#bdb49c');
+  P(x, y, w, h, '#3b9be0'); P(x, y, w, 3, '#2b7fc4');
+  const off = Math.floor(now / 600) % 2;
+  for (let j = 3; j < h; j += 3) for (let i = ((j / 3) % 2) * 3 + off; i < w - 3; i += 7) P(x + i + 1, y + j, 3, 1, '#8fd3ff');
+  P(x + 3, y - 5, 1, 6, '#cfd6de'); P(x + 6, y - 5, 1, 6, '#cfd6de'); P(x + 3, y - 5, 4, 1, '#cfd6de'); P(x + 3, y - 2, 4, 1, '#9aa5b1');
+  if (state.room.use !== 'pool') { gdisc(x + 16, y + 8, 3, '#ff8fb1'); gdisc(x + 16, y + 8, 1, '#3b9be0'); }
+}
+/** Agua por delante de la mascota mientras se baña (solo se ve de la cintura para arriba). */
+function gPoolFront(now) {
+  const x = 58, y = 41, w = 32, off = Math.floor(now / 500) % 2;
+  P(x, y + 7, w, 5, '#3b9be0'); P(x, y + 7, w, 1, '#8fd3ff');
+  for (let i = off * 3; i < w - 3; i += 6) P(x + i + 1, y + 9, 3, 1, '#8fd3ff');
+  for (let i = 0; i < 3; i++) { const q = ((now / 500) + i * 0.33) % 1; P(x + 8 + i * 8, Math.round(y + 5 - q * 5), 1, 1, '#dff3ff'); }       // salpicaduras
+}
+
+function gLounger() {
+  const x = 66, y = 57;
+  P(x + 1, y + 9, 22, 2, '#3e8f3a88');
+  P(x + 1, y + 8, 2, 2, '#cfd6de'); P(x + 18, y + 8, 2, 2, '#cfd6de');
+  P(x + 6, y + 5, 15, 3, '#2b7fc4'); P(x + 6, y + 5, 15, 1, '#6ec6ff');
+  for (let i = 7; i < 21; i += 3) P(x + i, y + 6, 1, 2, '#fff');
+  for (let i = 0; i < 7; i++) P(x + i, y + 4 - Math.floor(i * 0.6), 2, 3, '#2b7fc4');
+  P(x, y + 1, 3, 2, '#fff8e6'); P(x + 19, y + 3, 3, 3, '#e0523f');
+}
+function gFlowers(x, y, n) {
+  const cols = ['#ff8fb1', '#ffd84d', '#fff', '#b99cff', '#ff7a5c'];
+  for (let i = 0; i < n; i++) {
+    const fx = x + i * 4 + (i % 2), fy = y - (i % 3), c = cols[i % 5];
+    P(fx, fy + 1, 1, 3, '#2f7d32'); P(fx - 1, fy + 2, 1, 1, '#3f9a3c');
+    P(fx, fy, 1, 1, '#ffd84d'); P(fx - 1, fy, 1, 1, c); P(fx + 1, fy, 1, 1, c); P(fx, fy - 1, 1, 1, c); P(fx, fy + 1, 1, 1, c);
+  }
+}
+function gCan(x, y) { P(x, y, 6, 5, '#6ec6ff'); P(x, y, 6, 1, '#cfeeff'); P(x + 6, y + 1, 3, 1, '#4aa8e0'); P(x + 8, y, 2, 1, '#4aa8e0'); P(x + 1, y - 2, 4, 1, '#4aa8e0'); P(x, y - 1, 1, 1, '#4aa8e0'); P(x + 5, y - 1, 1, 1, '#4aa8e0'); }
+
+function drawGarden(now) {
+  const G = state.garden;
+  if (has('flowers')) { gFlowers(22, 62, 3); gFlowers(50, 42, 2); }
+  if (has('apple') && G.apple) { gTree(12, 47, G.apple); if (G.apple.wet <= 0 && (appleStage(G.apple) < 3 || G.apple.fruits < APPLE.max)) gDrop(12, 14, now); }
+  if (has('plot')) gPlot(now);
+  if (has('pool')) gPool(now);
+  if (has('lounger')) gLounger();
+  if (has('can')) gCan(50, 57);
+}
+
+/* ---- bichos: aparecen solos en el jardín y se tocan para atraparlos ---- */
+const BUGS = {
+  mariposa: { w: 9, v: 0, pal: { p: '#ff8fb1', P: '#d95f86', k: '#2a2433' }, fr: [['pp..k..pp', 'pPpkkkpPp', 'pPPpkpPPp', '.pPpkpPp.', '..pp.pp..'], ['...k.k...', '..pkkkp..', '..PpkpP..', '..pPkPp..', '...p.p...']] },
+  abeja: { w: 9, v: 0, pal: { y: '#ffd84d', k: '#2a2433', w: '#dff3ff', b: '#9ad6ff' }, fr: [['..ww.ww..', '.wbw.wbw.', '.kyykyyk.', 'kkyykyykk', '.kyykyyk.', '..kk.kk..'], ['.........', '..w...w..', '.kyykyyk.', 'kkyykyykk', '.kyykyyk.', '..kk.kk..']] },
+  mariquita: { w: 9, v: 3, pal: { r: '#e0392f', R: '#ff6a5a', k: '#2a2433' }, fr: [['..kkkk..', '.krrkrrk.', 'krkrkrkrk', 'krrrkrrrk', '.krkrkrk.', '..kkkk..'].map(r => r.padEnd(9, '.'))] },
+  caracol: { w: 10, v: 1.2, pal: { n: '#8a5a2c', N: '#c98f4a', c: '#d9c79a', k: '#2a2433' }, fr: [['...kkk....', '..kNnNk...', '.kNnkNnk.k', '.kNnnNnk.k', 'kcccccccck', '.kcccccck.'], ['...kkk..k.', '..kNnNk.k.', '.kNnkNnkk.', '.kNnnNnk..', 'kcccccccck', '.kcccccck.']] },
+  libelula: { w: 11, v: 0, pal: { b: '#3b82d6', c: '#6ec6ff', w: '#dff3ff', k: '#2a2433' }, fr: [['.ww.ww.....', 'wwwkwww.....', '.ww.kk.bbbc.', '...kkk......', '.ww.ww......'].map(r => r.padEnd(11, '.').slice(0, 11)), ['...........', '...........', 'kkkkkkkbbbc', '...........', '...........']] }
+};
+function bugPos(now) {
+  const b = bug, t = (now - b.t0) / 1000, d = BUGS[b.kind];
+  const x = d.v ? b.x0 + t * d.v : b.x0 + Math.sin(t * 0.5 + b.ph) * 30;
+  const y = d.v ? b.y0 : b.y0 + Math.sin(t * 1.3 + b.ph) * 6;
+  return { x: Math.max(2, Math.min(94 - d.w, Math.round(x))), y: Math.round(y) };
+}
+function bugBox() {                                                         // en píxeles lógicos
+  if (!bug) return null;
+  const q = bugPos(Date.now()), d = BUGS[bug.kind];
+  return { x: q.x / 2, y: q.y / 2, w: d.w / 2, h: d.fr[0].length / 2 };
+}
+function drawBug(now) {
+  const s = state;
+  if (s.sleeping || s.pause || s.stage === 'egg' || s.stage === 'dead') { bug = null; return; }
+  if (bug && now > bug.t0 + bug.dur) { bug = null; nextBug = now + 30000 + Math.random() * 45000; }
+  if (!bug && now > nextBug && !(cycleOn() && L.world.isNight()) && panel.hidden) {
+    const r = Math.random(), kind = r < 0.35 ? 'mariposa' : r < 0.55 ? 'abeja' : r < 0.75 ? 'mariquita' : r < 0.95 ? 'caracol' : 'libelula', d = BUGS[kind];
+    bug = { kind, t0: now, dur: d.v && d.v < 2 ? 35000 : 22000, ph: Math.random() * 6, x0: d.v ? 8 + Math.random() * 30 : 46, y0: d.v ? 62 + Math.random() * 4 : 36 + Math.random() * 12 };
+  }
+  if (!bug) return;
+  const q = bugPos(now), d = BUGS[bug.kind];
+  gspr(d.fr[Math.floor(now / 250) % d.fr.length], d.pal, q.x, q.y, true);
+}
+function catchBug() {
+  const s = state, k = bug && bug.kind;
+  if (!k) return;
+  bug = null; nextBug = Date.now() + 40000 + Math.random() * 60000;
+  L.progress.stat('bugs');
+  if (k === 'mariposa') { s.happy = clamp(s.happy + 6); setMsg('🦋 ¡Atrapada! +felicidad'); Sound.play('happy'); }
+  else if (k === 'abeja') {
+    if (Math.random() < 0.3) { s.happy = clamp(s.happy - 6); setMsg('🐝 ¡Ay! Te ha picado'); Sound.play('alert'); }
+    else { s.inv.miel = (s.inv.miel || 0) + 1; setMsg('🐝 ¡Miel! Está en Snacks'); Sound.play('coin'); }
+  }
+  else if (k === 'mariquita') { s.lp += 3; setMsg('🐞 ¡Da suerte! +3 🪙'); Sound.play('coin'); }
+  else if (k === 'caracol') { s.happy = clamp(s.happy + 3); s.lp += 1; setMsg('🐌 Caracol atrapado: +1 🪙'); Sound.play('coin'); }
+  else { s.lp += 10; s.happy = clamp(s.happy + 10); setMsg('✨ ¡Una libélula rara! +10 🪙'); Sound.play('happy'); }
+  Store.save(); render();
+}
+
+/* ---- menús del huerto y el manzano ---- */
+function openPlot() {
+  const s = state, plots = s.garden.plot;
+  const empty = plots.filter(x => !x).length, plants = plots.filter(Boolean), ready = plants.filter(x => x.m >= CROPS[x.k].need);
+  const nodes = [p(`🥕 Huerto · ${plants.length}/6 plantas · ${ready.length} listas`)];
+  if (ready.length) nodes.push(btn(`Cosechar (${ready.length})`, () => {
+    plots.forEach((x, i) => { if (x && x.m >= CROPS[x.k].need) { s.inv[x.k] = (s.inv[x.k] || 0) + 1; plots[i] = null; L.progress.stat('harvest'); } });
+    Sound.play('coin'); setMsg(`🧺 Cosechado: ${ready.length}. Está en Sanas`); Store.save(); render(); closePanel();
+  }));
+  if (plants.some(x => x.m < CROPS[x.k].need)) nodes.push(btn('💧 Regar', () => {
+    plants.forEach(x => { x.wet = WET; }); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel();
+  }));
+  Object.keys(CROPS).forEach(k => {
+    const n = s.inv['seed_' + k] || 0;
+    if (n && empty) nodes.push(btn(`${CROPS[k].icon} Plantar ${CROPS[k].name} (${n} semillas)`, () => {
+      let c = 0;
+      plots.forEach((x, i) => { if (!x && s.inv['seed_' + k] > 0) { plots[i] = { k, m: 0, wet: WET }; s.inv['seed_' + k]--; c++; } });
+      Sound.play('click'); setMsg(`🌱 Plantadas: ${c}`); Store.save(); render(); closePanel();
+    }));
+  });
+  if (!plants.length && !Object.keys(CROPS).some(k => s.inv['seed_' + k])) nodes.push(p('Compra semillas en la 🛒 tienda'));
+  nodes.push(btn('Cerrar', closePanel, 'ghost'));
+  openPanel(nodes, { full: true });
+}
+function openApple() {
+  const s = state, A = s.garden.apple;
+  if (!A) return;
+  const st = appleStage(A), dry = A.wet <= 0 ? ' · sedienta 💧' : '';
+  const nodes = [p(st === 1 ? `🌱 Manzano (brote)${dry}` : st === 2 ? `🌳 Manzano joven${dry}` : `🍎 Manzano · ${A.fruits} manzanas${dry}`)];
+  if (A.fruits > 0) nodes.push(btn(`Recoger manzanas (${A.fruits})`, () => {
+    s.inv.manzana = (s.inv.manzana || 0) + A.fruits; for (let i = 0; i < A.fruits; i++) L.progress.stat('harvest'); A.fruits = 0;
+    Sound.play('coin'); setMsg('🍎 Manzanas recogidas. Están en Sanas'); Store.save(); render(); closePanel();
+  }));
+  if (A.wet < WET * 0.9) nodes.push(btn('💧 Regar', () => { A.wet = WET; Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel(); }));
+  nodes.push(btn('Cerrar', closePanel, 'ghost'));
+  openPanel(nodes);
+}
+
 /** Ventana: salón (centro) y habitación (con luna de noche). */
 function drawWindow(now) {
   const bed = here() === 'bedroom', x = bed ? 31 : 22, y = 3, w = 11, h = 10;
@@ -1233,16 +1523,19 @@ function drawScene(now) {
   if (current && now > current.start + current.dur) current = null;
   const f = current;
 
+  const gar = here() === 'garden';
   L.world.sky(g, W, H, now, lcdMode);
-  drawWallpaper();
+  if (gar) drawGardenBack(now); else drawWallpaper();
   L.world.decor(g, L.world.event(), now, W, H);
-  if (s.pause) drawBeach(now); else drawWindow(now);
-  for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
+  if (s.pause) drawBeach(now); else if (!gar) drawWindow(now);
+  if (!gar) for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
-  for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);                 // garabatos (los muebles quedan por delante)
+  if (!gar) for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);       // garabatos (los muebles quedan por delante)
   drawHouse(now);
+  if (gar && cycleOn() && L.world.isNight()) { g.fillStyle = 'rgba(10,20,60,.38)'; g.fillRect(0, 0, W, H); }
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   drawPet(now, frame, f);
+  if (gar) drawBug(now);
   drawGuessArrow();
 
   if (f && f.type === 'clean') {
@@ -1268,9 +1561,9 @@ function render() {
   $('#lp').textContent = `🪙 ${s.lp}`;
   const mini = !!(L.mini && L.mini.active());
   chipsEl.hidden = mini || s.stage === 'egg' || s.stage === 'dead';
-  chipName.textContent = here() === 'bedroom' ? '🛏️ Cuarto' : '🛋️ Salón';
-  chipGo.textContent = here() === 'bedroom' ? '→ 🛋️' : '→ 🛏️';
-  chipGo.setAttribute('aria-label', here() === 'bedroom' ? 'Ir al salón' : 'Ir a la habitación');
+  chipName.textContent = ROOMNAME[here()];
+  chipGo.textContent = '→ ' + ROOMICON[NEXTROOM[here()]];
+  chipGo.setAttribute('aria-label', 'Ir a: ' + ROOMNAME[NEXTROOM[here()]]);
   if (L.mini && L.mini.active()) return;               // los minijuegos dibujan su propia escena
   drawScene(Date.now());
 }
@@ -1412,7 +1705,7 @@ function bindUI() {
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
   $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
-  chipGo.addEventListener('click', () => { if (canInteract()) setRoom(here() === 'bedroom' ? 'salon' : 'bedroom'); });
+  chipGo.addEventListener('click', () => { if (canInteract()) setRoom(NEXTROOM[here()]); });
   let gridOn = true; try { gridOn = localStorage.getItem('limagochi.grid') !== '0'; } catch { /* */ }
   const applyGrid = () => { stageEl.classList.toggle('grid', gridOn); $('#btnGrid').textContent = gridOn ? '▦' : '▢'; };
   applyGrid();

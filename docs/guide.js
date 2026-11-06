@@ -26,6 +26,14 @@ function keywords() {
 }
 
 const TOPICS = [
+  { icon: '🌳', title: 'El jardín', body: () => [
+    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto y jardín'),
+    LI('🪑 Tumbona: tómala para tomar el sol (recupera energía). 🏊 Piscina: chapuzón de día (mucha felicidad y se limpia); cansado, puede resfriarse.'),
+    LI('🌳 Manzano: riégalo (💧 cuando lo pide). Crece por fases y da hasta 3 manzanas a la vez; recógelas tocándolo.'),
+    LI('🥕 Huerto: compra semillas en la tienda, plántalas, riégalas y cosecha. Lo cosechado sale en 🥗 Sanas.'),
+    LI('🦋 Bichos: aparecen solos en el jardín; tócalos para atraparlos (felicidad, monedas o miel 🍯; la abeja a veces pica).'),
+    LI('⚽ La pelota también se puede usar en el jardín.')
+  ] },
   { icon: '🛋️', title: 'Muebles de la casa', body: () => [
     H('Compra muebles en la 🛒 tienda'),
     LI('Hay dos cuartos: 🛋️ Salón (sofá, tele, planta, alfombra, pelota, peluche) y 🛏️ Cuarto (cama, lámpara, cuadro). Cambia con el botón de la esquina inferior derecha de la pantalla. Al dormir con cama, se va solo al cuarto.'),
