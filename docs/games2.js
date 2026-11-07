@@ -232,16 +232,19 @@ const CATCH = [
 ];
 function fishing() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H, rows = a.petRows('happy');
-  const CASTS = 5;
+  const CASTS = 5, F = Math.min(99, L.studio.extraLv('fishing') + (a.S().owned.includes('rod') ? 15 : 0));        // nivel de pesca (la caña mejor suma)
   const s = { cast: 0, phase: 'idle', t: 0, wait: 0, fish: 0, lp: 0, got: null, text: '', bob: 0 };
   const hud = () => a.hud(`🎣 ${Math.min(s.cast + 1, CASTS)}/${CASTS} · 🐟${s.fish}${s.text ? '  ' + s.text : ''}`);
   hud();
   function tap() {
-    if (s.phase === 'idle') { s.phase = 'wait'; s.t = 0; s.wait = 1.4 + Math.random() * 2.8; s.text = ''; a.sound.play('click'); hud(); }
+    if (s.phase === 'idle') { s.phase = 'wait'; s.t = 0; s.wait = (1.4 + Math.random() * 2.8) * (1 - F * 0.004); s.text = ''; a.sound.play('click'); hud(); }
     else if (s.phase === 'wait') { s.phase = 'res'; s.t = 0; s.got = null; s.text = '¡Muy pronto!'; a.sound.play('sad'); hud(); }
     else if (s.phase === 'bite') {
-      let r = Math.random() * 100, c = CATCH[0];
-      for (const x of CATCH) { r -= x.w; if (r < 0) { c = x; break; } }
+      const adj = CATCH.map(x => Object.assign({}, x, { w: x.n === 'bota' ? x.w * (1 - F / 100) : x.n === 'pez' ? x.w : x.w * (1 + F / 50) })).concat(F >= 40 ? [{ n: 'atun', w: 8, t: '🐟 ¡Un atún enorme! +2 🪙', fish: 2, lp: 2 }] : []);
+      let r = Math.random() * adj.reduce((n, x) => n + x.w, 0), c = adj[0];
+      for (const x of adj) { r -= x.w; if (r < 0) { c = x; break; } }
+      if (c.fish && Math.random() < F / 150) { c = Object.assign({}, c, { fish: c.fish + 1 }); }
+      L.studio.xp('fishing', c.fish || c.lp ? 0.9 : 0.3);
       s.got = c; s.phase = 'res'; s.t = 0; s.text = c.t;
       if (c.fish) { s.fish += c.fish; a.S().inv.pez = (a.S().inv.pez || 0) + c.fish; L.progress.stat('fish', c.fish); }
       if (c.lp) s.lp += c.lp;
@@ -253,7 +256,7 @@ function fishing() {
     update(dt) {
       s.t += dt; s.bob += dt;
       if (s.phase === 'wait' && s.t > s.wait) { s.phase = 'bite'; s.t = 0; a.sound.play('alert'); a.sound.vibrate && a.sound.vibrate(60); }
-      else if (s.phase === 'bite' && s.t > 0.9) { s.phase = 'res'; s.t = 0; s.got = null; s.text = 'Se ha escapado…'; hud(); }
+      else if (s.phase === 'bite' && s.t > 0.9 + F * 0.004) { s.phase = 'res'; s.t = 0; s.got = null; s.text = 'Se ha escapado…'; hud(); }
       else if (s.phase === 'res' && s.t > 1.4) {
         s.cast++;
         if (s.cast >= CASTS) {
@@ -337,7 +340,7 @@ function rps() {
 /* ================================== CARRERA =============================== */
 function race() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H, rows = a.petRows('happy');
-  const LEN = 150, PX = 10;
+  const LEN = 150, PX = 10, SP = L.studio.extraLv('sport');
   const s = { x: 0, rx: 0, y: 0, vy: 0, jump: false, stun: 0, rstun: 0, over: false, t: 0, hits: 0, started: 0, text: '' };
   s.hurdles = []; for (let x = 24; x < LEN - 10; x += 16 + Math.random() * 14) s.hurdles.push(x);
   s.rstuns = [30 + Math.random() * 30, 80 + Math.random() * 30];                  // el rival tropieza dos veces
@@ -353,8 +356,8 @@ function race() {
       if (s.jump) { s.vy += 100 * dt; s.y += s.vy * dt; if (s.y >= 0) { s.y = 0; s.jump = false; s.vy = 0; } }
       s.stun = Math.max(0, s.stun - dt);
       if (s.stun <= 0) {
-        s.x += 16 * dt;
-        for (const h of s.hurdles) if (!h.hit && Math.abs(s.x - h) < 1 && s.y > -2) { s.hurdles = s.hurdles.filter(q => q !== h); s.stun = 0.55; s.hits++; a.sound.play('hit'); a.sound.vibrate && a.sound.vibrate(60); break; }
+        s.x += 16 * (1 + SP * 0.0015) * dt;
+        for (const h of s.hurdles) if (!h.hit && Math.abs(s.x - h) < 1 && s.y > -2) { s.hurdles = s.hurdles.filter(q => q !== h); s.stun = 0.55 * (1 - SP / 250); s.hits++; a.sound.play('hit'); a.sound.vibrate && a.sound.vibrate(60); break; }
       }
       s.rstuns = s.rstuns.filter(p => { if (s.rx > p) { s.rstun = 0.55; return false; } return true; });
       s.rstun = Math.max(0, s.rstun - dt);
@@ -362,8 +365,9 @@ function race() {
       if (s.x >= LEN || s.rx >= LEN) {
         s.over = true;
         const win = s.x >= s.rx;
+        L.studio.xp('sport', win ? 1.8 : 1.2);
         L.mini.end('race', win ? '¡Has ganado la carrera!' : 'Te han adelantado…', [`Tropiezos: ${s.hits}`],
-          { happy: win ? 12 : 4, energy: -10, hunger: -6, weight: -0.4, lp: win ? 4 : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
+          { happy: win ? 12 : 4, energy: -10, hunger: -6, weight: -0.4, lp: win ? 4 + Math.floor(SP / 20) : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
       }
     },
     draw() {

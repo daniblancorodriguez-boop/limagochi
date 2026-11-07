@@ -22,6 +22,14 @@ const ITEMS = [
   { id: 'desk',  icon: '✍️', name: 'Escritorio', cost: 60,  desc: 'escribe libros que se venden' },
   { id: 'piano', icon: '🎹', name: 'Piano',     cost: 120, desc: 'compone: cuanto mejor, mejor suena' }
 ];
+/** Habilidades «extra» (se ganan haciendo cosas, sin sesión de práctica): nivel 0-99. */
+const EXTRA = {
+  cooking:   { icon: '🍳', name: 'Cocina' },
+  gardening: { icon: '🌱', name: 'Jardinería' },
+  fishing:   { icon: '🎣', name: 'Pesca' },
+  sport:     { icon: '🏅', name: 'Deporte' }
+};
+const EK = Object.keys(EXTRA);
 const CHAPTERS = 4, MAX_WORKS = 24;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const today = () => new Date().toLocaleDateString('sv');
@@ -30,12 +38,14 @@ const hash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(
 /* ------------------------------- estado -------------------------------- */
 const blank = () => ({
   painting: { lv: 0, mx: 0, idle: 0 }, writing: { lv: 0, mx: 0, idle: 0 }, music: { lv: 0, mx: 0, idle: 0 },
+  extra: { cooking: { lv: 0, mx: 0, idle: 0 }, gardening: { lv: 0, mx: 0, idle: 0 }, fishing: { lv: 0, mx: 0, idle: 0 }, sport: { lv: 0, mx: 0, idle: 0 } },
   works: [], book: [], sold: { day: '', n: {}, patron: false }, stats: { books: 0 }, practice: null, news: ''
 });
 function fix(d) {
   const b = blank();
   if (!d || typeof d !== 'object') return b;
   KEYS.forEach(k => { b[k] = Object.assign(b[k], d[k]); });
+  EK.forEach(k => { b.extra[k] = Object.assign(b.extra[k], (d.extra || {})[k]); });
   b.works = (Array.isArray(d.works) ? d.works : []).filter(w => w && typeof w.q === 'number').slice(0, MAX_WORKS);
   b.book = (Array.isArray(d.book) ? d.book : []).filter(q => typeof q === 'number').slice(0, CHAPTERS - 1);
   b.sold = Object.assign(b.sold, d.sold); b.stats = Object.assign(b.stats, d.stats);
@@ -47,12 +57,24 @@ const T = () => { const s = A().S(); if (!s.talent) s.talent = blank(); return s
 const owns = k => A().S().owned.includes(TAL[k].item);
 const lvOf = k => T()[k].lv;
 /** Talentos «activos» (con su objeto y nivel ≥ 10): dan disciplina pero cansan. */
-const nActive = () => KEYS.filter(k => owns(k) && lvOf(k) >= 10).length;
+const nActive = () => Math.min(4, KEYS.filter(k => owns(k) && lvOf(k) >= 10).length + EK.filter(k => T().extra[k].lv >= 10).length);
+const extraLv = k => T().extra[k].lv;
+let flashT = 0;
+/** Gana experiencia en una habilidad «extra» (base = puntos a nivel 0; rinde menos cerca del límite) y enseña la barra un momento. */
+function xp(k, base, quiet) {
+  const x = T().extra[k], a = A(); if (!x) return 0;
+  x.lv = Math.min(99, x.lv + base * Math.pow(1 - x.lv / 100, 1.6)); x.mx = Math.max(x.mx, x.lv); x.idle = 0;
+  if (!quiet && !a.isQuiet() && !working()) {
+    a.skillBar({ icon: EXTRA[k].icon, label: `${EXTRA[k].name} ${Math.floor(x.lv)}`, pct: x.lv, sub: '' });
+    clearTimeout(flashT); flashT = setTimeout(() => { if (!working()) a.skillBar(null); else showBar(); }, 3500);
+  }
+  return x.lv;
+}
 const gain = lv => 0.17 * Math.pow(1 - lv / 100, 1.6);                 // por minuto de práctica: 25 en ~3 h · 50 en ~8 h · 75 en ~21 h · 90 en ~48 h
 const maxMin = () => Math.round(10 + A().S().discipline * 0.5);
 
 /** Multiplicadores que aplica game.js a la bajada de felicidad, energía y disciplina. */
-function stress() { const n = nActive(); return { happy: 1 + 0.08 * n, energy: 1 + 0.08 * n, disc: 1 - 0.15 * n }; }
+function stress() { const n = nActive(), sp = T().extra.sport.lv; return { happy: 1 + 0.08 * n, energy: (1 + 0.08 * n) * (1 - sp * 0.0015), hunger: 1 + sp * 0.001, disc: 1 - 0.15 * n }; }
 
 /* ----------------------------- obras y mercado ---------------------------- */
 const rng = seed => { let s = (seed % 2147483646) + 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
@@ -179,6 +201,7 @@ function why(k) {
   const s = A().S();
   if (!owns(k)) return 'Compra el objeto en la tienda (Estudio)';
   if (s.stage === 'egg' || s.stage === 'dead' || s.stage === 'baby') return 'Aún es muy pequeño para practicar';
+  if (L.kitchen && L.kitchen.cooking()) return 'Ahora está cocinando';
   if (s.pause) return 'Está de vacaciones';
   if (s.sleeping) return 'Zzz… está durmiendo';
   if (s.sick) return 'Está enfermo';
@@ -219,6 +242,11 @@ function tick(dt, quiet) {
   KEYS.forEach(k => {                                                      // si no practica un talento, se oxida muy despacio
     const x = t[k]; if (x.lv <= 0) return;
     if (t.practice && t.practice.k === k) { x.idle = 0; return; }
+    x.idle += dt;
+    if (x.idle > 4320) x.lv = Math.max(x.mx * 0.5, x.lv - 0.00035 * dt);
+  });
+  EK.forEach(k => {                                                         // olvido suave de las habilidades extra
+    const x = t.extra[k]; if (x.lv <= 0) return;
     x.idle += dt;
     if (x.idle > 4320) x.lv = Math.max(x.mx * 0.5, x.lv - 0.00035 * dt);
   });
@@ -282,6 +310,7 @@ function market(back) {
 function openStatus(back) {
   const a = A(), t = T(), n = nActive();
   const nodes = [a.p('🎨 Talentos'), ...KEYS.map(k => a.p(`${talentLine(k)}${owns(k) ? '' : ' · 🔒 sin objeto'}`))];
+  EK.forEach(k => nodes.push(a.p(`${EXTRA[k].icon} ${EXTRA[k].name} nv ${Math.floor(t.extra[k].lv)} ${bar(t.extra[k].lv)}`)));
   nodes.push(a.p(n ? `${n} talento${n > 1 ? 's' : ''} activo${n > 1 ? 's' : ''}: la disciplina baja ${n * 15}% más despacio, pero felicidad y energía caen ${n * 8}% más rápido.` : 'Sube un talento a nivel 10 para ganar disciplina extra (pero se cansa más).'));
   nodes.push(a.p(`Sesión máxima: ${maxMin()} min (según su disciplina). Libros escritos: ${t.stats.books}.`));
   nodes.push(a.btn('🧾 Obras y mercado', () => market(() => openStatus(back))), a.btn('Atrás', back || a.closePanel, 'ghost'));
@@ -371,5 +400,5 @@ function showBar() {
   const x = T()[P.k];
   A().skillBar({ icon: TAL[P.k].icon, label: `${TAL[P.k].name} ${Math.floor(x.lv)}`, pct: x.lv, sub: `${Math.max(1, Math.ceil(P.total - P.min))} min` });
 }
-L.studio = { showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
+L.studio = { xp, extraLv, EXTRA, showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
 })();

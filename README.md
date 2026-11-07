@@ -23,6 +23,7 @@ todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic 
 | Pesca · Piedra, papel o tijera · Carrera | 🎮 Jugar → nuevos minijuegos |
 | Jardín | 3er cuarto: tumbona, piscina, manzano, huerto con semillas, bichos y pelota; el botón `→` recorre salón → cuarto → jardín |
 | Estudio y talentos | 4.º cuarto: pintura, escritura y música (objetos en la tienda), sesiones según disciplina, obras vendibles en un mercado con precio variable y mecenas, libros por capítulos, barra de nivel, aviso al terminar · `docs/studio.js` |
+| Cocina y habilidades | 5.º cuarto: 🍔 lleva a la nevera (básica o mejorada, con caducidad), fogón con recetas y nivel de cocina, cafetera; habilidades de jardinería, pesca y deporte · `docs/kitchen.js` |
 | Dos cuartos | Botón `→` en la esquina de la pantalla: Salón ↔ Cuarto; ▦ activa/desactiva la rejilla |
 | Penaltis | 🎮 Jugar → ⚽ · toca (o cualquier tecla) para chutar cuando la mira esté dentro de la portería |
 | Eco Lima (memoria) | 🎮 Jugar → 🧠 · toca los cuadros, teclas 1–4, o A (siguiente casilla) + B (pulsar) |

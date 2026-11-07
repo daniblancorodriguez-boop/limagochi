@@ -49,8 +49,20 @@ const TOPICS = [
     LI('Vende en 🧾 el mercado: el precio sube con la calidad, cambia cada día (±20%), baja si vendes muchas obras iguales y a veces llega un mecenas que paga el doble.'),
     LI('Con talentos a nivel 10 o más gana disciplina, pero felicidad y energía bajan algo más rápido. Si deja de practicar, se oxida muy despacio. La música suena mejor cuanto más nivel.')
   ] },
+  { icon: '🍳', title: 'Cocina y habilidades', body: () => [
+    H('5.º cuarto: 🍳 Cocina'),
+    LI('Pulsar 🍔 lleva a Limagochi a la cocina y abre la nevera. La nevera básica trae pocos alimentos (se reponen despacio); el arroz siempre está.'),
+    LI('🧊 Nevera mejorada (tienda): todas las comidas y guarda lo fresco (huerto, fruta, pescado, gourmet) 3-5 días. Sin ella, lo fresco dura 1 día. 🟢🟡🔴 indica su frescura; comer algo pasado puede enfermarlo.'),
+    LI('🍳 Fogón (tienda): combina ingredientes y cocina platos. Cuanto más nivel de cocina, mejores platos, más recetas y menos quemados.'),
+    LI('☕ Cafetera (tienda): energía rápida, pero más caca, menos disciplina y peor sueño. Máximo 3 al día (más lo pone nervioso); de noche le quita el sueño.'),
+    H('Más habilidades'),
+    LI('🌱 Jardinería: sube trabajando el huerto y el manzano. Más nivel: plantas más rápidas, cosechas extra y 🍓 fresas (nivel 30).'),
+    LI('🎣 Pesca: sube pescando. Más nivel: pican antes, peces más grandes y 🐟 atún (nivel 40). La 🎣 caña mejor ayuda.'),
+    LI('🏅 Deporte: sube con la pelota (más en el jardín), la 🏋️ tele con ejercicio y la carrera. Más nivel: gasta menos energía y corre más.'),
+    LI('Al practicar aparece arriba una barra con el nivel. Ver todo en 📊 Estado → talentos.')
+  ] },
   { icon: '🌳', title: 'El jardín', body: () => [
-    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín y estudio'),
+    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín, estudio y cocina'),
     LI('🪑 Tumbona: tómala para tomar el sol (recupera energía). 🏊 Piscina: chapuzón de día (mucha felicidad y se limpia); cansado, puede resfriarse.'),
     LI('🌳 Manzano: riégalo (💧 cuando lo pide). Crece por fases y da hasta 3 manzanas a la vez; recógelas tocándolo.'),
     LI('🥕 Huerto: compra semillas en la tienda, plántalas, riégalas y cosecha. Lo cosechado sale en 🥗 Sanas.'),
