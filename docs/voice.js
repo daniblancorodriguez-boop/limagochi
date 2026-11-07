@@ -192,13 +192,13 @@ function listen() {
   L.sound.unlock();
   rec = new SR();
   rec.lang = 'es-ES'; rec.interimResults = false; rec.maxAlternatives = 4; rec.continuous = false;
-  rec.onstart = () => { listening = true; micBtn && micBtn.classList.add('sel'); A().hud('🎤 Escuchando… (pulsa 🎤 para parar)'); if (statusEl && document.body.contains(statusEl)) statusEl.textContent = '🎤 Escuchando… di un truco o una palabra'; };
+  rec.onstart = () => { listening = true; A().skillBar({ icon: '🎤', label: 'Voz', pct: iqPct(), sub: '🧠 ' + iqPct() + '%' }); micBtn && micBtn.classList.add('sel'); A().hud('🎤 Escuchando… (pulsa 🎤 para parar)'); if (statusEl && document.body.contains(statusEl)) statusEl.textContent = '🎤 Escuchando… di un truco o una palabra'; };
   rec.onresult = e => heard(Array.from(e.results[0]).map(r => r.transcript));
   rec.onerror = e => setStatus({
     'not-allowed': 'Permiso de micro denegado', 'service-not-allowed': 'Permiso de micro denegado',
     'no-speech': 'No he oído nada', 'audio-capture': 'No encuentro el micro', 'network': 'Sin conexión con el servicio de voz'
   }[e.error] || 'Error de micro: ' + e.error);
-  rec.onend = () => { listening = false; micBtn && micBtn.classList.remove('sel'); A().hud(null); };
+  rec.onend = () => { listening = false; micBtn && micBtn.classList.remove('sel'); A().hud(null); A().skillBar({ icon: '🎤', label: 'Voz', pct: iqPct(), sub: '🧠 ' + iqPct() + '%' }); setTimeout(() => { if (!listening) { A().skillBar(null); L.studio && L.studio.showBar(); } }, 3500); };
   try { rec.start(); } catch { setStatus('No se pudo iniciar el micro'); }
 }
 

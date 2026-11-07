@@ -41,8 +41,16 @@ const TOPICS = [
     LI('✊ Piedra, papel o tijera: gana 2 de 3 contra Limagochi.'),
     LI('🏃 Carrera: toca para saltar las vallas y llegar antes que el rival.')
   ] },
+  { icon: '🎨', title: 'Estudio y talentos', body: () => [
+    H('4.º cuarto: el botón → lleva al 🎨 Estudio'),
+    LI('Compra en la tienda el 🎨 caballete, el ✍️ escritorio o el 🎹 piano. Toca el objeto para que practique (solo si está bien: sin hambre, tristeza ni sueño).'),
+    LI('Cuanta más disciplina, más dura la sesión (de 10 a 60 min). Mientras practica verás arriba una barra con su nivel; también sale cuando le hablas con 🎤.'),
+    LI('Sigue practicando con la app cerrada y te avisa al terminar. Cada sesión deja un cuadro, una canción o un capítulo; 4 capítulos = un libro, que vale mucho más.'),
+    LI('Vende en 🧾 el mercado: el precio sube con la calidad, cambia cada día (±20%), baja si vendes muchas obras iguales y a veces llega un mecenas que paga el doble.'),
+    LI('Con talentos a nivel 10 o más gana disciplina, pero felicidad y energía bajan algo más rápido. Si deja de practicar, se oxida muy despacio. La música suena mejor cuanto más nivel.')
+  ] },
   { icon: '🌳', title: 'El jardín', body: () => [
-    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto y jardín'),
+    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín y estudio'),
     LI('🪑 Tumbona: tómala para tomar el sol (recupera energía). 🏊 Piscina: chapuzón de día (mucha felicidad y se limpia); cansado, puede resfriarse.'),
     LI('🌳 Manzano: riégalo (💧 cuando lo pide). Crece por fases y da hasta 3 manzanas a la vez; recógelas tocándolo.'),
     LI('🥕 Huerto: compra semillas en la tienda, plántalas, riégalas y cosecha. Lo cosechado sale en 🥗 Sanas.'),

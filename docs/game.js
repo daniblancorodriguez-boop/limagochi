@@ -108,11 +108,11 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 const LAMP = { x: 21, y: 26, k: 0.8 };
 const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 3, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
 /* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
-const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom', flowers: 'garden', can: 'garden', lounger: 'garden', plot: 'garden', apple: 'garden', pool: 'garden' };
-const NEXTROOM = { salon: 'bedroom', bedroom: 'garden', garden: 'salon' };
-const ROOMNAME = { salon: '🛋️ Salón', bedroom: '🛏️ Cuarto', garden: '🌳 Jardín' };
-const ROOMICON = { salon: '🛋️', bedroom: '🛏️', garden: '🌳' };
-const here = () => (state.room.where === 'bedroom' ? 'bedroom' : state.room.where === 'garden' ? 'garden' : 'salon');
+const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom', flowers: 'garden', can: 'garden', lounger: 'garden', plot: 'garden', apple: 'garden', pool: 'garden', easel: 'studio', desk: 'studio', piano: 'studio' };
+const NEXTROOM = { salon: 'bedroom', bedroom: 'garden', garden: 'studio', studio: 'salon' };
+const ROOMNAME = { salon: '🛋️ Salón', bedroom: '🛏️ Cuarto', garden: '🌳 Jardín', studio: '🎨 Estudio' };
+const ROOMICON = { salon: '🛋️', bedroom: '🛏️', garden: '🌳', studio: '🎨' };
+const here = () => (['bedroom', 'garden', 'studio'].includes(state.room.where) ? state.room.where : 'salon');
 const has = id => state.owned.includes(id) && (ROOMOF[id] === here() || (id === 'ball' && here() === 'garden'));       // la pelota va en salón y jardín
 /** Peluche: en el suelo; si hay sofá, sentado encima (a la derecha del asiento). */
 const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.includes('sofa') ? { x: ROOM.sofa.x + itemSize('sofa').w - itemSize('teddy').w - 2, y: ROOM.sofa.y + 9 - h } : { x: 38, y: 34 - h }; };
@@ -157,6 +157,7 @@ function newState() {
     casino: { day: '', lost: 0, spins: 0, free: '' },                       // límites del casino por día
     garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
     skills: {}, words: {}, cause: '',
+    talent: L.studio.blank(),                                             // talentos: pintura, escritura y música
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
     hat: null,                                 // gorro de recuerdo elegido (id de evento)
@@ -176,7 +177,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
-    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino),
+    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino), talent: L.studio.fix(d.talent),
     meta: L.progress.fixMeta(d.meta)
   });
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
@@ -346,7 +347,7 @@ function tick(dt) {
       if (!quiet) setMsg('¡Buenos días! Ha descansado');
     }
   } else {
-    s.energy = clamp(s.energy - R.energy * dt);
+    s.energy = clamp(s.energy - R.energy * L.studio.stress().energy * dt);
     if (night && s.energy < 70 && clockNow() > (s.stayUp || 0)) {                 // de noche se duerme solo
       s.sleeping = true;
       if (!quiet) { setMsg('🌙 Se ha quedado dormido'); Sound.play('lightOff'); }
@@ -357,9 +358,10 @@ function tick(dt) {
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   const nd = need();
   s.hunger = clamp(s.hunger - R.hunger * nd.hunger * dt * k);
-  s.happy = clamp(s.happy - (R.happy * nd.happy * k * toy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
+  const st = L.studio.stress();
+  s.happy = clamp(s.happy - (R.happy * nd.happy * k * toy * st.happy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
   s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
-  s.discipline = clamp(s.discipline - R.discipline * dt);
+  s.discipline = clamp(s.discipline - R.discipline * st.disc * dt);
   s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
   if (!s.sleeping) s.taste = Math.max(0, s.taste - 0.02 * dt);                  // el paladar se reeduca solo (~30 al día)
   if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
@@ -392,6 +394,7 @@ function tick(dt) {
   }
 
   gardenTick(dt);
+  L.studio.tick(dt, quiet);
   roomTick(dt);
   flag('hunger', s.hunger <= 0, s.hunger > 20);
   flag('poop', s.poops >= 3, s.poops === 0);
@@ -693,7 +696,7 @@ function roomTick(dt) {
   if (s.sleeping) {
     r.tv = false; r.lamp = false;
     if (s.owned.includes('bed') && !s.sick && r.where !== 'bedroom') r.where = 'bedroom';       // a dormir: se va a la habitación
-    else if (r.where === 'garden') r.where = 'salon';                                            // y sin cama, entra en casa
+    else if (r.where === 'garden' || r.where === 'studio') r.where = 'salon';                                            // y sin cama, entra en casa
     if (s.owned.includes('bed') && !s.sick) { r.use = 'bed'; r.auto = true; s.energy = clamp(s.energy + CFG.rate.sleep * 0.2 * dt); }
     else if (r.use) r.use = null;
     return;
@@ -737,6 +740,7 @@ function setRoom(w) {
 function openObject(id) {
   if (!canInteract()) return;
   if (id === 'bug') { catchBug(); return; }
+  if (id.startsWith('st_')) { if (state.pause) { setMsg('Está de vacaciones'); return; } if (state.sleeping) { setMsg('Zzz… duerme'); return; } L.studio.open(id); return; }
   const s = state, r = s.room;
   const night = cycleOn() && L.world.phase() === 'night';
   const ask = (title, ...opts) => openPanel([p(title), row(...opts), btn('Cerrar', closePanel, 'ghost')]);
@@ -819,6 +823,7 @@ function openObject(id) {
 
 /** ¿Qué objeto hay en el punto (x, y) de la pantalla lógica? */
 function hitObject(x, y) {
+  if (here() === 'studio') return L.studio.hit(x, y);
   if (here() === 'garden') {
     const b = bugBox(); if (b && x >= b.x - 2 && x < b.x + b.w + 2 && y >= b.y - 2 && y < b.y + b.h + 2) return 'bug';
   }
@@ -873,6 +878,11 @@ function openShop() {
   });
   if (s.owned.includes('plot')) Object.keys(CROPS).forEach(k =>
     nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${SEED_COST}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < SEED_COST)));
+  nodes.push(p('Estudio (talentos)'));
+  L.studio.ITEMS.forEach(i => {
+    const own = s.owned.includes(i.id);
+    nodes.push(btn(own ? `${i.icon} ${i.name} ✓ en el estudio` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost));
+  });
   nodes.push(p('Gana 🪙 en los minijuegos y aprendiendo trucos'));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes, { full: true });
@@ -1185,6 +1195,7 @@ function drawPet(now, frame, f) {
   let bx = 12, by = 11, slot = null;
   if (guess.active) by = 1;                                                   // arriba, para que el panel de Adivina no lo tape
   else if (s.pause) { bx = 16; by = 12; }                                    // tumbado bajo la sombrilla
+  else if (here() === 'studio' && L.studio.working()) { const sp = L.studio.petPos(); bx = sp.x; by = sp.y; }
   else if (u === 'sit') { bx = ROOM.sofa.x - 3; by = ROOM.sofa.y - 13; slot = 'sofa'; }
   else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
   else if (u === 'bed' || (s.sleeping && has('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
@@ -1282,6 +1293,7 @@ function drawItem(id, x, y, variant = 0, fromRow = 0) {
 function drawHouse(now) {
   const s = state, o = { includes: has };
   if (here() === 'garden') drawGarden(now);
+  if (here() === 'studio') { L.studio.drawItems(now); return; }
   if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
   if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
   if (o.includes('lamp')) { const lh = itemSize('lamp').h; g.save(); g.translate(LAMP.x, LAMP.y - lh * LAMP.k); g.scale(LAMP.k, LAMP.k); drawItem('lamp', 0, 0, s.room.lamp ? 1 : 0); g.restore(); }
@@ -1551,14 +1563,16 @@ function drawScene(now) {
 
   const gar = here() === 'garden';
   L.world.sky(g, W, H, now, lcdMode);
-  if (gar) drawGardenBack(now); else drawWallpaper();
+  const stu = here() === 'studio';
+  if (gar) drawGardenBack(now); else if (stu) L.studio.drawBack(); else drawWallpaper();
   L.world.decor(g, L.world.event(), now, W, H);
-  if (s.pause) drawBeach(now); else if (!gar) drawWindow(now);
-  if (!gar) for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
+  if (s.pause) drawBeach(now); else if (!gar && !stu) drawWindow(now);
+  if (!gar && !stu) for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
-  if (!gar) for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);       // garabatos (los muebles quedan por delante)
+  if (!gar && !stu) for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);       // garabatos (los muebles quedan por delante)
   drawHouse(now);
   if (gar && cycleOn() && L.world.isNight()) { g.fillStyle = 'rgba(10,20,60,.38)'; g.fillRect(0, 0, W, H); }
+  if (stu) L.studio.drawFx(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   drawPet(now, frame, f);
   if (gar) drawBug(now);
@@ -1608,6 +1622,16 @@ function setMsg(text, ms = 2600) {
   msgEl.textContent = text; msgEl.classList.add('on');
   clearTimeout(msgTimer);
   msgTimer = setTimeout(() => msgEl.classList.remove('on'), ms);
+}
+const skillEl = $('#skillbar');
+/** Barra superior con el nivel de un talento (o de la voz): {icon,label,pct,sub} o null para ocultarla. */
+function skillBar(d) {
+  if (!skillEl) return;
+  skillEl.hidden = !d;
+  if (!d) return;
+  skillEl.querySelector('.sk-l').textContent = `${d.icon} ${d.label}`;
+  skillEl.querySelector('.sk-f').style.width = Math.max(2, Math.min(100, d.pct)) + '%';
+  skillEl.querySelector('.sk-s').textContent = d.sub || '';
 }
 function hud(text) { hudEl.hidden = !text; hudEl.textContent = text || ''; }
 
@@ -1788,6 +1812,8 @@ function predictSchedule() {
   const add = (min, tag, body, title = 'Limagochi te necesita') => { if (isFinite(min)) out.push({ at: now + Math.max(1, min) * 60000, tag, title, body }); };
   if (s.stage === 'egg') { add(CFG.stageMin.egg - s.stageMin, 'event-hatch', '¡Tu huevo está a punto de eclosionar!', 'Limagochi'); return out; }
   if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagochi está a punto de evolucionar!', 'Limagochi');
+  const pr = s.talent && s.talent.practice;
+  if (pr) add(pr.total - pr.min, 'event-practice', 'Ha terminado de practicar: ¡ve su obra!', 'Limagochi');
   if (s.sleeping) return out;                                               // dormido: no avisamos
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   const Hn = R.hunger * need().hunger, hungerIn = s.hunger / Hn;
@@ -1812,7 +1838,7 @@ L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
-  speed: () => speed, predictSchedule
+  speed: () => speed, predictSchedule, isHere: here, skillBar
 };
 
 /* ============================== INIT ==================================== */

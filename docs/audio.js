@@ -64,6 +64,7 @@ LIMA.sound = {
     try { (SFX[name] || (() => {}))(arg); } catch { /* audio bloqueado */ }
   },
   enabled: () => on,
+  tone: (f, d, o) => { try { tone(f, d, o); } catch { /* */ } },
   toggle() {
     on = !on;
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch { /* sin storage */ }

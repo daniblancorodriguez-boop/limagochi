@@ -298,3 +298,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .chip-go { right: 5px; pointer-events: auto; cursor: pointer; min-height: 22px; min-width: 38px; }
 .chip-go:active { background: var(--lcd); }
 .stage:has(.panel:not([hidden])) .chips { display: none; }
+
+.skillbar { position: absolute; top: 4px; left: 6px; right: 6px; z-index: 4; display: flex; align-items: center; gap: 5px; padding: 2px 6px; font-size: 11px; font-weight: 800; background: rgba(212,229,164,.95); border: 1px solid var(--ink); border-radius: 4px; pointer-events: none; }
+.skillbar .sk-t { flex: 1; height: 7px; border: 1px solid var(--ink); background: rgba(255,255,255,.4); }
+.skillbar .sk-f { display: block; height: 100%; background: var(--ink); transition: width .4s; }
+.skillbar .sk-l, .skillbar .sk-s { white-space: nowrap; }
+.skillbar:not([hidden]) ~ .msg, .skillbar:not([hidden]) ~ .hud { top: 26px; }
