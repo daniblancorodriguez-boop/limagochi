@@ -45,17 +45,19 @@ function end(kind, title, lines, rewardObj, opts = {}) {
 }
 
 const L = LIMA;
+const REG = {};                                  // minijuegos registrados desde otros archivos (games2.js)
 L.mini = {
+  reg: REG, end,
   active: () => !!cur,
   start(kind, arg) {
     this.stop(false);
-    cur = ({ flappy, dodge, memory, penalty, shower, visit })[kind](arg);
+    cur = ({ flappy, dodge, memory, penalty, shower, visit, ...REG })[kind](arg);
     last = performance.now();
     loop();
   },
   stop(redraw = true) {
     cancelAnimationFrame(raf);
-    const was = !!cur; cur = null;
+    const was = !!cur; if (cur && cur.onStop) cur.onStop(); cur = null;
     if (was) { A().hud(null); if (redraw) A().render(); }
   },
   pointer(fx, fy) { cur && cur.pointer && cur.pointer(fx, fy); },

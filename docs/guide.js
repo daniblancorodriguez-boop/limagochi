@@ -26,6 +26,21 @@ function keywords() {
 }
 
 const TOPICS = [
+  { icon: '🦋', title: 'Insectos y álbum', body: () => [
+    H('11 bichos en el jardín'),
+    LI('Aparecen solos mientras estás en el 🌳 jardín. Tócalos para atraparlos y ganar monedas o felicidad.'),
+    LI('Álbum de insectos: ✨ Estado → 🦋 Insectos. +3 🪙 por cada especie nueva y 100 🪙 al completarlo.'),
+    LI('Algunos salen solo de noche (la luciérnaga) y hay una legendaria, la mariposa dorada, que casi nunca aparece.')
+  ] },
+  { icon: '🎰', title: 'Casino y más juegos', body: () => [
+    H('🎮 Jugar → 🎰 Casino (dinero ficticio)'),
+    LI('Tragaperras y ruleta de apuestas: apuesta máxima 10 🪙, 60 jugadas al día y el casino cierra si pierdes 50 🪙 en un día.'),
+    LI('🎁 Ruleta del día: un giro gratis cada día con premio de 0 a 15 🪙.'),
+    H('Otros juegos'),
+    LI('🎣 Pesca: toca justo cuando pique. Los peces van a Sanas.'),
+    LI('✊ Piedra, papel o tijera: gana 2 de 3 contra Limagochi.'),
+    LI('🏃 Carrera: toca para saltar las vallas y llegar antes que el rival.')
+  ] },
   { icon: '🌳', title: 'El jardín', body: () => [
     H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto y jardín'),
     LI('🪑 Tumbona: tómala para tomar el sol (recupera energía). 🏊 Piscina: chapuzón de día (mucha felicidad y se limpia); cansado, puede resfriarse.'),

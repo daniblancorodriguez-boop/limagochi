@@ -58,6 +58,12 @@ const ACH = [
   { id: 'cosecha10', icon: '🧺', name: 'Hortelano',      desc: 'Cosecha 10 frutas u hortalizas.',           prog: (m) => [m.stats.harvest || 0, 10] },
   { id: 'bichos10', icon: '🦋', name: 'Cazabichos',    desc: 'Atrapa 10 bichos en el jardín.',            prog: (m) => [m.stats.bugs || 0, 10] },
   { id: 'swim3',    icon: '🏊', name: 'Nadador',       desc: 'Date 3 chapuzones en la piscina.',          prog: (m) => [m.stats.swims || 0, 3] },
+  { id: 'bugAlbum', icon: '🦋', name: 'Entomólogo',      desc: 'Completa el álbum de insectos.',            prog: (m) => [Object.keys(m.bugs || {}).length, L.BUG_ORDER.length] },
+  { id: 'golden',  icon: '🌟', name: 'Suerte legendaria', desc: 'Atrapa la mariposa dorada.',              prog: (m) => [(m.bugs || {}).dorada ? 1 : 0, 1] },
+  { id: 'jackpot', icon: '🎰', name: 'Premio gordo',      desc: 'Saca tres sietes en la tragaperras.',     prog: (m) => [m.stats.jackpots || 0, 1] },
+  { id: 'fish10',  icon: '🎣', name: 'Pescador',          desc: 'Pesca 10 piezas.',                        prog: (m) => [m.stats.fish || 0, 10] },
+  { id: 'rps3',    icon: '✊', name: 'Campeón de manos',  desc: 'Gana 3 partidas de Piedra, papel o tijera.', prog: (m) => [m.stats.wins.rps || 0, 3] },
+  { id: 'race3',   icon: '🏃', name: 'Velocista',         desc: 'Gana 3 carreras.',                        prog: (m) => [m.stats.wins.race || 0, 3] },
   { id: 'mem6',     icon: '🧠', name: 'Memoria de elefante', desc: 'Supera 6 rondas de Eco Lima.',             prog: (m) => [m.stats.best.memory || 0, 6] },
   { id: 'rich',     icon: '🪙', name: 'Ahorrador',          desc: 'Gana 100 Lima Points jugando.',            prog: (m) => [m.stats.lpEarned || 0, 100] },
   { id: 'tricks3',  icon: '🎓', name: 'Domador',            desc: 'Domina 3 trucos o palabras.',               prog: (m, s) => [mastered(s) + Object.values(s.words || {}).filter(v => v >= 100).length, 3] },
@@ -73,7 +79,7 @@ const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;
 
 /* ---- datos ---- */
-function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {} }; }
+function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false }; }
 /** Rellena huecos de una meta antigua o incompleta. */
 function fixMeta(m) {
   const b = blankMeta();
@@ -83,7 +89,7 @@ function fixMeta(m) {
   const clean = (o, n) => { const r = {}; for (const k of Object.keys(o && typeof o === 'object' ? o : {}).slice(0, n)) r[k] = o[k]; return r; };
   const letters = (Array.isArray(m.letters) ? m.letters : []).filter(x => x && typeof x.text === 'string').slice(-40)
     .map(x => ({ id: String(x.id || '').slice(0, 40), ts: Number(x.ts) || 0, from: String(x.from || '').slice(0, 30), icon: String(x.icon || '✉️').slice(0, 4), text: String(x.text).slice(0, 400), read: !!x.read }));
-  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20) };
+  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20), bugs: clean(m.bugs, 30), bugsDone: !!m.bugsDone };
 }
 const meta = () => A().S().meta;
 
@@ -163,6 +169,49 @@ function formCanvas(id, seen) {
   return c;
 }
 
+/** Insectos: ¿están todos? Da el premio una sola vez. */
+function bugAlbumCheck() {
+  const m = meta();
+  if (m.bugsDone || !L.BUG_ORDER.every(k => m.bugs[k])) return false;
+  m.bugsDone = true; A().S().lp += 100; stat('lpEarned', 100); check();
+  return true;
+}
+
+function bugCanvas(id, seen) {
+  const c = document.createElement('canvas'), d = L.BUGS[id];
+  c.width = 24; c.height = 24;
+  const g = c.getContext('2d'), rows = d.fr[0], ox = Math.floor((24 - d.w9 * 2) / 2), oy = Math.floor((24 - d.h9 * 2) / 2);
+  rows.forEach((r, y) => [...r].forEach((ch, x) => {
+    if (ch === '.') return;
+    g.fillStyle = seen ? d.pal[ch] : 'rgba(29,42,18,.55)';
+    g.fillRect(ox + x * 2, oy + y * 2, 2, 2);
+  }));
+  return c;
+}
+
+function openBugs(back) {
+  const a = A(), m = meta();
+  const n = L.BUG_ORDER.filter(k => m.bugs[k]).length;
+  const grid = el('div', 'album');
+  L.BUG_ORDER.forEach(id => {
+    const d = L.BUGS[id], seen = !!m.bugs[id];
+    const b = el('button', 'cell' + (seen ? ' seen' : ''));
+    b.type = 'button';
+    b.append(bugCanvas(id, seen), el('span', '', seen ? `${d.name} ×${m.bugs[id]}` : '???'));
+    b.addEventListener('click', () => {
+      a.sound.play('click');
+      a.setMsg(seen ? `${d.name} · ${d.rar} · premio: ${d.gift}` : `??? · ${d.rar}${d.night ? ' · de noche' : ''}`, 5000);
+    });
+    grid.append(b);
+  });
+  a.openPanel([
+    a.p(`🦋 Insectos ${n}/${L.BUG_ORDER.length}`),
+    grid,
+    a.p(m.bugsDone ? '🏆 Álbum completo: premio cobrado' : 'Atrapa todos en el 🌳 jardín: 100 🪙 al completarlo. +3 🪙 por cada nuevo. Hay uno legendario…'),
+    a.btn('Atrás', back || a.closePanel, 'ghost')
+  ], { full: true });
+}
+
 function openAlbum(back) {
   const a = A(), m = meta();
   const n = Object.keys(m.album).length;
@@ -183,5 +232,5 @@ function openAlbum(back) {
   ], { full: true });
 }
 
-L.progress = { ALBUM, ACH, blankMeta, fixMeta, record, stat, statMap, game, check, openAchievements, openAlbum };
+L.progress = { ALBUM, ACH, blankMeta, fixMeta, record, stat, statMap, game, check, openAchievements, openAlbum, openBugs, bugAlbumCheck };
 })();

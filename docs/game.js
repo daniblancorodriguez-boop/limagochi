@@ -63,6 +63,7 @@ const FOODS = [
   { id: 'zanahoria', stock: true, grp: 'healthy', cat: 'meal',  icon: '🥕', name: 'Zanahoria', hunger: 18, happy: -1, energy: 3, weight: 0.3, disc: 2, diet: 'veg' },
   { id: 'tomate',    stock: true, grp: 'healthy', cat: 'meal',  icon: '🍅', name: 'Tomate',    hunger: 12, happy: 2,  energy: 2, weight: 0.2, disc: 1, diet: 'veg' },
   { id: 'lechuga',   stock: true, grp: 'healthy', cat: 'meal',  icon: '🥬', name: 'Lechuga',   hunger: 10, happy: -1, energy: 2, weight: 0.1, disc: 2, dirt: -6, diet: 'veg' },
+  { id: 'pez',       stock: true, grp: 'healthy', cat: 'meal',  icon: '🐟', name: 'Pez fresco', hunger: 26, happy: 1, energy: 4, weight: 0.6, disc: 2, diet: 'meat' },
   { id: 'miel',      stock: true, grp: 'snack',   cat: 'snack', icon: '🍯', name: 'Miel',      hunger: 6,  happy: 24, weight: 1, disc: -2, diet: 'candy', sweet: 0.6 },
   { id: 'sushi', grp: 'gourmet', cat: 'meal',  icon: '🍣', name: 'Sushi gourmet', hunger: 40, happy: 15, weight: 1,  disc: 0, diet: 'meat',  gourmet: true, cost: 12 },
   { id: 'paella',grp: 'gourmet', cat: 'meal',  icon: '🥘', name: 'Paella',      hunger: 45, happy: 12, weight: 1.5, disc: 0,  diet: 'meat',  gourmet: true, cost: 15 },
@@ -153,6 +154,7 @@ function newState() {
     flags: { hunger: false, poop: false, energy: false },
     food: { veg: 0, meat: 0, candy: 0 },
     lp: 0, inv: {}, owned: [], bg: 'none',
+    casino: { day: '', lost: 0, spins: 0, free: '' },                       // límites del casino por día
     garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
     skills: {}, words: {}, cause: '',
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
@@ -174,7 +176,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
-    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden),
+    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino),
     meta: L.progress.fixMeta(d.meta)
   });
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
@@ -633,7 +635,7 @@ function openStatus() {
 
   openPanel([
     ...rows.map(([k, v]) => line(k, v)),
-    row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus))),
+    row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus)), btn('🦋 Insectos', () => L.progress.openBugs(openStatus))),
     row(btn(`✉️ Buzón${L.mail && L.mail.unread() ? ` (${L.mail.unread()})` : ''}`, () => L.mail.open(openStatus)), btn('🤝 Visitas', () => L.visit.open(openStatus))),
     row(btn('🎓 Trucos y palabras', () => L.voice && L.voice.open()), btn('📘 Guía', () => L.guide.open(openStatus))),
     row(btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
@@ -910,8 +912,12 @@ function startPlay() {
     btn('⚽ Penaltis', () => launch('penalty')),
     btn('☄️ Esquiva', () => launch('dodge')),
     btn('🧠 Eco Lima', () => launch('memory')),
+    btn('🎣 Pesca', () => launch('fishing')),
+    btn('✊ Piedra, papel o tijera', () => launch('rps')),
+    btn('🏃 Carrera', () => launch('race')),
+    btn('🎰 Casino', () => L.casino.open(startPlay)),
     btn('Cancelar', closePanel, 'ghost')
-  ]);
+  ], { full: true });
 }
 function launch(kind) { closePanel(); if (canPlay()) L.mini.start(kind); }
 
@@ -1433,34 +1439,32 @@ function drawGarden(now) {
 }
 
 /* ---- bichos: aparecen solos en el jardín y se tocan para atraparlos ---- */
-const BUGS = {
-  mariposa: { w: 9, v: 0, pal: { p: '#ff8fb1', P: '#d95f86', k: '#2a2433' }, fr: [['pp..k..pp', 'pPpkkkpPp', 'pPPpkpPPp', '.pPpkpPp.', '..pp.pp..'], ['...k.k...', '..pkkkp..', '..PpkpP..', '..pPkPp..', '...p.p...']] },
-  abeja: { w: 9, v: 0, pal: { y: '#ffd84d', k: '#2a2433', w: '#dff3ff', b: '#9ad6ff' }, fr: [['..ww.ww..', '.wbw.wbw.', '.kyykyyk.', 'kkyykyykk', '.kyykyyk.', '..kk.kk..'], ['.........', '..w...w..', '.kyykyyk.', 'kkyykyykk', '.kyykyyk.', '..kk.kk..']] },
-  mariquita: { w: 9, v: 3, pal: { r: '#e0392f', R: '#ff6a5a', k: '#2a2433' }, fr: [['..kkkk..', '.krrkrrk.', 'krkrkrkrk', 'krrrkrrrk', '.krkrkrk.', '..kkkk..'].map(r => r.padEnd(9, '.'))] },
-  caracol: { w: 10, v: 1.2, pal: { n: '#8a5a2c', N: '#c98f4a', c: '#d9c79a', k: '#2a2433' }, fr: [['...kkk....', '..kNnNk...', '.kNnkNnk.k', '.kNnnNnk.k', 'kcccccccck', '.kcccccck.'], ['...kkk..k.', '..kNnNk.k.', '.kNnkNnkk.', '.kNnnNnk..', 'kcccccccck', '.kcccccck.']] },
-  libelula: { w: 11, v: 0, pal: { b: '#3b82d6', c: '#6ec6ff', w: '#dff3ff', k: '#2a2433' }, fr: [['.ww.ww.....', 'wwwkwww.....', '.ww.kk.bbbc.', '...kkk......', '.ww.ww......'].map(r => r.padEnd(11, '.').slice(0, 11)), ['...........', '...........', 'kkkkkkkbbbc', '...........', '...........']] }
-};
+const BUGS = L.BUGS;
 function bugPos(now) {
   const b = bug, t = (now - b.t0) / 1000, d = BUGS[b.kind];
   const x = d.v ? b.x0 + t * d.v : b.x0 + Math.sin(t * 0.5 + b.ph) * 30;
   const y = d.v ? b.y0 : b.y0 + Math.sin(t * 1.3 + b.ph) * 6;
-  return { x: Math.max(2, Math.min(94 - d.w, Math.round(x))), y: Math.round(y) };
+  return { x: Math.max(2, Math.min(94 - d.w9, Math.round(x))), y: Math.round(y) };
 }
 function bugBox() {                                                         // en píxeles lógicos
   if (!bug) return null;
   const q = bugPos(Date.now()), d = BUGS[bug.kind];
-  return { x: q.x / 2, y: q.y / 2, w: d.w / 2, h: d.fr[0].length / 2 };
+  return { x: q.x / 2, y: q.y / 2, w: d.w9 / 2, h: d.h9 / 2 };
 }
 function drawBug(now) {
   const s = state;
   if (s.sleeping || s.pause || s.stage === 'egg' || s.stage === 'dead') { bug = null; return; }
   if (bug && now > bug.t0 + bug.dur) { bug = null; nextBug = now + 30000 + Math.random() * 45000; }
-  if (!bug && now > nextBug && !(cycleOn() && L.world.isNight()) && panel.hidden) {
-    const r = Math.random(), kind = r < 0.35 ? 'mariposa' : r < 0.55 ? 'abeja' : r < 0.75 ? 'mariquita' : r < 0.95 ? 'caracol' : 'libelula', d = BUGS[kind];
+  if (!bug && now > nextBug && panel.hidden) {
+    const kind = L.pickBug(cycleOn() && L.world.isNight()), d = BUGS[kind];
     bug = { kind, t0: now, dur: d.v && d.v < 2 ? 35000 : 22000, ph: Math.random() * 6, x0: d.v ? 8 + Math.random() * 30 : 46, y0: d.v ? 62 + Math.random() * 4 : 36 + Math.random() * 12 };
   }
   if (!bug) return;
   const q = bugPos(now), d = BUGS[bug.kind];
+  if (bug.kind === 'luciernaga' || bug.kind === 'dorada') {                  // brillo
+    const k = Math.floor(now / 400) % 2, c = bug.kind === 'dorada' ? '#fff4a8' : '#fff7a0';
+    if (k) { P(q.x - 2, q.y + 2, 1, 1, c); P(q.x + d.w9 + 1, q.y + 3, 1, 1, c); P(q.x + (d.w9 >> 1), q.y - 3, 1, 1, c); }
+  }
   gspr(d.fr[Math.floor(now / 250) % d.fr.length], d.pal, q.x, q.y, true);
 }
 function catchBug() {
@@ -1468,14 +1472,28 @@ function catchBug() {
   if (!k) return;
   bug = null; nextBug = Date.now() + 40000 + Math.random() * 60000;
   L.progress.stat('bugs');
-  if (k === 'mariposa') { s.happy = clamp(s.happy + 6); setMsg('🦋 ¡Atrapada! +felicidad'); Sound.play('happy'); }
+  const m = s.meta, first = !m.bugs[k], d = BUGS[k];
+  m.bugs[k] = (m.bugs[k] || 0) + 1;
+  let msg = '', lp = 0;
+  if (k === 'mariposa') { s.happy = clamp(s.happy + 6); msg = '🦋 ¡Atrapada! +felicidad'; }
+  else if (k === 'mariposaazul') { s.happy = clamp(s.happy + 8); lp = 3; msg = '🦋 ¡Mariposa azul! +3 🪙'; }
   else if (k === 'abeja') {
-    if (Math.random() < 0.3) { s.happy = clamp(s.happy - 6); setMsg('🐝 ¡Ay! Te ha picado'); Sound.play('alert'); }
-    else { s.inv.miel = (s.inv.miel || 0) + 1; setMsg('🐝 ¡Miel! Está en Snacks'); Sound.play('coin'); }
+    if (Math.random() < 0.3) { s.happy = clamp(s.happy - 6); msg = '🐝 ¡Ay! Te ha picado'; Sound.play('alert'); }
+    else { s.inv.miel = (s.inv.miel || 0) + 1; msg = '🐝 ¡Miel! Está en Snacks'; }
   }
-  else if (k === 'mariquita') { s.lp += 3; setMsg('🐞 ¡Da suerte! +3 🪙'); Sound.play('coin'); }
-  else if (k === 'caracol') { s.happy = clamp(s.happy + 3); s.lp += 1; setMsg('🐌 Caracol atrapado: +1 🪙'); Sound.play('coin'); }
-  else { s.lp += 10; s.happy = clamp(s.happy + 10); setMsg('✨ ¡Una libélula rara! +10 🪙'); Sound.play('happy'); }
+  else if (k === 'mariquita') { lp = 3; msg = '🐞 ¡Da suerte! +3 🪙'; }
+  else if (k === 'caracol') { s.happy = clamp(s.happy + 3); lp = 1; msg = '🐌 Caracol atrapado: +1 🪙'; }
+  else if (k === 'saltamontes') { lp = 2; msg = '🦗 ¡Atrapado al vuelo! +2 🪙'; }
+  else if (k === 'hormiga') { lp = 2; msg = '🐜 La hormiga trae +2 🪙'; }
+  else if (k === 'escarabajo') { lp = 4; msg = '🪲 ¡Qué brillante! +4 🪙'; }
+  else if (k === 'luciernaga') { s.happy = clamp(s.happy + 10); lp = 2; msg = '✨ Luciérnaga: +felicidad y +2 🪙'; }
+  else if (k === 'libelula') { s.happy = clamp(s.happy + 10); lp = 10; msg = '✨ ¡Una libélula rara! +10 🪙'; }
+  else { s.happy = clamp(s.happy + 20); lp = 20; msg = '🌟 ¡¡MARIPOSA DORADA!! +20 🪙'; }
+  if (first) { lp += 3; msg = `📖 ¡Nuevo en el álbum! ${d.name}. ${msg} (+3 🪙 por la primera)`; }
+  s.lp += lp;
+  Sound.play(k === 'dorada' ? 'win' : lp || s.happy > 0 ? 'coin' : 'alert');
+  if (L.progress.bugAlbumCheck()) msg = '🏆 ¡Álbum de insectos completo! +100 🪙';
+  setMsg(msg, k === 'dorada' || first ? 5000 : 2600);
   Store.save(); render();
 }
 
