@@ -4,7 +4,7 @@
    · Web Push: muestra el aviso salvo que la app esté a la vista.
    · Al tocar un aviso enfoca (o abre) la app.
    ========================================================================== */
-const VERSION = 'limagochi-v3.16.0';
+const VERSION = 'limagochi-v3.16.1';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.json',
   'sprites.js', 'items.js', 'config.js', 'audio.js', 'world.js', 'notify.js', 'bugs.js', 'progress.js', 'guide.js', 'backup.js', 'lib/qrcode.js', 'mail.js', 'visit.js', 'minigames.js', 'games2.js', 'studio.js', 'kitchen.js', 'voice.js', 'game.js',

@@ -206,14 +206,14 @@ function why(k) {
   if (s.sleeping) return 'Zzz… está durmiendo';
   if (s.sick) return 'Está enfermo';
   if (s.call || s.mess) return 'Atiéndelo primero: te necesita';
-  if (s.hunger < 25) return 'Tiene hambre: dale de comer primero';
-  if (s.happy < 25) return 'Está triste: que juegue primero';
-  if (s.energy < 25) return 'Está cansado: que descanse primero';
+  if (s.hunger < 20) return 'Tiene hambre: dale de comer primero';
+  if (s.happy < 20) return 'Está triste: que juegue primero';
+  if (s.energy < 15) return 'Está cansado: que descanse primero';
   return null;
 }
 function begin(k, mins) {
   const a = A(), t = T(), bad = why(k);
-  if (bad) { a.setMsg(bad, 3000); return; }
+  if (bad) { a.closePanel(); a.setMsg('⚠️ ' + bad, 4000); a.sound.play('refuse'); return; }
   if (t.practice) { a.setMsg('Ya está practicando', 2500); return; }
   t.practice = { k, total: mins, min: 0 };
   a.closePanel(); a.sound.play('trick');
@@ -264,7 +264,7 @@ function tick(dt, quiet) {
 }
 
 /* ------------------------------ menús (paneles) ------------------------------ */
-const bar = (v, n = 10) => '▮'.repeat(Math.round(v / 100 * n)) + '▯'.repeat(n - Math.round(v / 100 * n));
+const bar = (v, n = 10) => '▰'.repeat(Math.round(v / 100 * n)) + '▱'.repeat(n - Math.round(v / 100 * n));
 const talentLine = k => `${TAL[k].icon} ${TAL[k].name} nv ${Math.floor(lvOf(k))} ${bar(lvOf(k))}`;
 
 function openTalent(k) {
@@ -273,6 +273,7 @@ function openTalent(k) {
   if (P && P.k === k) {
     nodes.push(a.p(`Practicando… ${Math.max(1, Math.ceil(P.total - P.min))} min`), a.btn('Parar y guardar lo hecho', () => { a.closePanel(); stop(); }));
   } else if (P) nodes.push(a.p(`Ahora practica ${TAL[P.k].name.toLowerCase()}`));
+  else if (why(k)) nodes.push(a.p('⚠️ ' + why(k)));
   else {
     const m = maxMin();
     nodes.push(a.p(`Aguanta hasta ${m} min por sesión (según su disciplina)`));
