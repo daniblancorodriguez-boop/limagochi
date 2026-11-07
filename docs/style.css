@@ -304,3 +304,13 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .skillbar .sk-f { display: block; height: 100%; background: var(--ink); transition: width .4s; }
 .skillbar .sk-l, .skillbar .sk-s { white-space: nowrap; }
 .skillbar:not([hidden]) ~ .msg, .skillbar:not([hidden]) ~ .hud { top: 26px; }
+
+.chip-name { pointer-events: auto; cursor: pointer; min-height: 22px; }
+.chip-name:active { background: var(--lcd); }
+.roompick { position: absolute; left: 5px; bottom: 28px; display: flex; gap: 4px; padding: 4px; background: rgba(212,229,164,.97); border: 2px solid var(--ink); border-radius: 10px; pointer-events: auto; z-index: 5; }
+.roompick[hidden] { display: none; }
+.rp { position: relative; width: 36px; height: 36px; font-size: 20px; line-height: 1; border: 2px solid transparent; border-radius: 8px; background: transparent; cursor: pointer; padding: 0; }
+.rp.on { border-color: var(--ink); background: rgba(0,0,0,.12); }
+.rp:active { background: var(--lcd); }
+.rp-dot { position: absolute; top: 1px; right: 1px; width: 9px; height: 9px; border-radius: 50%; background: #e0392f; border: 1px solid var(--ink); }
+.stage:has(.panel:not([hidden])) .roompick { display: none; }

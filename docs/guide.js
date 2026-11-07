@@ -62,7 +62,7 @@ const TOPICS = [
     LI('Al practicar aparece arriba una barra con el nivel. Ver todo en 📊 Estado → talentos.')
   ] },
   { icon: '🌳', title: 'El jardín', body: () => [
-    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín, estudio y cocina'),
+    H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín, estudio y cocina. Toca el nombre del cuarto (abajo a la izquierda) para elegir uno directamente; un punto rojo avisa de que hay algo allí'),
     LI('🪑 Tumbona: tómala para tomar el sol (recupera energía). 🏊 Piscina: chapuzón de día (mucha felicidad y se limpia); cansado, puede resfriarse.'),
     LI('🌳 Manzano: riégalo (💧 cuando lo pide). Crece por fases y da hasta 3 manzanas a la vez; recógelas tocándolo.'),
     LI('🥕 Huerto: compra semillas en la tienda, plántalas, riégalas y cosecha. Lo cosechado sale en 🥗 Sanas.'),

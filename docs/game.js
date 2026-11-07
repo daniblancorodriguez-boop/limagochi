@@ -217,7 +217,7 @@ const W = 48, H = 36;                                  // coordenadas lógicas (
 g.setTransform(2, 0, 0, 2, 0, 0);
 g.imageSmoothingEnabled = false;
 const msgEl = $('#msg'), hudEl = $('#hud'), alertEl = $('#alert'), panel = $('#panel');
-const chipsEl = $('#chips'), chipName = $('#chipName'), chipGo = $('#chipGo'), stageEl = $('.stage');
+const roomPickEl = $('#roomPick'), chipsEl = $('#chips'), chipName = $('#chipName'), chipGo = $('#chipGo'), stageEl = $('.stage');
 const iconBtns = $$('#icons button');
 const meterEls = $$('.meter');
 
@@ -1638,8 +1638,32 @@ function render() {
   chipName.textContent = ROOMNAME[here()];
   chipGo.textContent = '→ ' + ROOMICON[NEXTROOM[here()]];
   chipGo.setAttribute('aria-label', 'Ir a: ' + ROOMNAME[NEXTROOM[here()]]);
+  chipName.textContent = ROOMNAME[here()] + ' ▾'; chipName.setAttribute('aria-label', 'Elegir cuarto');
+  if (!roomPickEl.hidden) drawRoomPick();
   if (L.mini && L.mini.active()) return;               // los minijuegos dibujan su propia escena
   drawScene(Date.now());
+}
+
+/** ¿Hay algo pendiente en este cuarto? (punto de aviso en el selector) */
+function roomAlert(w) {
+  const s = state, k = s.kitchen, t = s.talent;
+  if (w === 'garden') return s.garden.plot.some(x => x && x.m >= CROPS[x.k].need) || !!(s.garden.apple && s.garden.apple.fruits > 0);
+  if (w === 'studio') return !!(t.practice || t.works.length || t.book.length);
+  if (w === 'kitchen') return !!(k.cook || k.plates.length);
+  return false;
+}
+function closeRoomPick() { roomPickEl.hidden = true; chipName.setAttribute('aria-expanded', 'false'); }
+function drawRoomPick() {
+  roomPickEl.textContent = '';
+  Object.keys(ROOMICON).forEach(w => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'rp' + (w === here() ? ' on' : ''); b.setAttribute('role', 'menuitem');
+    b.setAttribute('aria-label', ROOMNAME[w]); b.title = ROOMNAME[w];
+    b.textContent = ROOMICON[w];
+    if (roomAlert(w) && w !== here()) { const d = document.createElement('i'); d.className = 'rp-dot'; b.append(d); }
+    b.addEventListener('click', e => { e.stopPropagation(); closeRoomPick(); if (w !== here() && canInteract()) setRoom(w); });
+    roomPickEl.append(b);
+  });
 }
 
 function renderMeters() {
@@ -1789,7 +1813,9 @@ function bindUI() {
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
   $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
-  chipGo.addEventListener('click', () => { if (canInteract()) setRoom(NEXTROOM[here()]); });
+  chipGo.addEventListener('click', () => { closeRoomPick(); if (canInteract()) setRoom(NEXTROOM[here()]); });
+  chipName.addEventListener('click', e => { e.stopPropagation(); if (roomPickEl.hidden) { if (!canInteract()) return; drawRoomPick(); roomPickEl.hidden = false; chipName.setAttribute('aria-expanded', 'true'); } else closeRoomPick(); });
+  document.addEventListener('click', e => { if (!roomPickEl.hidden && !roomPickEl.contains(e.target)) closeRoomPick(); });
   let gridOn = true; try { gridOn = localStorage.getItem('limagochi.grid') !== '0'; } catch { /* */ }
   const applyGrid = () => { stageEl.classList.toggle('grid', gridOn); $('#btnGrid').textContent = gridOn ? '▦' : '▢'; };
   applyGrid();
