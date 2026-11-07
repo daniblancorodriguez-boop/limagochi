@@ -21,7 +21,7 @@ const ITEMS = [
   { id: 'stove',   icon: '🍳', name: 'Fogón',           cost: 100, desc: 'cocina platos y gana habilidad' },
   { id: 'coffee',  icon: '☕', name: 'Cafetera',        cost: 80,  desc: 'energía rápida (más caca, menos disciplina)' }
 ];
-const BASIC = { salad: 3, lime: 3, soup: 2, cookie: 2 };                      // tope de cada alimento de la nevera básica
+const BASIC = { salad: 3, lime: 3, soup: 2, fries: 2, cookie: 2 };                      // tope de cada alimento de la nevera básica
 const REFILL = 120;                                                           // minutos entre reposiciones (+1 de cada)
 const LIFE = { manzana: 5, zanahoria: 5, tomate: 4, lechuga: 3, pez: 3, fresa: 3, sushi: 3, paella: 4, limecake: 5 };   // días (la miel no caduca)
 const ING = { lechuga: '🥬', tomate: '🍅', zanahoria: '🥕', manzana: '🍎', pez: '🐟', fresa: '🍓', miel: '🍯' };
@@ -222,21 +222,33 @@ function openPlates() {
   nodes.push(a.btn('Atrás', owns('stove') ? openStove : a.closePanel, 'ghost'));
   a.openPanel(nodes, { full: true });
 }
-/** Menú de la nevera básica: pocos alimentos + lo fresco que haya + platos. */
+/** Menú de la nevera básica: igual que el de siempre (Sanas · Rápida · Snacks), pero con pocos alimentos. */
+const CATS = { healthy: '🥗 Sanas', fast: '🍔 Comida rápida', snack: '🍬 Snacks' };
 function basicMenu() {
-  const a = A(), s = S(), k = K(), fo = id => FOODS().find(f => f.id === id);
-  const nodes = [a.p('🧊 Nevera básica · se repone despacio')];
-  nodes.push(a.btn(`${fo('rice').icon} ${fo('rice').name} · siempre`, () => a.feed(fo('rice'))));
-  Object.keys(BASIC).forEach(id => { const f = fo(id); nodes.push(a.btn(`${f.icon} ${f.name} ×${k.basic[id] || 0}`, () => a.feed(Object.assign({}, f, { fromBasic: true })), '', !(k.basic[id] > 0))); });
-  const ev = L.world.event();
-  if (ev) L.world.EVENT_FOODS.filter(f => f.event === ev.id).forEach(f => nodes.push(a.btn(`${ev.icon} ${f.name} (temporada)`, () => a.feed(f))));
+  const a = A(), s = S(), k = K();
   const fr = FOODS().filter(f => (f.stock || f.gourmet) && (s.inv[f.id] || 0) > 0);
-  if (fr.length) {
-    nodes.push(a.p('🧺 Cesta · sin nevera mejorada se estropea en 1 día'));
-    fr.forEach(f => nodes.push(a.btn(`${f.icon} ${f.name} ×${s.inv[f.id]} ${fresh(f.id)}`, () => a.feed(f))));
-  }
-  if (k.plates.length) nodes.push(a.btn(`🍽️ Platos (${k.plates.length})`, openPlates));
-  nodes.push(a.p('🧊 Con la nevera mejorada (🛒) tendrás todas las comidas.'), a.btn('Cancelar', a.closePanel, 'ghost'));
+  const nodes = [a.p('🧊 Nevera básica · ¿qué le das?')];
+  Object.keys(CATS).forEach(c => nodes.push(a.btn(CATS[c], () => basicList(c))));
+  if (fr.length) nodes.push(a.btn(`🧺 Cesta (${fr.reduce((n, f) => n + s.inv[f.id], 0)})`, basicBasket));
+  if (k.plates.length) nodes.push(a.btn(`🍽️ Platos cocinados (${k.plates.length})`, openPlates));
+  nodes.push(a.p('Se repone despacio. Con la nevera mejorada (🛒) tendrás todas las comidas.'), a.btn('Cancelar', a.closePanel, 'ghost'));
+  a.openPanel(nodes, { full: true });
+}
+function basicList(cat) {
+  const a = A(), k = K(), fo = id => FOODS().find(f => f.id === id), ev = L.world.event();
+  const title = { healthy: 'Sanas · dan energía y disciplina', fast: 'Rápida · anima, pero ensucia y engorda', snack: 'Snacks · animan, pero engordan' }[cat];
+  const nodes = [a.p(title)];
+  if (cat === 'healthy') nodes.push(a.btn(`${fo('rice').icon} ${fo('rice').name} · siempre`, () => a.feed(fo('rice'))));
+  if (ev) L.world.EVENT_FOODS.filter(f => f.event === ev.id && f.cat === (cat === 'snack' ? 'snack' : 'meal') && cat !== 'fast').forEach(f => nodes.push(a.btn(`${ev.icon} ${f.name} (temporada)`, () => a.feed(f))));
+  Object.keys(BASIC).map(fo).filter(f => f.grp === cat).forEach(f =>
+    nodes.push(a.btn(`${f.icon} ${f.name} ×${k.basic[f.id] || 0}`, () => a.feed(Object.assign({}, f, { fromBasic: true })), '', !(k.basic[f.id] > 0))));
+  nodes.push(a.btn('Atrás', basicMenu, 'ghost'));
+  a.openPanel(nodes, { full: true });
+}
+function basicBasket() {
+  const a = A(), s = S(), nodes = [a.p('🧺 Cesta · sin nevera mejorada se estropea en 1 día')];
+  FOODS().filter(f => (f.stock || f.gourmet) && (s.inv[f.id] || 0) > 0).forEach(f => nodes.push(a.btn(`${f.icon} ${f.name} ×${s.inv[f.id]} ${fresh(f.id)}`, () => a.feed(f))));
+  nodes.push(a.btn('Atrás', basicMenu, 'ghost'));
   a.openPanel(nodes, { full: true });
 }
 

@@ -149,6 +149,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   border-top: 2px solid var(--ink);
 }
 .panel.full { top: 0; overflow-y: auto; }
+.panel > * { flex-shrink: 0; }
 .panel p { margin: 0; font-size: 12px; font-weight: 700; text-align: center; }
 .panel .line { display: flex; justify-content: space-between; font-size: 12px; }
 .panel .row { display: flex; gap: 6px; }
@@ -163,6 +164,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   color: var(--ink);
   font-weight: 700;
   font-size: 13px;
+  line-height: 1.25;
 }
 .pbtn:active, .pbtn.sel { background: var(--ink); color: var(--lcd); }
 .pbtn:disabled { opacity: .45; }
