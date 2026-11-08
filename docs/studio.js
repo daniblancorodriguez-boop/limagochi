@@ -31,7 +31,7 @@ const EXTRA = {
 };
 const EK = Object.keys(EXTRA);
 const CHAPTERS = 4, MAX_WORKS = 24;
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const today = () => new Date().toLocaleDateString('sv');
 const hash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h; };
 

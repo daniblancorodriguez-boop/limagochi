@@ -184,6 +184,8 @@ function normalize(d) {
     study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino), talent: L.studio.fix(d.talent), kitchen: L.kitchen.fix(d.kitchen),
     meta: L.progress.fixMeta(d.meta)
   });
+  ['hunger', 'happy', 'energy', 'discipline', 'dirt', 'taste'].forEach(k => { if (!Number.isFinite(s[k])) s[k] = k === 'dirt' ? 20 : 60; });   // repara valores rotos (NaN)
+  if (!Number.isFinite(s.weight)) s.weight = 10;
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
   if (V1[s.form]) s.form = V1[s.form];
   return s;

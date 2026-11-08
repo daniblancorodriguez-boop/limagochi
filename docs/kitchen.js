@@ -12,7 +12,7 @@
 const L = window.LIMA;
 const A = () => L.api;
 const S = () => A().S();
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const today = () => new Date().toLocaleDateString('sv');
 const DAY = 1440;
 
