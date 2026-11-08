@@ -160,7 +160,7 @@ function newState() {
     lp: 0, inv: {}, owned: [], bg: 'none',
     casino: { day: '', lost: 0, spins: 0, free: '' },                       // límites del casino por día
     garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
-    skills: {}, words: {}, cause: '',
+    skills: {}, words: {}, cause: '', track: { play: 0, hug: 0, sleep: 0 },       // lo que hace de niño (decide la forma de adolescente)
     talent: L.studio.blank(), kitchen: L.kitchen.blank(),                                             // talentos: pintura, escritura y música
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
@@ -259,6 +259,7 @@ function adultForm() {
   const s = state, f = s.food, tot = f.veg + f.meat + f.candy;
   const share = k => (tot ? f[k] / tot : 0);
   const balanced = Math.max(share('veg'), share('meat'), share('candy')) <= 0.5;
+  const tf = L.forms.talentForm(s); if (tf) return tf;                         // destaca en un talento
   if (s.mistakes <= 1 && s.discipline >= 80 && balanced && tot >= 8) return 'estrella';
   let diet = 'veg';
   if (f.meat > f[diet]) diet = 'meat';
@@ -269,6 +270,7 @@ function adultForm() {
 
 function toStage(st, text, from) {
   state.stage = st; state.stageMin = 0; state.callsN = 0; state.preSick = false;
+  if (st === 'child') state.track = { play: 0, hug: 0, sleep: 0 };
   state.nextPoop = rand(poopRange()[0], poopRange()[1]); state.poopTimer = 0;
   state.weight = Math.max(state.weight, CFG.minWeight[st]);
   if (st !== 'egg') L.progress.record(spriteId());
@@ -286,7 +288,7 @@ function evolve() {
     s.form = s.mistakes <= 1 ? 'child_good' : 'child_naughty';
     toStage('child', `¡Ha crecido! Ahora es ${formName(s.form)}`, from);
   } else if (s.stage === 'child' && s.stageMin >= CFG.stageMin.child) {
-    s.form = s.mistakes <= 2 ? 'teen_good' : 'teen_naughty';
+    s.form = L.forms.teenForm(s);
     toStage('teen', `¡Ya es adolescente! Ahora es ${formName(s.form)}`, from);
   } else if (s.stage === 'teen' && s.stageMin >= CFG.stageMin.teen) {
     s.form = adultForm();
@@ -369,6 +371,7 @@ function tick(dt) {
   s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
   s.discipline = clamp(s.discipline - R.discipline * st.disc * dt);
   s.sweetLoad = Math.max(0, s.sweetLoad - 0.02 * dt);
+  if (s.sleeping || s.room.use === 'lie' || s.room.use === 'bed') s.track.sleep += dt;
   if (!s.sleeping) s.taste = Math.max(0, s.taste - 0.02 * dt);                  // el paladar se reeduca solo (~30 al día)
   if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
 
@@ -746,6 +749,7 @@ function roomTick(dt) {
 function setUse(u, text) {
   const r = state.room;
   r.use = u; r.min = 0; r.auto = false;
+  if (u === 'sit' || u === 'lie') state.track.hug += 0.5;
   if (text) setMsg(text);
   Sound.play('click'); Store.save(); render(); closePanel();
 }
@@ -772,7 +776,7 @@ function openObject(id) {
     ask('🧸 Peluche', btn('Abrazar', () => {
       closePanel();
       if (Date.now() - (r.hug || 0) < 15 * 60000) { setMsg('Ya se ha abrazado hace poco 🧸'); return; }
-      r.hug = Date.now(); hugUntil = Date.now() + 3500; s.happy = clamp(s.happy + 5);
+      r.hug = Date.now(); s.track.hug++; hugUntil = Date.now() + 3500; s.happy = clamp(s.happy + 5);
       Sound.play('happy'); setMsg('🧸 ¡Qué abrazo! +felicidad'); Store.save(); render();
     }));
     return;
@@ -803,7 +807,7 @@ function openObject(id) {
     ask('⚽ Pelota', btn('Jugar con la pelota', () => {
       closePanel();
       if (Date.now() - (r.ball || 0) < 10 * 60000) { setMsg('Ya ha jugado hace poco ⚽'); return; }
-      r.ball = Date.now(); ballUntil = Date.now() + 5000; s.happy = clamp(s.happy + 6); s.energy = clamp(s.energy - 3); L.studio.xp('sport', here() === 'garden' ? 1.2 : 0.8);
+      r.ball = Date.now(); ballUntil = Date.now() + 5000; s.happy = clamp(s.happy + 6); s.energy = clamp(s.energy - 3); L.studio.xp('sport', here() === 'garden' ? 1.2 : 0.8); s.track.play++;
       Sound.play('happy'); setMsg('⚽ ¡Qué divertido! +felicidad'); Store.save(); render();
     }));
     return;
@@ -964,6 +968,7 @@ function reward({ happy = 0, energy = 0, hunger = 0, weight = 0, lp = 0, game, w
   const s = state;
   const ev = L.world.event();
   if (lp > 0 && ev) lp *= 2;                                             // en temporada los premios se duplican
+  s.track.play++;
   s.happy = clamp(s.happy + happy); s.energy = clamp(s.energy + energy); s.hunger = clamp(s.hunger + hunger);
   s.weight = Math.max(minW(), s.weight + weight); s.lp += lp;
   fx('happy', 1800);

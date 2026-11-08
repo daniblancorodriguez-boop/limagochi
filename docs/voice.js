@@ -44,6 +44,7 @@ const WORDS = [
 ];
 const WORD_CAP = { baby: 35, child: 75, teen: 90, adult: 100 };       // un bebé solo balbucea
 const FORM_IQ = { child_good: 0.1, child_naughty: 0, teen_good: 0.15, teen_naughty: 0.02, estrella: 0.5, flor: 0.3, guerrera: 0.3, piruleta: 0.25,
+                  teen_estudiosa: 0.3, teen_juguetona: 0.15, teen_mimosa: 0.15, teen_dormilona: 0.12, sabia: 0.5, artista: 0.35, bardo: 0.35, chef: 0.35, atleta: 0.3, jardinera: 0.3, pescadora: 0.3, maestra: 0.6,
                   brote: 0.2, grunona: 0.15, glotona: 0.1, rebelde: 0.1, marchita: 0.05, gominola: 0.05 };
 
 const norm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();

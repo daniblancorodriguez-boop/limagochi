@@ -136,6 +136,8 @@ const TOPICS = [
     LI('De niño a adolescente: con 0–2 errores sale Lima Joven; con más, Lima Macarra.'),
     LI('De adolescente a adulto cuenta su dieta dominante (verduras, carne o dulces) y los errores: 0–1 errores = forma excelente, 2–5 = normal, 6 o más = descuidada.'),
     LI('⭐ Estrella: ≤1 error, disciplina ≥80% y dieta variada. ¡La más difícil!'),
+    LI('Formas por talento: si al hacerse adulto tiene pintura, escritura, música, cocina, deporte, jardinería o pesca a nivel 40 o más, será Lima Artista, Sabia, Bardo, Chef, Atleta, Jardinera o Pescadora (gana el talento más alto). Con 3 talentos a nivel 50 o más: Lima Maestra (secreta).'),
+    LI('Adolescentes con carácter (con 2 errores o menos): Estudiosa (15 lecciones de voz), Juguetona (juega muchísimo), Mimosa (peluche y sofá) y Dormilona (duerme y descansa mucho de niño).'),
     P('Mira 📊 Estado → 📖 Álbum para ver todas las formas y cómo conseguir cada una.'),
     H('Peligros'),
     P('Si pasa mucho tiempo con hambre a cero, enfermo o con 4 caquitas, acaba muriendo (unas 12 horas seguidas de descuido). Con el peso por encima del límite está obeso: enferma más y vive menos.')

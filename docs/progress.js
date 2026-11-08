@@ -10,7 +10,8 @@ const A = () => L.api;
 
 /* las 15 formas coleccionables: bebé, 2 de niño, 2 de adolescente, 10 adultas */
 const ALBUM = ['baby', 'child_good', 'child_naughty', 'teen_good', 'teen_naughty',
-  'estrella', 'flor', 'brote', 'marchita', 'guerrera', 'grunona', 'rebelde', 'piruleta', 'glotona', 'gominola'];
+  'estrella', 'flor', 'brote', 'marchita', 'guerrera', 'grunona', 'rebelde', 'piruleta', 'glotona', 'gominola',
+  'teen_estudiosa', 'teen_juguetona', 'teen_mimosa', 'teen_dormilona', 'artista', 'sabia', 'bardo', 'chef', 'atleta', 'jardinera', 'pescadora', 'maestra'];
 
 const HINT = {
   baby: 'Eclosiona tu primer huevo.',
@@ -30,7 +31,7 @@ const HINT = {
   gominola: 'Dieta de dulces y cuidado flojo (6+ errores).'
 };
 
-const ADULTS = ALBUM.slice(5);
+const ADULTS = ALBUM.slice(5).filter(f => !f.startsWith('teen_'));
 const mastered = s => Object.values(s.skills || {}).filter(v => v >= 100).length;
 const sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 
@@ -221,7 +222,7 @@ function openAlbum(back) {
     const b = el('button', 'cell' + (seen ? ' seen' : ''));
     b.type = 'button';
     b.append(formCanvas(id, seen), el('span', '', seen ? ((L.META[id] || {}).name || id) : '???'));
-    b.addEventListener('click', () => { a.sound.play('click'); a.setMsg(seen ? `${L.META[id].name} · descubierto` : HINT[id], 5000); });
+    b.addEventListener('click', () => { a.sound.play('click'); a.setMsg(seen ? `${L.META[id].name} · descubierto` : (HINT[id] || L.forms.HINT[id]), 5000); });
     grid.append(b);
   });
   a.openPanel([
