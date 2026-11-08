@@ -240,6 +240,17 @@ function spriteId() {
 }
 
 const cycleOn = () => !!L.settings.get('cycle');
+/** Descanso del dueño (por defecto 00:00-06:00, máx. 8 h): las barras bajan despacio y no hay cacas, enfermedades ni errores. */
+function restAt(t) {
+  if (!L.settings.get('rest')) return false;
+  const from = Number(L.settings.get('restFrom')) || 0;
+  let len = (Number(L.settings.get('restTo')) - from + 24) % 24;
+  if (len === 0) return false;
+  len = Math.min(8, len);
+  const d = new Date(t), h = d.getHours() + d.getMinutes() / 60;
+  return (h - from + 24) % 24 < len;
+}
+let restPrev = null;
 
 function mistake() { state.mistakes = Math.min(99, state.mistakes + 1); }
 
@@ -345,6 +356,9 @@ function tick(dt) {
   const obese = isObese();
 
   const ph = cycleOn() ? L.world.phaseAt(clockNow()) : 'day', night = ph === 'night';
+  const rest = s.stage !== 'egg' && restAt(clockNow());
+  if (restPrev !== null && rest !== restPrev && !quiet) { setMsg(rest ? '🌙 Descanso: todo va más despacio mientras duermes' : '☀️ Buenos días: vuelve el ritmo normal', 4500); }
+  restPrev = rest;
   if (s.sleeping) {
     s.energy = clamp(s.energy + R.sleep * dt);
     if (cycleOn() && L.world.isMorningAt(clockNow()) && s.energy >= 50) {            // amanece: se despierta solo
@@ -355,14 +369,14 @@ function tick(dt) {
       if (!quiet) setMsg('¡Buenos días! Ha descansado');
     }
   } else {
-    s.energy = clamp(s.energy - R.energy * L.studio.stress().energy * dt);
+    s.energy = clamp(s.energy - R.energy * L.studio.stress().energy * (rest ? 0.35 : 1) * dt);
     if (night && s.energy < 70 && clockNow() > (s.stayUp || 0)) {                 // de noche se duerme solo
       s.sleeping = true;
       if (!quiet) { setMsg('🌙 Se ha quedado dormido'); Sound.play('lightOff'); }
     }
   }
 
-  const k = s.sleeping ? 0.35 : 1;
+  const k = s.sleeping || rest ? 0.35 : 1;
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   const nd = need();
   s.hunger = clamp(s.hunger - R.hunger * nd.hunger * L.studio.stress().hunger * dt * k);
@@ -375,7 +389,7 @@ function tick(dt) {
   if (!s.sleeping) s.taste = Math.max(0, s.taste - 0.02 * dt);                  // el paladar se reeduca solo (~30 al día)
   if (s.hunger < 20) s.weight = Math.max(minW(), s.weight - 0.008 * dt);
 
-  if (!s.sleeping) {
+  if (!s.sleeping && !rest) {
     s.poopTimer += dt;
     if (s.poopTimer >= s.nextPoop) {
       s.poopTimer = 0; s.nextPoop = rand(poopRange()[0], poopRange()[1]);
@@ -383,7 +397,8 @@ function tick(dt) {
     }
   }
 
-  if (!s.sick) {
+  if (rest) { /* durante el descanso no enferma por descuido ni se cuentan errores */ }
+  else if (!s.sick) {
     const risk = CFG.sickRisk + s.poops * 0.0008 + (s.hunger < 10 ? 0.002 : 0) + (s.energy <= 0 ? 0.001 : 0) + (obese ? 0.0012 : 0) + (s.dirt > 85 ? 0.0006 : 0);
     if (Math.random() < risk * dt) makeSick();
   } else {
@@ -406,18 +421,19 @@ function tick(dt) {
   L.studio.tick(dt, quiet);
   L.kitchen.tick(dt, quiet);
   roomTick(dt);
-  flag('hunger', s.hunger <= 0, s.hunger > 20);
-  flag('poop', s.poops >= 3, s.poops === 0);
-  flag('energy', s.energy <= 0 && !s.sleeping, s.energy > 30);
-  flag('dirty', s.dirt >= 95, s.dirt < 60);
+  flag('hunger', s.hunger <= 0 && !rest, s.hunger > 20);
+  flag('poop', s.poops >= 3 && !rest, s.poops === 0);
+  flag('energy', s.energy <= 0 && !s.sleeping && !rest, s.energy > 30);
+  flag('dirty', s.dirt >= 95 && !rest, s.dirt < 60);
 
-  mischief(dt, night);
+  mischief(dt, night || rest);
   if (s.call) {
-    s.callMin += dt;
+    if (!rest) s.callMin += dt;
     if (s.callMin > CFG.callWindowMin) { s.call = false; mistake(); if (!quiet) setMsg('Ignoraste su llamada de atención'); }
-  } else if (!s.sleeping && s.callsN < (CFG.callMax[s.stage] || 0) && Math.random() < CFG.callChance * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; s.callsN++; }
+  } else if (!s.sleeping && !rest && s.callsN < (CFG.callMax[s.stage] || 0) && Math.random() < CFG.callChance * dt * (s.discipline < 50 ? 1.5 : 1)) { s.call = true; s.callMin = 0; s.callsN++; }
 
-  if (s.hunger <= 0 || s.sick || s.poops >= 4) s.neglect += dt; else s.neglect = Math.max(0, s.neglect - dt);
+  if (rest) { /* el descuido se congela mientras duermes */ }
+  else if (s.hunger <= 0 || s.sick || s.poops >= 4) s.neglect += dt; else s.neglect = Math.max(0, s.neglect - dt);
   if (s.neglect >= CFG.deathNeglectMin) { die('descuido'); return; }
 
   if (s.stage === 'adult') {
@@ -1906,7 +1922,7 @@ L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
-  speed: () => speed, predictSchedule, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
+  speed: () => speed, predictSchedule, restAt, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
 };
 
 /* ============================== INIT ==================================== */

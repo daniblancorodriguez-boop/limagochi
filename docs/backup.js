@@ -99,6 +99,12 @@ function importFile() {
 }
 
 /* -------------------------------- ajustes -------------------------------- */
+const hh = h => String(h).padStart(2, '0') + ':00';
+/** El descanso dura como mucho 8 h: si se pasa, se acorta por el final. */
+function fixRest() {
+  const f = L.settings.get('restFrom'), len = (L.settings.get('restTo') - f + 24) % 24;
+  if (len > 8) L.settings.set('restTo', (f + 8) % 24);
+}
 function openSettings(back) {
   const a = A();
   const onoff = v => (v ? 'SÍ' : 'NO');
@@ -106,6 +112,11 @@ function openSettings(back) {
   const nodes = [
     a.p('⚙️ Ajustes'),
     a.btn(`🌙 Ciclo día/noche: ${onoff(L.settings.get('cycle'))}`, () => { L.settings.set('cycle', !L.settings.get('cycle')); a.render(); openSettings(back); }),
+    a.btn(`😴 Descanso del dueño: ${onoff(L.settings.get('rest'))}`, () => { L.settings.set('rest', !L.settings.get('rest')); a.render(); openSettings(back); }),
+    ...(L.settings.get('rest') ? [a.row(
+      a.btn(`Desde ${hh(L.settings.get('restFrom'))}`, () => { const f = (L.settings.get('restFrom') + 1) % 24; L.settings.set('restFrom', f); fixRest(); openSettings(back); }),
+      a.btn(`Hasta ${hh(L.settings.get('restTo'))}`, () => { L.settings.set('restTo', (L.settings.get('restTo') + 1) % 24); fixRest(); openSettings(back); })
+    ), a.p('Durante el descanso (máx. 8 h) las barras bajan más despacio y no hay cacas, enfermedades ni errores.')] : []),
     a.btn(`🎃 Eventos de temporada: ${onoff(L.settings.get('events'))}`, () => { L.settings.set('events', !L.settings.get('events')); a.render(); openSettings(back); })
   ];
   if (push && push.supported()) {
