@@ -4,7 +4,7 @@
    · Web Push: muestra el aviso salvo que la app esté a la vista.
    · Al tocar un aviso enfoca (o abre) la app.
    ========================================================================== */
-const VERSION = 'limagochi-v3.21.0';
+const VERSION = 'limagochi-v3.21.1';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.json',
   'sprites.js', 'items.js', 'config.js', 'audio.js', 'world.js', 'notify.js', 'bugs.js', 'forms2.js', 'progress.js', 'guide.js', 'backup.js', 'lib/qrcode.js', 'mail.js', 'visit.js', 'minigames.js', 'games2.js', 'studio.js', 'kitchen.js', 'voice.js', 'game.js',
@@ -29,14 +29,18 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
 
+  // red primero (con 4 s de margen) y caché si no hay conexión: así HTML, CSS y JS siempre son de la misma versión
   e.respondWith(
     caches.open(VERSION).then(async cache => {
-      const cached = await cache.match(req, { ignoreSearch: true });
-      const network = fetch(req).then(res => {
+      const timeout = new Promise(r => setTimeout(() => r(null), 4000));
+      const network = fetch(req, { cache: 'no-cache' }).then(res => {
         if (res && res.ok) cache.put(req, res.clone());
         return res;
       }).catch(() => null);
-      if (cached) { e.waitUntil(network); return cached; }                  // rápido: caché y actualiza detrás
+      const res = await Promise.race([network, timeout]);
+      if (res) return res;
+      const cached = await cache.match(req, { ignoreSearch: true });
+      if (cached) { e.waitUntil(network); return cached; }
       return (await network) || (req.mode === 'navigate' ? cache.match('index.html') : Response.error());
     })
   );
