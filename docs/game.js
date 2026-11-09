@@ -339,7 +339,28 @@ function evolve() {
 }
 
 function die(cause) {
+  state.diedAs = state.stage;
   state.stage = 'dead'; state.sleeping = false; state.cause = cause; diedNow = true;
+  logLife(cause);
+}
+
+/** Apunta la vida de este Limagochi en el historial (una sola vez, al morir o al cambiar de huevo). */
+function logLife(cause) {
+  const s = state, m = s.meta;
+  if (s.logged || s.stage === 'egg') return;
+  s.logged = true;
+  const t = s.talent || {}, ex = t.extra || {};
+  const mx = k => Math.round(((t[k] && t[k].mx) || (ex[k] && ex[k].mx) || 0));
+  m.history = m.history || [];
+  m.lives = (m.lives || 0) + 1;
+  m.history.push({
+    n: m.lives, form: s.form || 'baby', stage: s.diedAs || (s.stage === 'dead' ? 'adult' : s.stage), born: s.born, end: Date.now(), age: Math.round(s.ageMin),
+    cause, lp: Math.max(0, ((m.stats && m.stats.lpEarned) || 0) - (s.lpAt || 0)), mistakes: s.mistakes || 0,
+    books: (t.stats && t.stats.books) || 0,
+    tricks: Object.values(s.skills || {}).filter(v => v >= 100).length + Object.values(s.words || {}).filter(v => v >= 100).length,
+    tal: { painting: mx('painting'), writing: mx('writing'), music: mx('music'), cooking: mx('cooking'), gardening: mx('gardening'), fishing: mx('fishing'), sport: mx('sport') }
+  });
+  if (m.history.length > 30) m.history.splice(0, m.history.length - 30);
 }
 
 /** Travesuras ocasionales: gritar por el altavoz o pintar las paredes. Cuanto menos disciplina, más a menudo.
@@ -734,10 +755,49 @@ function openMenu() {
     menuBtn('voice', '🎓', 'Trucos y palabras', '', () => L.voice && L.voice.open()),
     menuBtn('guide', '❓', 'Guía', '', () => L.guide.open(openMenu)),
     menuBtn('settings', '⚙️', 'Ajustes', '', () => L.backup.openSettings(openMenu)),
-    menuBtn('egg', '🥚', 'Nuevo huevo', '', () => {
-      if (state.stage === 'dead' || confirm('¿Empezar con un huevo nuevo? Se perderá tu Limagochi actual.')) newEgg();
-    }),
+    menuBtn('history', '📜', 'Historial', `${(m.history || []).length}`, () => openHistory(openMenu)),
+    menuBtn('egg', '🥚', 'Nuevo huevo', '', openNewEgg),
     btn('Cerrar', closePanel, 'ghost')
+  ], { full: true });
+}
+
+const CAUSES = { vejez: '🕊️ Vejez', descuido: '💔 Descuido', huevo: '🥚 Cambio de huevo' };
+const TALICONS = { painting: '🎨 Pintura', writing: '✍️ Escritura', music: '🎵 Música', cooking: '🍳 Cocina', gardening: '🌱 Jardinería', fishing: '🎣 Pesca', sport: '⚽ Deporte' };
+const fmtDate = ts => new Date(ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+function openNewEgg() {
+  const dead = state.stage === 'dead';
+  openPanel([
+    p('🥚 Nuevo huevo'),
+    p(dead ? 'Tu Limagochi ya no está. Su vida quedará en el historial.' : 'Tu Limagochi actual se despide: su vida quedará en el historial.'),
+    p('Las habilidades y los trucos empiezan siempre en 0.'),
+    btn('📦 Conservar bienes', () => newEgg('keep')),
+    p('Guardas monedas, muebles y todo lo que compraste.'),
+    btn('🌱 Empezar desde 0', () => { if (confirm('Perderás monedas y compras. Se guardan álbum, logros e historial. ¿Seguro?')) newEgg('zero'); }),
+    p('Pierdes monedas y compras; se guardan álbum, logros e historial.'),
+    btn('Cancelar', () => openMenu(), 'ghost')
+  ], { full: true });
+}
+function openHistory(back) {
+  const m = state.meta, h = (m.history || []).slice().reverse();
+  const nodes = [p('📜 Historial de Limagochis')];
+  if (!h.length) nodes.push(p('Aún no hay vidas anotadas. Cuando tu Limagochi muera o empieces otro huevo, aparecerá aquí.'));
+  else {
+    const best = h.reduce((a, b) => (b.age > a.age ? b : a));
+    nodes.push(p(`Criados: ${m.lives || h.length} · vida más larga: ${fmtDur(best.age)} (${formName(best.form)})`));
+    h.forEach(x => nodes.push(btn(`#${x.n} ${formName(x.form)} · ${fmtDur(x.age)} · ${(CAUSES[x.cause] || '').split(' ')[0]}`, () => openLife(x, back))));
+  }
+  nodes.push(btn('Atrás', back || closePanel, 'ghost'));
+  openPanel(nodes, { full: true });
+}
+function openLife(x, back) {
+  const tal = Object.keys(TALICONS).filter(k => x.tal && x.tal[k] >= 1).map(k => `${TALICONS[k]} ${x.tal[k]}`).join(' · ') || 'Sin talentos';
+  openPanel([
+    p(`#${x.n} ${formName(x.form)}`),
+    line('Nació', fmtDate(x.born)), line('Terminó', fmtDate(x.end)), line('Edad', fmtDur(x.age)),
+    line('Etapa', STAGE_NAMES[x.stage] || '—'), line('Final', CAUSES[x.cause] || '—'),
+    line('🪙 ganadas', String(x.lp)), line('Errores', String(x.mistakes)), line('Libros', String(x.books)), line('Trucos y palabras', String(x.tricks)),
+    p(tal),
+    btn('Atrás', () => openHistory(back), 'ghost')
   ], { full: true });
 }
 
@@ -779,11 +839,14 @@ function endVacation() {
   closePanel(); Sound.play('happy'); fx('happy', 1800); setMsg('☀️ ¡Bienvenido de vuelta!'); Store.save(); render();
 }
 
-function newEgg() {
+/** mode 'keep': conserva monedas y compras · 'zero': empieza de cero (solo se guardan álbum, logros, historial y amigos). Las habilidades siempre empiezan en 0. */
+function newEgg(mode = 'keep') {
   closePanel();
-  const keep = { lp: state.lp, owned: state.owned.slice(), bg: state.bg, hat: state.hat, meta: state.meta };     // tienda, álbum y logros se conservan
+  logLife(state.stage === 'dead' ? state.cause : 'huevo');
+  const keep = mode === 'zero' ? { meta: state.meta } : { lp: state.lp, owned: state.owned.slice(), bg: state.bg, hat: state.hat, meta: state.meta };
   state = newState();
   Object.assign(state, keep);
+  state.lpAt = (state.meta.stats && state.meta.stats.lpEarned) || 0;
   if (state.owned.includes('apple')) state.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 };      // el manzano comprado vuelve a empezar como brote
   Store.save(); setMsg('¡Un huevo nuevo!'); render();
 }

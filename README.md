@@ -93,3 +93,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.22.0
 - Economía: en Lima Vuela hay una moneda cada 2 tubos, recogible, con tope de 20 🪙 por partida (antes 1 🪙 por tubo sin límite). El resto de minijuegos da ≈25 % más.
 - Regalos por enlace (`#gift=`): comida de huerto, platos cocinados y flores (🛒 → 🎁, tulipán 8 🪙, ramo 20 🪙). Un solo uso por regalo, caduca a los 7 días, máx. 5 al día. Logros «Detallista» y «Amigo generoso».
+
+## v3.23.0
+- 📜 Historial de Limagochis (☰ Menú): cada vida se anota al morir o al cambiar de huevo (últimas 30).
+- Nuevo huevo: «Conservar bienes» o «Empezar desde 0» (siempre se guardan álbum, logros e historial; las habilidades empiezan en 0).

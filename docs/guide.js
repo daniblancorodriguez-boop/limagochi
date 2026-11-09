@@ -92,6 +92,7 @@ const TOPICS = [
     LI('Una ducha al día es lo ideal. No se puede duchar enfermo, dormido ni si ya está limpio.')
   ] },
   { icon: '✉️', title: 'Buzón e historias', body: () => [
+    LI('☰ Menú → 📜 Historial: cada Limagochi que has criado (forma, edad, causa del final, talentos y 🪙 ganadas). Al pedir un huevo nuevo eliges «Conservar bienes» (monedas y compras) o «Empezar desde 0»; el álbum, los logros y el historial siempre se guardan, y las habilidades empiezan en 0.'),
     LI('☰ Menú → ✉️ Buzón: tu Limagochi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
     LI('Durante cada evento de temporada llega una historia de 3 capítulos (días 1, 3 y 5).'),
     LI('Al leer el capítulo final ganas 10 🪙 y un 🎩 recuerdo: elige gorro en Buzón → Recuerdos.')

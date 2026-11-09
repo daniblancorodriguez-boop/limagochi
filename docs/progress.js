@@ -82,7 +82,7 @@ const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;
 
 /* ---- datos ---- */
-function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false, gifts: {}, giftDay: { d: '', n: 0 }, lastGift: null }; }
+function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false, gifts: {}, giftDay: { d: '', n: 0 }, lastGift: null, history: [], lives: 0 }; }
 /** Rellena huecos de una meta antigua o incompleta. */
 function fixMeta(m) {
   const b = blankMeta();
@@ -94,6 +94,11 @@ function fixMeta(m) {
     .map(x => ({ id: String(x.id || '').slice(0, 40), ts: Number(x.ts) || 0, from: String(x.from || '').slice(0, 30), icon: String(x.icon || '✉️').slice(0, 4), text: String(x.text).slice(0, 400), read: !!x.read }));
   return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20), bugs: clean(m.bugs, 30), bugsDone: !!m.bugsDone,
     gifts: clean(m.gifts, 80), giftDay: { d: String((m.giftDay && m.giftDay.d) || '').slice(0, 12), n: Number(m.giftDay && m.giftDay.n) || 0 },
+    history: (Array.isArray(m.history) ? m.history : []).filter(x => x && typeof x === 'object').slice(-30).map(x => ({
+      n: Number(x.n) || 0, form: String(x.form || 'baby').slice(0, 30), stage: String(x.stage || 'adult').slice(0, 8), born: Number(x.born) || 0, end: Number(x.end) || 0,
+      age: Number(x.age) || 0, cause: String(x.cause || 'vejez').slice(0, 12), lp: Number(x.lp) || 0, mistakes: Number(x.mistakes) || 0, books: Number(x.books) || 0, tricks: Number(x.tricks) || 0,
+      tal: Object.fromEntries(['painting', 'writing', 'music', 'cooking', 'gardening', 'fishing', 'sport'].map(k => [k, Number(x.tal && x.tal[k]) || 0])) })),
+    lives: Number(m.lives) || 0,
     lastGift: m.lastGift && typeof m.lastGift.url === 'string' && m.lastGift.url.length < 700 ? { url: m.lastGift.url, name: String(m.lastGift.name || '🎁').slice(0, 40), ts: Number(m.lastGift.ts) || 0 } : null };
 }
 const meta = () => A().S().meta;
