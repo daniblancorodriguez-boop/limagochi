@@ -784,6 +784,7 @@ function newEgg() {
   const keep = { lp: state.lp, owned: state.owned.slice(), bg: state.bg, hat: state.hat, meta: state.meta };     // tienda, álbum y logros se conservan
   state = newState();
   Object.assign(state, keep);
+  if (state.owned.includes('apple')) state.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 };      // el manzano comprado vuelve a empezar como brote
   Store.save(); setMsg('¡Un huevo nuevo!'); render();
 }
 
