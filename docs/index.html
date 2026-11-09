@@ -22,16 +22,16 @@
       <div class="bezel">
         <div class="screen" id="screen">
           <nav class="icons" id="icons" aria-label="Acciones">
-            <button type="button" data-action="feed"   title="Alimentar"   aria-label="Alimentar">🍔</button>
-            <button type="button" data-action="play"   title="Jugar"       aria-label="Jugar">🎮</button>
-            <button type="button" data-action="heal"   title="Curar"       aria-label="Curar">💊</button>
-            <button type="button" data-action="clean"  title="Limpiar caca" aria-label="Limpiar caca">🧹</button>
-            <button type="button" data-action="shower" title="Ducha"       aria-label="Ducha">🚿</button>
-            <button type="button" data-action="light"  title="Luz / Dormir" aria-label="Luz y dormir">💡</button>
-            <button type="button" data-action="scold"  title="Disciplina"  aria-label="Regañar">📢</button>
-            <button type="button" data-action="teach"  title="Hablarle (micro)" aria-label="Hablarle: enseñar trucos y palabras">🎤</button>
-            <button type="button" data-action="shop"   title="Tienda"      aria-label="Tienda">🛒</button>
-            <button type="button" data-action="status" title="Estado"      aria-label="Estado">📊</button>
+            <button type="button" data-action="feed"   title="Alimentar"   aria-label="Alimentar" data-ico="feed">🍔</button>
+            <button type="button" data-action="play"   title="Jugar"       aria-label="Jugar" data-ico="play">🎮</button>
+            <button type="button" data-action="heal"   title="Curar"       aria-label="Curar" data-ico="heal">💊</button>
+            <button type="button" data-action="clean"  title="Limpiar caca" aria-label="Limpiar caca" data-ico="clean">🧹</button>
+            <button type="button" data-action="shower" title="Ducha"       aria-label="Ducha" data-ico="shower">🚿</button>
+            <button type="button" data-action="light"  title="Luz / Dormir" aria-label="Luz y dormir" data-ico="light">💡</button>
+            <button type="button" data-action="scold"  title="Disciplina"  aria-label="Regañar" data-ico="scold">📢</button>
+            <button type="button" data-action="teach"  title="Hablarle (micro)" aria-label="Hablarle: enseñar trucos y palabras" data-ico="teach">🎤</button>
+            <button type="button" data-action="shop"   title="Tienda"      aria-label="Tienda" data-ico="shop">🛒</button>
+            <button type="button" data-action="status" title="Estado"      aria-label="Estado" data-ico="status">📊</button>
           </nav>
 
           <div class="stage">
@@ -49,20 +49,21 @@
           </div>
 
           <div class="meters" id="meters">
-            <div class="meter" data-stat="hunger"><span class="lbl" title="Hambre (corazones llenos = saciado)">🍖</span><span class="hearts"></span></div>
-            <div class="meter" data-stat="happy"><span class="lbl" title="Felicidad">😊</span><span class="hearts"></span></div>
-            <div class="meter" data-stat="energy"><span class="lbl" title="Energía">⚡</span><span class="hearts"></span></div>
-            <div class="meter" data-stat="clean"><span class="lbl" title="Higiene (corazones llenos = limpio)">🧼</span><span class="hearts"></span></div>
-            <div class="meter" data-stat="discipline"><span class="lbl" title="Disciplina">🎓</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="hunger"><span class="lbl" data-ico="hunger" title="Hambre (corazones llenos = saciado)">🍴</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="happy"><span class="lbl" data-ico="happy" title="Felicidad">😊</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="energy"><span class="lbl" data-ico="energy" title="Energía">⚡</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="clean"><span class="lbl" data-ico="clean2" title="Higiene (corazones llenos = limpio)">🛁</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="discipline"><span class="lbl" data-ico="disc" title="Disciplina">🎓</span><span class="hearts"></span></div>
           </div>
         </div>
       </div>
 
       <div class="keys">
-        <button type="button" class="key" id="keyA" aria-label="Botón A: siguiente / izquierda">A</button>
-        <button type="button" class="key key-b" id="keyB" aria-label="Botón B: aceptar / derecha">B</button>
-        <button type="button" class="key" id="keyC" aria-label="Botón C: cancelar">C</button>
+        <button type="button" class="key" id="keyA" aria-label="Botón A: siguiente / izquierda"></button>
+        <button type="button" class="key key-b" id="keyB" aria-label="Botón B: aceptar / derecha"></button>
+        <button type="button" class="key" id="keyC" aria-label="Botón C: volver atrás"></button>
       </div>
+      <div class="keymenu"><button type="button" class="key-menu" id="keyM" aria-label="Menú"><span class="km-i">☰</span> MENÚ</button></div>
     </div>
 
     <footer class="tools">

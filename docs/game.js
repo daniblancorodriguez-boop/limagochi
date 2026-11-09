@@ -701,24 +701,54 @@ function openStatus() {
   if (s.stage === 'adult') rows.push(['Vida restante', `${Math.max(0, Math.round(100 - s.wear / CFG.lifespanMin * 100))}%`]);
   if (left !== null && s.stage !== 'dead') rows.push(['Evoluciona en', `~${fmtDur(left)}`]);
   if (s.stage === 'dead') rows.push(['Causa', s.cause === 'vejez' ? 'Vejez' : 'Descuido']);
-  const m = s.meta, ev = L.world.event();
-  rows.push(['Logros', `${Object.keys(m.ach).length}/${L.progress.ACH.length}`], ['Álbum', `${Object.keys(m.album).length}/${L.progress.ALBUM.length}`]);
+  const ev = L.world.event();
   if (cycleOn()) rows.push(['Momento', { day: '☀️ Día', dusk: '🌅 Atardecer', night: '🌙 Noche' }[L.world.phase()]]);
   if (ev) rows.push(['Evento', L.world.eventLabel(ev)]);
 
   openPanel([
     ...rows.map(([k, v]) => line(k, v)),
-    row(btn('🏆 Logros', () => L.progress.openAchievements(openStatus)), btn('📖 Álbum', () => L.progress.openAlbum(openStatus)), btn('🦋 Insectos', () => L.progress.openBugs(openStatus))),
-    row(btn(`✉️ Buzón${L.mail && L.mail.unread() ? ` (${L.mail.unread()})` : ''}`, () => L.mail.open(openStatus)), btn('🤝 Visitas', () => L.visit.open(openStatus))),
-    row(btn('🎓 Trucos y palabras', () => L.voice && L.voice.open()), btn('📘 Guía', () => L.guide.open(openStatus))),
-    row(btn('⚙️ Ajustes', () => L.backup.openSettings(openStatus))),
-    row(
-      btn('Cerrar', closePanel, 'ghost'),
-      btn('Nuevo huevo', () => {
-        if (state.stage === 'dead' || confirm('¿Empezar con un huevo nuevo? Se perderá tu Limagochi actual.')) newEgg();
-      })
-    )
+    row(btn('☰ Menú', openMenu), btn('Cerrar', closePanel, 'ghost'))
   ], { full: true });
+}
+
+/** Imagen del icono (negro con fondo transparente) o, si se desactiva, el emoji de siempre. */
+const monoOn = () => L.settings.get('mono') !== false;
+function menuBtn(name, emoji, label, right, onClick) {
+  const b = btn('', onClick, 'mrow');
+  const ic = document.createElement('span'); ic.className = 'mi'; ic.dataset.ico = name; ic.dataset.emo = emoji; ic.textContent = emoji;
+  const t = document.createElement('span'); t.className = 'mt'; t.textContent = label;
+  b.append(ic, t);
+  if (right) { const r = document.createElement('span'); r.className = 'mr'; r.textContent = right; b.append(r); }
+  paintIcons(b);
+  return b;
+}
+function openMenu() {
+  const s = state, m = s.meta, un = L.mail && L.mail.unread ? L.mail.unread() : 0;
+  openPanel([
+    p('☰ Menú'),
+    menuBtn('logros', '🏆', 'Logros', `${Object.keys(m.ach).length}/${L.progress.ACH.length}`, () => L.progress.openAchievements(openMenu)),
+    menuBtn('album', '📖', 'Álbum', `${Object.keys(m.album).length}/${L.progress.ALBUM.length}`, () => L.progress.openAlbum(openMenu)),
+    menuBtn('bugs', '🦋', 'Insectos', '', () => L.progress.openBugs(openMenu)),
+    menuBtn('mail', '✉️', 'Buzón', un ? `(${un})` : '', () => L.mail.open(openMenu)),
+    menuBtn('visit', '🤝', 'Visitas', '', () => L.visit.open(openMenu)),
+    menuBtn('voice', '🎓', 'Trucos y palabras', '', () => L.voice && L.voice.open()),
+    menuBtn('guide', '❓', 'Guía', '', () => L.guide.open(openMenu)),
+    menuBtn('settings', '⚙️', 'Ajustes', '', () => L.backup.openSettings(openMenu)),
+    menuBtn('egg', '🥚', 'Nuevo huevo', '', () => {
+      if (state.stage === 'dead' || confirm('¿Empezar con un huevo nuevo? Se perderá tu Limagochi actual.')) newEgg();
+    }),
+    btn('Cerrar', closePanel, 'ghost')
+  ], { full: true });
+}
+
+/** Pone (o quita) los iconos negros en todo lo marcado con data-ico dentro de `root`. */
+function paintIcons(root = document) {
+  const on = monoOn();
+  $$('[data-ico]', root).forEach(el => {
+    if (el.dataset.emo === undefined) el.dataset.emo = el.textContent.trim();
+    if (on) { el.textContent = ''; const i = document.createElement('img'); i.className = 'ic'; i.alt = ''; i.src = `ico/${el.dataset.ico}.png`; i.draggable = false; el.append(i); }
+    else el.textContent = el.dataset.emo;
+  });
 }
 
 /* ---- vacaciones: el tiempo se detiene (no crece, no pasa hambre, no enferma ni muere) ---- */
@@ -925,47 +955,67 @@ function itemThumb(id) {
   return c;
 }
 
-function openShop() {
+let shopCat = null;
+const SHOP_CATS = [
+  ['food', '🍣 Comida gourmet'], ['bg', '🖼️ Fondos'], ['furn', '🛋️ Muebles y juguetes'],
+  ['garden', '🌳 Jardín y semillas'], ['kitchen', '🍳 Cocina'], ['studio', '🎨 Estudio (talentos)']
+];
+function shopOwnBtn(i, where) {
+  const own = state.owned.includes(i.id);
+  return btn(own ? `${i.icon} ${i.name} ✓ ${where}` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : state.lp < i.cost);
+}
+function shopNodes(cat) {
+  const s = state, nodes = [];
+  if (cat === 'food') {
+    nodes.push(p('Sin nevera mejorada, la comida gourmet se estropea en 1 día'));
+    FOODS.filter(f => f.gourmet).forEach(f =>
+      nodes.push(btn(`${f.icon} ${f.name} · ${f.cost}🪙 (tienes ${s.inv[f.id] || 0})`, () => buy(f), '', s.lp < f.cost)));
+  } else if (cat === 'bg') {
+    SHOP_EXTRAS.filter(i => i.type === 'bg').forEach(i => {
+      if (s.owned.includes(i.id)) nodes.push(btn(`${i.icon} ${i.name} · ${s.bg === i.key ? 'quitar' : 'usar'}`, () => { s.bg = s.bg === i.key ? 'none' : i.key; Store.save(); render(); openShop(cat); }));
+      else nodes.push(btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost));
+    });
+  } else if (cat === 'furn') {
+    SHOP_EXTRAS.filter(i => i.img).forEach(i => {
+      const own = s.owned.includes(i.id);
+      const b = btn(own ? `${i.name} ✓ en casa` : `${i.name} · ${i.cost}🪙`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost);
+      const wrap = document.createElement('div'); wrap.className = 'shopitem';
+      const info = document.createElement('div'); info.className = 'shopdesc'; info.textContent = i.desc || '';
+      const right = document.createElement('div'); right.className = 'shopcol'; right.append(b, info);
+      wrap.append(itemThumb(i.img), right);
+      nodes.push(wrap);
+    });
+  } else if (cat === 'garden') {
+    GARDEN_ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en el jardín')));
+    if (s.owned.includes('plot')) Object.keys(CROPS).filter(cropOpen).forEach(k =>
+      nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${SEED_COST}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < SEED_COST)));
+  } else if (cat === 'kitchen') {
+    L.kitchen.ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en la cocina')));
+  } else if (cat === 'studio') {
+    L.studio.ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en el estudio')));
+  }
+  return nodes;
+}
+/** Tienda: primero eliges sección; al comprar te quedas en ella (con el mismo desplazamiento). */
+function openShop(cat) {
   if (state.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
-  const s = state;
-  const nodes = [p(`🪙 ${s.lp} Lima Points`), p('Comida gourmet (sin nevera mejorada se estropea en 1 día)')];
-  FOODS.filter(f => f.gourmet).forEach(f =>
-    nodes.push(btn(`${f.icon} ${f.name} · ${f.cost}🪙 (tienes ${s.inv[f.id] || 0})`, () => buy(f), '', s.lp < f.cost)));
-  nodes.push(p('Fondos'));
-  SHOP_EXTRAS.filter(i => i.type === 'bg').forEach(i => {
-    if (s.owned.includes(i.id)) nodes.push(btn(`${i.icon} ${i.name} · ${s.bg === i.key ? 'quitar' : 'usar'}`, () => { s.bg = s.bg === i.key ? 'none' : i.key; Store.save(); render(); openShop(); }));
-    else nodes.push(btn(`${i.icon} ${i.name} · ${i.cost}🪙`, () => buy(i), '', s.lp < i.cost));
-  });
-  nodes.push(p('Muebles y juguetes'));
-  SHOP_EXTRAS.filter(i => i.img).forEach(i => {
-    const own = s.owned.includes(i.id);
-    const b = btn(own ? `${i.name} ✓ en casa` : `${i.name} · ${i.cost}🪙`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost);
-    const wrap = document.createElement('div'); wrap.className = 'shopitem';
-    const info = document.createElement('div'); info.className = 'shopdesc'; info.textContent = i.desc || '';
-    const right = document.createElement('div'); right.className = 'shopcol'; right.append(b, info);
-    wrap.append(itemThumb(i.img), right);
-    nodes.push(wrap);
-  });
-  nodes.push(p('Jardín'));
-  GARDEN_ITEMS.forEach(i => {
-    const own = s.owned.includes(i.id);
-    nodes.push(btn(own ? `${i.icon} ${i.name} ✓ en el jardín` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost));
-  });
-  if (s.owned.includes('plot')) Object.keys(CROPS).filter(cropOpen).forEach(k =>
-    nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${SEED_COST}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < SEED_COST)));
-  nodes.push(p('Cocina'));
-  L.kitchen.ITEMS.forEach(i => {
-    const own = s.owned.includes(i.id);
-    nodes.push(btn(own ? `${i.icon} ${i.name} ✓ en la cocina` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost));
-  });
-  nodes.push(p('Estudio (talentos)'));
-  L.studio.ITEMS.forEach(i => {
-    const own = s.owned.includes(i.id);
-    nodes.push(btn(own ? `${i.icon} ${i.name} ✓ en el estudio` : `${i.icon} ${i.name} · ${i.cost}🪙 — ${i.desc}`, () => { if (!own) buy(i); }, own ? 'ghost' : '', own ? false : s.lp < i.cost));
-  });
-  nodes.push(p('Gana 🪙 en los minijuegos y aprendiendo trucos'));
-  nodes.push(btn('Cerrar', closePanel, 'ghost'));
-  openPanel(nodes, { full: true });
+  const s = state, keep = (cat && cat === shopCat && !panel.hidden) ? panel.scrollTop : 0;
+  shopCat = cat || null;
+  if (!cat) {
+    openPanel([
+      p(`🪙 ${s.lp} Lima Points`), p('¿Qué quieres comprar?'),
+      ...SHOP_CATS.map(([k, name]) => btn(name, () => openShop(k))),
+      p('Gana 🪙 en los minijuegos y aprendiendo trucos'),
+      btn('Cerrar', closePanel, 'ghost')
+    ], { full: true });
+    return;
+  }
+  const name = SHOP_CATS.find(c => c[0] === cat)[1];
+  openPanel([
+    p(`${name} · 🪙 ${s.lp}`), ...shopNodes(cat),
+    row(btn('← Secciones', () => openShop()), btn('Cerrar', closePanel, 'ghost'))
+  ], { full: true });
+  panel.scrollTop = keep;
 }
 
 function buy(item) {
@@ -975,14 +1025,14 @@ function buy(item) {
   if (item.gourmet) s.inv[item.id] = (s.inv[item.id] || 0) + 1;
   else { s.owned.push(item.id); if (item.type === 'bg') s.bg = item.key; if (item.id === 'apple') s.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 }; }
   Sound.play('coin'); setMsg(`Comprado: ${item.name}`);
-  Store.save(); render(); openShop();
+  Store.save(); render(); openShop(shopCat);
 }
 
 function buySeed(k) {
   const s = state;
   if (s.lp < SEED_COST) { setMsg('Te faltan Lima Points'); return; }
   s.lp -= SEED_COST; s.inv['seed_' + k] = (s.inv['seed_' + k] || 0) + 1;
-  Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); Store.save(); render(); openShop();
+  Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); Store.save(); render(); openShop(shopCat);
 }
 
 /* ============================== MINIJUEGOS ============================== */
@@ -1807,10 +1857,28 @@ function keyB() {
   if (!panel.hidden) { const b = panelBtns[panelSel]; if (b && !b.disabled) b.click(); }
   else if (selIcon >= 0) runAction(iconBtns[selIcon].dataset.action);
 }
+function keyM() {
+  if (L.mini.active()) return;
+  if (state.pause) { runAction('status'); return; }
+  closePanel(); Sound.play('click'); openMenu();
+}
 function keyC() {
   if (L.mini.active()) { L.mini.stop(); return; }
   if (!panel.hidden) closePanel(); else setSelIcon(-1);
 }
+
+/** Letras de los botones dibujadas en píxeles (se ven igual en todos los móviles). */
+const KEYPIX = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  C: ['..#......', '.##......', '#########', '.##.....#', '..#.....#', '........#', '....#####']   // ↩ volver
+};
+function pixSvg(rows) {
+  let r = '';
+  rows.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') r += `<rect x="${x}" y="${y}" width="1" height="1"/>`; }));
+  return `<svg viewBox="0 0 ${rows[0].length} ${rows.length}" shape-rendering="crispEdges" aria-hidden="true" fill="currentColor">${r}</svg>`;
+}
+function drawKeys() { ['A', 'B', 'C'].forEach(k => { $('#key' + k).innerHTML = pixSvg(KEYPIX[k]); }); }
 
 function setToolIcons() {
   $('#btnSound').textContent = Sound.enabled() ? '🔊' : '🔇';
@@ -1824,6 +1892,8 @@ function bindUI() {
   $('#keyA').addEventListener('click', keyA);
   $('#keyB').addEventListener('click', keyB);
   $('#keyC').addEventListener('click', keyC);
+  $('#keyM').addEventListener('click', keyM);
+  drawKeys();
   alertEl.addEventListener('click', () => setMsg(alertEl.dataset.reason || '…'));
 
   const pt = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
@@ -1859,6 +1929,7 @@ function bindUI() {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); keyA(); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setSelIcon((selIcon - 1 + iconBtns.length) % iconBtns.length); }
     else if (e.key === 'Escape') keyC();
+    else if ((e.key === 'm' || e.key === 'M') && e.target === document.body) keyM();
     else if (e.key === 'Enter' && e.target === document.body) keyB();
   });
 
@@ -1953,7 +2024,7 @@ L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
-  speed: () => speed, predictSchedule, restAt, setFine, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
+  speed: () => speed, predictSchedule, restAt, setFine, paintIcons, openMenu, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
 };
 
 /* ============================== INIT ==================================== */
@@ -1988,6 +2059,7 @@ function syncPush(beacon = false) {
 
 function init() {
   bindUI();
+  paintIcons();
   setFine(L.settings.get('fine') !== false);
   setInterval(() => { if (!document.hidden) present(); }, 50);
   const saved = Store.load();

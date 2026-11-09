@@ -29,7 +29,7 @@ const TOPICS = [
   { icon: '🦋', title: 'Insectos y álbum', body: () => [
     H('11 bichos en el jardín'),
     LI('Aparecen solos mientras estás en el 🌳 jardín. Tócalos para atraparlos y ganar monedas o felicidad.'),
-    LI('Álbum de insectos: ✨ Estado → 🦋 Insectos. +3 🪙 por cada especie nueva y 100 🪙 al completarlo.'),
+    LI('Álbum de insectos: ☰ Menú → 🦋 Insectos. +3 🪙 por cada especie nueva y 100 🪙 al completarlo.'),
     LI('Algunos salen solo de noche (la luciérnaga) y hay una legendaria, la mariposa dorada, que casi nunca aparece.')
   ] },
   { icon: '🎰', title: 'Casino y más juegos', body: () => [
@@ -59,7 +59,7 @@ const TOPICS = [
     LI('🌱 Jardinería: sube trabajando el huerto y el manzano. Más nivel: plantas más rápidas, cosechas extra y 🍓 fresas (nivel 30).'),
     LI('🎣 Pesca: sube pescando. Más nivel: pican antes, peces más grandes y 🐟 atún (nivel 40). La 🎣 caña mejor ayuda.'),
     LI('🏅 Deporte: sube con la pelota (más en el jardín), la 🏋️ tele con ejercicio y la carrera. Más nivel: gasta menos energía y corre más.'),
-    LI('Al practicar aparece arriba una barra con el nivel. Ver todo en 📊 Estado → talentos.')
+    LI('Al practicar aparece arriba una barra con el nivel. Ver todo en ☰ Menú → talentos.')
   ] },
   { icon: '🌳', title: 'El jardín', body: () => [
     H('Tercer cuarto: el botón → de la esquina recorre salón, cuarto, jardín, estudio y cocina. Toca el nombre del cuarto (abajo a la izquierda) para elegir uno directamente; un punto rojo avisa de que hay algo allí'),
@@ -92,12 +92,12 @@ const TOPICS = [
     LI('Una ducha al día es lo ideal. No se puede duchar enfermo, dormido ni si ya está limpio.')
   ] },
   { icon: '✉️', title: 'Buzón e historias', body: () => [
-    LI('📊 Estado → ✉️ Buzón: tu Limagochi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
+    LI('☰ Menú → ✉️ Buzón: tu Limagochi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
     LI('Durante cada evento de temporada llega una historia de 3 capítulos (días 1, 3 y 5).'),
     LI('Al leer el capítulo final ganas 10 🪙 y un 🎩 recuerdo: elige gorro en Buzón → Recuerdos.')
   ] },
   { icon: '🤝', title: 'Visitas de amigos', body: () => [
-    LI('📊 Estado → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
+    LI('☰ Menú → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
     LI('Para recibir una visita pega el enlace de tu amigo, o ábrelo directamente.'),
     LI('Cada amigo da premio una vez cada 20 horas. Hay logros por tener amigos.')
   ] },
@@ -138,7 +138,7 @@ const TOPICS = [
     LI('⭐ Estrella: ≤1 error, disciplina ≥80% y dieta variada. ¡La más difícil!'),
     LI('Formas por talento: si al hacerse adulto tiene pintura, escritura, música, cocina, deporte, jardinería o pesca a nivel 40 o más, será Lima Artista, Sabia, Bardo, Chef, Atleta, Jardinera o Pescadora (gana el talento más alto). Con 3 talentos a nivel 50 o más: Lima Maestra (secreta).'),
     LI('Adolescentes con carácter (con 2 errores o menos): Estudiosa (15 lecciones de voz), Juguetona (juega muchísimo), Mimosa (peluche y sofá) y Dormilona (duerme y descansa mucho de niño).'),
-    P('Mira 📊 Estado → 📖 Álbum para ver todas las formas y cómo conseguir cada una.'),
+    P('Mira ☰ Menú → 📖 Álbum para ver todas las formas y cómo conseguir cada una.'),
     H('Peligros'),
     P('Si pasa mucho tiempo con hambre a cero, enfermo o con 4 caquitas, acaba muriendo (unas 12 horas seguidas de descuido). Con el peso por encima del límite está obeso: enferma más y vive menos.')
   ] },
@@ -146,10 +146,10 @@ const TOPICS = [
     H('Cómo funciona'),
     LI('Pulsa 🎤 en la pantalla principal y dile una palabra clave en voz alta (necesitas permitir el micrófono; funciona mejor en Chrome).'),
     LI('Cada vez que lo repites aprende un poco más. Los trucos y palabras aprendidos al 100% los hace a la primera.'),
-    LI('Cuanto más lo entrenas con palabras clave, más listo se vuelve y más rápido aprende (🧠 en Estado).'),
+    LI('Cuanto más lo entrenas con palabras clave, más listo se vuelve y más rápido aprende (🧠 en 📊 Estado).'),
     LI('Pero estudiar cansa: cada lección le quita diversión. Tras unas 8 lecciones seguidas se cansa y no querrá escuchar durante aproximadamente una hora. Si insistes, se enfada.'),
     LI('Un bebé solo balbucea; un adulto bien criado pronuncia perfecto. También olvida poco a poco lo que no practica.'),
-    LI('Si tu navegador no tiene reconocimiento de voz, mira el progreso en 📊 Estado → 🎓 Trucos y palabras (también sirve para practicar con botones).'),
+    LI('Si tu navegador no tiene reconocimiento de voz, mira el progreso en ☰ Menú → 🎓 Trucos y palabras (también sirve para practicar con botones).'),
     ...keywords(),
     P('Puedes decir varias en una frase: «salta y baila».')
   ] },
@@ -169,19 +169,20 @@ const TOPICS = [
     LI('🎯 Adivina: ¿hacia dónde mirará? · 🐦 Lima Vuela: toca para volar · ☄️ Esquiva: esquiva rocas y recoge estrellas · ⚽ Penaltis: 5 tiros, toca cuando la mira esté sobre la portería · 🧠 Eco Lima: repite la secuencia.'),
     LI('Ganar da Lima Points (🪙). Necesita estar despierto, sano y con energía.'),
     H('Tienda 🛒'),
+    LI('La tienda se divide en secciones (comida, fondos, muebles, jardín, cocina y estudio). Al comprar te quedas en la sección.'),
     P('Con 🪙 compras comida gourmet, fondos y juguetes (la pelota y el peluche le aburren menos).'),
     H('Logros y álbum'),
-    P('📊 Estado → 🏆 Logros y 📖 Álbum. Cada logro da 🪙. El álbum y los logros se conservan al empezar un huevo nuevo.')
+    P('☰ Menú → 🏆 Logros y 📖 Álbum. Cada logro da 🪙. El álbum y los logros se conservan al empezar un huevo nuevo.')
   ] },
   { icon: '💾', title: 'Copia, avisos y manejo', body: () => [
     H('Controles'),
-    LI('Toca los iconos de arriba, o usa los botones físicos: A cambia de opción, B acepta, C cancela.'),
+    LI('Toca los iconos de arriba, o usa los botones físicos: A cambia de opción, B acepta, ↩ vuelve atrás y MENÚ abre el menú (logros, álbum, buzón, ajustes…).'),
     LI('Botones de abajo: 🔊 sonido · 🔔 avisos · 🎨 color/LCD · colores de la carcasa.'),
     H('Vacaciones 🏖️'),
     LI('⚙️ Ajustes → Vacaciones detiene el tiempo: no crece, no pasa hambre ni enferma. Vuelve cuando quieras con «Volver de vacaciones».'),
     H('No pierdas tu Limagochi'),
     LI('Se guarda solo en este dispositivo. Sigue viviendo (y envejeciendo) aunque cierres la app.'),
-    LI('📊 Estado → ⚙️ Ajustes → Exportar para guardar una copia; Importar para recuperarla en otro móvil.'),
+    LI('☰ Menú → ⚙️ Ajustes → Exportar para guardar una copia; Importar para recuperarla en otro móvil.'),
     LI('📡 Avisos con la app cerrada: solo si el juego está alojado con servidor de avisos.')
   ] }
 ];

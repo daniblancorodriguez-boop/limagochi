@@ -190,23 +190,42 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 26px;
-  margin-top: 20px;
+  gap: 24px;
+  margin-top: 16px;
 }
 .key {
-  width: 58px; height: 58px;
+  width: 46px; height: 46px;
   border: 0;
   border-radius: 50%;
-  font-weight: 800;
-  font-size: 18px;
-  color: rgba(0, 0, 0, .5);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(0, 0, 0, .55);
   background:
     radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .55), transparent 45%),
     var(--shell-lo);
   box-shadow: 0 5px 0 rgba(0, 0, 0, .3), 0 8px 10px rgba(0, 0, 0, .25);
   transition: transform .06s, box-shadow .06s;
 }
-.key-b { margin-top: 16px; }
+.key svg { height: 17px; width: auto; display: block; }
+.key-b { margin-top: 12px; }
+.keymenu { display: flex; justify-content: center; margin-top: 10px; }
+.key-menu {
+  border: 0; border-radius: 14px; padding: 5px 18px;
+  font-weight: 800; font-size: 12px; line-height: 1.2; letter-spacing: .12em; color: rgba(0, 0, 0, .55);
+  background: var(--shell-lo);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, .3), 0 6px 8px rgba(0, 0, 0, .2);
+}
+.key-menu:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+
+/* ---------- iconos negros ---------- */
+.ic { width: 1.25em; height: 1.25em; display: block; margin: 0 auto; pointer-events: none; user-select: none; }
+.icons button .ic { width: 24px; height: 24px; }
+.meter .lbl .ic { width: 18px; height: 18px; }
+.pbtn.mrow { display: flex; align-items: center; gap: 10px; text-align: left; }
+.pbtn.mrow .mi { width: 22px; flex: none; display: flex; justify-content: center; }
+.pbtn.mrow .mi .ic { width: 22px; height: 22px; }
+.pbtn.mrow .mt { flex: 1; }
+.pbtn.mrow .mr { font-weight: 400; font-size: 11px; }
+.pbtn:active .ic, .pbtn.sel .ic { filter: invert(1); }
 .key:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
 
 /* ---------- Herramientas de desarrollo ---------- */

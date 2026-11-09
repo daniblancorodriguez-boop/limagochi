@@ -14,11 +14,11 @@ todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic 
 | Función | Dónde |
 |---|---|
 | PWA (icono, offline, instalar) | `docs/manifest.json`, `docs/sw.js`, `docs/icons/` |
-| Exportar / importar partida | ⚙️ Ajustes (📊 Estado → Ajustes) · `docs/backup.js` |
-| Logros y álbum de las 13 formas | 📊 Estado → 🏆 / 📖 · `docs/progress.js` |
+| Exportar / importar partida | ⚙️ Ajustes (☰ Menú → Ajustes) · `docs/backup.js` |
+| Logros y álbum de las 13 formas | ☰ Menú → 🏆 / 📖 · `docs/progress.js` |
 | Día/noche con tu hora real | `docs/world.js` (de noche se cansa antes; de día solo echa siesta si está agotado) |
 | Eventos de temporada | Halloween, Navidad, San Valentín, Primavera, Verano: fondo, gorro, comida y premios ×2 |
-| Insectos | 11 bichos en el jardín, álbum en ✨ Estado → 🦋 (+3 🪙 por especie, 100 🪙 al completar; hay una legendaria) |
+| Insectos | 11 bichos en el jardín, álbum en ☰ Menú → 🦋 (+3 🪙 por especie, 100 🪙 al completar; hay una legendaria) |
 | Casino | 🎮 Jugar → 🎰: tragaperras, ruleta y ruleta diaria gratis; apuesta máx. 10, pérdida máx. 50 🪙/día |
 | Pesca · Piedra, papel o tijera · Carrera | 🎮 Jugar → nuevos minijuegos |
 | Jardín | 3er cuarto: tumbona, piscina, manzano, huerto con semillas, bichos y pelota; el botón `→` recorre salón → cuarto → jardín |
@@ -45,7 +45,7 @@ Añade parámetros a la URL: `?hour=23` (hora) y/o `?date=2026-10-31` (fecha).
 ## Web Push
 1. El navegador exige **https** (localhost cuenta como seguro). En producción pon el servidor detrás de https
    (Caddy, Nginx, Cloudflare Tunnel, Render, Fly…).
-2. Abre la app → 📊 Estado → ⚙️ Ajustes → «Avisos con la app cerrada» → permite las notificaciones.
+2. Abre la app → ☰ Menú → ⚙️ Ajustes → «Avisos con la app cerrada» → permite las notificaciones.
 3. La app calcula cuándo tendrá hambre, tristeza, sueño, etc. si nadie lo cuida y envía ese calendario al servidor
    (cada minuto y al cerrar). El servidor lo envía a su hora. Si vuelves a abrir la app y cuidas a la mascota, el calendario se renueva.
 4. No molesta de 23:00 a 08:00 (si el ciclo día/noche está activo).
@@ -83,3 +83,9 @@ Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. 
 
 ## Avisos con la app cerrada en Cloudflare
 Mira `worker/README.md`: el servidor de avisos también funciona gratis como Cloudflare Worker (D1 + cron), sin necesidad de `server.js`.
+
+## v3.21.0
+- Iconos negros con fondo transparente (barra, estadísticas y menú; `docs/ico/*.png`); se pueden desactivar en ⚙️ Ajustes → «Iconos negros».
+- Botón MENÚ (☰) bajo A/B/↩: logros, álbum, insectos, buzón, visitas, trucos, guía, ajustes y nuevo huevo en lista. 📊 Estado solo muestra estadísticas.
+- Botones A/B en letra pixel y C ahora es ↩; todos más pequeños.
+- Tienda por secciones (comida, fondos, muebles, jardín, cocina, estudio): al comprar te quedas donde estabas.
