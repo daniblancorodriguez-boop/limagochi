@@ -213,11 +213,42 @@ let quiet = false;            // true mientras se simula la ausencia (sin sonido
 
 /* ============================== DOM ===================================== */
 const screenEl = $('#screen');
-const canvas = $('#lcd');
-const g = canvas.getContext('2d');
+const canvas = $('#lcd');                              // lo que se ve (96×72 clásico o 192×144 fino)
+const draw = document.createElement('canvas'); draw.width = 96; draw.height = 72;      // donde se dibuja todo el juego
+const g = draw.getContext('2d', { willReadFrequently: true });
+const vctx = canvas.getContext('2d');
 const W = 48, H = 36;                                  // coordenadas lógicas (canvas 96x72 a 2x)
 g.setTransform(2, 0, 0, 2, 0, 0);
 g.imageSmoothingEnabled = false;
+
+/* --- «píxel fino»: copia el dibujo al lienzo visible al doble de resolución, suavizando las diagonales (algoritmo EPX / Scale2x) --- */
+let fine = false, inBuf = null, outImg = null, out32 = null, in32 = null;
+function setFine(v) {
+  fine = !!v;
+  canvas.width = fine ? 192 : 96; canvas.height = fine ? 144 : 72;
+  stageEl.classList.toggle('fine', fine);
+  if (fine) { inBuf = g.getImageData(0, 0, 96, 72); in32 = new Uint32Array(inBuf.data.buffer); outImg = vctx.createImageData(192, 144); out32 = new Uint32Array(outImg.data.buffer); }
+  present();
+}
+function present() {
+  if (!fine) { vctx.imageSmoothingEnabled = false; vctx.drawImage(draw, 0, 0); return; }
+  const id = g.getImageData(0, 0, 96, 72); in32.set(new Uint32Array(id.data.buffer));
+  const w = 96, h = 72, s = in32, o = out32;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x, P = s[i];
+      const A = y > 0 ? s[i - w] : P, B = x < w - 1 ? s[i + 1] : P, C = x > 0 ? s[i - 1] : P, D = y < h - 1 ? s[i + w] : P;
+      let e0 = P, e1 = P, e2 = P, e3 = P;
+      if (C === A && C !== D && A !== B) e0 = A;
+      if (A === B && A !== C && B !== D) e1 = B;
+      if (D === C && D !== B && C !== A) e2 = C;
+      if (B === D && B !== A && D !== C) e3 = D;
+      const j = y * 2 * 192 + x * 2;
+      o[j] = e0; o[j + 1] = e1; o[j + 192] = e2; o[j + 193] = e3;
+    }
+  }
+  vctx.putImageData(outImg, 0, 0);
+}
 const msgEl = $('#msg'), hudEl = $('#hud'), alertEl = $('#alert'), panel = $('#panel');
 const roomPickEl = $('#roomPick'), chipsEl = $('#chips'), chipName = $('#chipName'), chipGo = $('#chipGo'), stageEl = $('.stage');
 const iconBtns = $$('#icons button');
@@ -1922,7 +1953,7 @@ L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
-  speed: () => speed, predictSchedule, restAt, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
+  speed: () => speed, predictSchedule, restAt, setFine, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
 };
 
 /* ============================== INIT ==================================== */
@@ -1957,6 +1988,8 @@ function syncPush(beacon = false) {
 
 function init() {
   bindUI();
+  setFine(L.settings.get('fine') !== false);
+  setInterval(() => { if (!document.hidden) present(); }, 50);
   const saved = Store.load();
   if (saved) {
     state = saved;

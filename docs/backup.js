@@ -112,6 +112,7 @@ function openSettings(back) {
   const nodes = [
     a.p('⚙️ Ajustes'),
     a.btn(`🌙 Ciclo día/noche: ${onoff(L.settings.get('cycle'))}`, () => { L.settings.set('cycle', !L.settings.get('cycle')); a.render(); openSettings(back); }),
+    a.btn(`🔲 Píxel fino: ${onoff(L.settings.get('fine'))}`, () => { L.settings.set('fine', !L.settings.get('fine')); a.setFine(L.settings.get('fine')); openSettings(back); }),
     a.btn(`😴 Descanso del dueño: ${onoff(L.settings.get('rest'))}`, () => { L.settings.set('rest', !L.settings.get('rest')); a.render(); openSettings(back); }),
     ...(L.settings.get('rest') ? [a.row(
       a.btn(`Desde ${hh(L.settings.get('restFrom'))}`, () => { const f = (L.settings.get('restFrom') + 1) % 24; L.settings.set('restFrom', f); fixRest(); openSettings(back); }),
