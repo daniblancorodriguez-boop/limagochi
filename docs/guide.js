@@ -99,6 +99,7 @@ const TOPICS = [
   { icon: '🤝', title: 'Visitas de amigos', body: () => [
     LI('☰ Menú → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
     LI('Para recibir una visita pega el enlace de tu amigo, o ábrelo directamente.'),
+    LI('🎁 Regalos: en Visitas pulsa «Enviar un regalo» y elige comida de tu huerto, un plato cocinado o flores (se compran en 🛒 → 🎁). Se crea un enlace o QR que tu amigo abre una sola vez en los 7 días siguientes (máximo 5 regalos al día). Las flores le suben mucho la felicidad.'),
     LI('Cada amigo da premio una vez cada 20 horas. Hay logros por tener amigos.')
   ] },
   { icon: '🍔', title: 'Cuidados básicos', body: () => [
@@ -166,7 +167,7 @@ const TOPICS = [
   ] },
   { icon: '🪙', title: 'Juegos, tienda y logros', body: () => [
     H('Minijuegos'),
-    LI('🎯 Adivina: ¿hacia dónde mirará? · 🐦 Lima Vuela: toca para volar · ☄️ Esquiva: esquiva rocas y recoge estrellas · ⚽ Penaltis: 5 tiros, toca cuando la mira esté sobre la portería · 🧠 Eco Lima: repite la secuencia.'),
+    LI('🎯 Adivina: ¿hacia dónde mirará? · 🐦 Lima Vuela: toca para volar y coge las 🪙 (una cada 2 tubos, máximo 20 por partida; los tubos siguen contando para el récord) · ☄️ Esquiva: esquiva rocas y recoge estrellas · ⚽ Penaltis: 5 tiros, toca cuando la mira esté sobre la portería · 🧠 Eco Lima: repite la secuencia.'),
     LI('Ganar da Lima Points (🪙). Necesita estar despierto, sano y con energía.'),
     H('Tienda 🛒'),
     LI('La tienda se divide en secciones (comida, fondos, muebles, jardín, cocina y estudio). Al comprar te quedas en la sección.'),

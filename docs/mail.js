@@ -105,6 +105,7 @@ function on(type, data = {}) {
   if (type === 'evolve') add(`${key}-${s.born}`, 'Tu Limagochi', '🌱', t.evolve(n));
   else if (type === 'learn') add(`${key}-${s.born}`, 'Tu Limagochi', '🎓', t.learn(n));
   else if (type === 'word') add(`${key}-${s.born}`, 'Tu Limagochi', '🗣️', t.word(n));
+  else if (type === 'gift') { const [who, what, u] = n.split('|'); add(`gift-${u}`, who, '🎁', `${who} te mandó un regalo: ${what}. ¡Qué detalle!`); }
   else if (type === 'visit') add(`visit-${n}-${dayKey()}`, 'Tu Limagochi', '🤝', t.visit(n));
 }
 

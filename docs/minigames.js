@@ -71,9 +71,11 @@ function flappy() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H;
   const rows = a.petRows('happy');
   const BX = 12, R = 4, GAP = 18, PW = 7, FLOOR = H - 3;
-  const s = { y: H / 2, vy: 0, started: false, over: false, overT: 0, score: 0, pipes: [], spawn: 0.5, t: 0 };
+  const COIN_MAX = 20;                                   // tope de monedas por partida (los tubos siguen contando para el récord)
+  const s = { y: H / 2, vy: 0, started: false, over: false, overT: 0, score: 0, pipes: [], spawn: 0.5, t: 0, n: 0, coins: 0 };
+  const hudF = () => a.hud(`Tubos ${s.score} · 🪙 ${s.coins}/${COIN_MAX}`);
 
-  a.hud('Toca para volar');
+  a.hud('Toca para volar · coge las 🪙');
   const flap = () => { if (s.over) return; s.started = true; s.vy = -26; a.sound.play('flap'); };
   const die = () => { if (s.over) return; s.over = true; a.sound.play('hit'); a.sound.vibrate(80); };
 
@@ -86,8 +88,8 @@ function flappy() {
         s.overT += dt;
         if (s.overT > 0.9) {
           const sc = s.score;
-          end('flappy', sc >= 3 ? '¡Qué vuelo!' : 'Ha caído…', [`Tubos pasados: ${sc}`],
-            { happy: Math.min(45, 5 + 6 * sc), energy: -10, hunger: -6, weight: -Math.min(2, 0.3 + 0.2 * sc), lp: sc, win: sc >= 3, score: sc });
+          end('flappy', sc >= 3 ? '¡Qué vuelo!' : 'Ha caído…', [`Tubos pasados: ${sc}`, `Monedas: ${s.coins}/${COIN_MAX}`],
+            { happy: Math.min(45, 5 + 6 * sc), energy: -10, hunger: -6, weight: -Math.min(2, 0.3 + 0.2 * sc), lp: s.coins, win: sc >= 3, score: sc });
         }
         return;
       }
@@ -96,12 +98,20 @@ function flappy() {
       s.spawn -= dt;
       if (s.spawn <= 0) {
         s.spawn = 1.6;
-        s.pipes.push({ x: W, gy: a.rand(GAP / 2 + 4, H - GAP / 2 - 6), pass: false });
+        const gy = a.rand(GAP / 2 + 4, H - GAP / 2 - 6);
+        s.n++;
+        // una moneda cada 2 tubos, dentro del hueco, hasta llegar al tope
+        const coin = (s.n % 2 === 0 && s.coins + s.pipes.filter(q => q.coin && !q.got).length < COIN_MAX) ? { dy: a.rand(-GAP / 2 + 5, GAP / 2 - 5) } : null;
+        s.pipes.push({ x: W, gy, pass: false, coin, got: false });
       }
       const spd = 18 + Math.min(8, s.score * 0.6);
       for (const p of s.pipes) {
         p.x -= spd * dt;
-        if (!p.pass && p.x + PW < BX - R) { p.pass = true; s.score++; a.sound.play('coin'); a.hud('Puntos: ' + s.score); }
+        if (!p.pass && p.x + PW < BX - R) { p.pass = true; s.score++; hudF(); }
+        if (p.coin && !p.got) {
+          const cx = p.x + PW / 2, cy = p.gy + p.coin.dy;
+          if (Math.abs(cx - BX) < R + 2 && Math.abs(cy - s.y) < R + 3) { p.got = true; s.coins++; a.sound.play('coin'); hudF(); }
+        }
         if (BX + R > p.x && BX - R < p.x + PW && (s.y - R < p.gy - GAP / 2 || s.y + R > p.gy + GAP / 2)) die();
       }
       s.pipes = s.pipes.filter(p => p.x > -PW - 2);
@@ -115,6 +125,12 @@ function flappy() {
         box(g, p.x - 1, top - 3, PW + 2, 3, C.light, C.ink);
         box(g, p.x, bot, PW, H - bot, C.mid, C.ink);
         box(g, p.x - 1, bot, PW + 2, 3, C.light, C.ink);
+      }
+      for (const p of s.pipes) if (p.coin && !p.got) {           // monedas
+        const cx = r5(p.x + PW / 2), cy = r5(p.gy + p.coin.dy);
+        g.fillStyle = C.ink; g.fillRect(cx - 1.5, cy - 2, 3, 4); g.fillRect(cx - 2, cy - 1.5, 4, 3);
+        g.fillStyle = C.light; g.fillRect(cx - 1, cy - 1.5, 2, 3);
+        g.fillStyle = C.dark; g.fillRect(cx - 0.5, cy - 1, 1, 2);
       }
       g.fillStyle = C.dark; g.fillRect(0, FLOOR, W, H - FLOOR);
       g.fillStyle = C.ink; g.fillRect(0, FLOOR, W, 0.5);
@@ -141,7 +157,7 @@ function dodge() {
       if (s.over) {
         s.overT += dt;
         if (s.overT > 0.8) {
-          const lp = s.stars + (s.win ? 3 : 0);
+          const lp = Math.ceil(s.stars * 1.25) + (s.win ? 4 : 0);
           end('dodge', s.win ? '¡Lo esquivó todo!' : '¡Le han dado!',
             [`Estrellas: ${s.stars}`, s.win ? 'Sobrevivió los 30 s' : 'No sobrevivió'],
             { happy: 10 + 3 * s.stars + (s.win ? 12 : 0), energy: -12, hunger: -8, weight: -Math.min(2, 0.4 + 0.1 * s.stars), lp, win: s.win, score: s.stars });
@@ -236,7 +252,7 @@ function memory() {
         if (s.t > 1) {
           const r = s.win ? MAXR : s.round - 1;
           end('memory', s.win ? '¡Memoria de elefante!' : 'Se ha liado…', [`Rondas superadas: ${r}`],
-            { happy: Math.min(45, 6 + 5 * r), energy: -8, hunger: -5, weight: -Math.min(1.5, 0.2 + 0.12 * r), lp: Math.ceil(r * 0.7), win: r >= 4, score: r });
+            { happy: Math.min(45, 6 + 5 * r), energy: -8, hunger: -5, weight: -Math.min(1.5, 0.2 + 0.12 * r), lp: Math.ceil(r * 0.9), win: r >= 4, score: r });
         }
       }
     },
@@ -448,7 +464,7 @@ function penalty() {
           const gl = s.goals, win = gl >= 3;
           end('penalty', gl >= 5 ? '¡Tanda perfecta!' : win ? '¡Gran tanda!' : 'Otra vez será',
             [`Goles: ${gl}/${SHOTS}`],
-            { happy: 6 + 4 * gl, energy: -8, hunger: -5, weight: -0.3 - 0.1 * gl, lp: gl + (gl >= 5 ? 3 : 0), win, score: gl });
+            { happy: 6 + 4 * gl, energy: -8, hunger: -5, weight: -0.3 - 0.1 * gl, lp: Math.ceil(gl * 1.25) + (gl >= 5 ? 3 : 0), win, score: gl });
         }
       }
     },

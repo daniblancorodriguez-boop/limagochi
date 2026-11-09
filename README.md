@@ -89,3 +89,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - Botón MENÚ (☰) bajo A/B/↩: logros, álbum, insectos, buzón, visitas, trucos, guía, ajustes y nuevo huevo en lista. 📊 Estado solo muestra estadísticas.
 - Botones A/B en letra pixel y C ahora es ↩; todos más pequeños.
 - Tienda por secciones (comida, fondos, muebles, jardín, cocina, estudio): al comprar te quedas donde estabas.
+
+## v3.22.0
+- Economía: en Lima Vuela hay una moneda cada 2 tubos, recogible, con tope de 20 🪙 por partida (antes 1 🪙 por tubo sin límite). El resto de minijuegos da ≈25 % más.
+- Regalos por enlace (`#gift=`): comida de huerto, platos cocinados y flores (🛒 → 🎁, tulipán 8 🪙, ramo 20 🪙). Un solo uso por regalo, caduca a los 7 días, máx. 5 al día. Logros «Detallista» y «Amigo generoso».

@@ -132,8 +132,9 @@ function open(back) {
       ));
   }
   const ta = document.createElement('textarea');
-  ta.className = 'vtext'; ta.rows = 2; ta.placeholder = 'Pega aquí el enlace o código de tu amigo';
-  nodes.push(a.p('Recibir una visita'), ta, a.btn('👋 Recibir visita', () => receive(parse(ta.value))));
+  ta.className = 'vtext'; ta.rows = 2; ta.placeholder = 'Pega aquí el enlace o código de tu amigo (visita o regalo)';
+  nodes.push(a.row(a.btn('🎁 Enviar un regalo', () => openGift(() => open(back)))), a.p('Recibir una visita o un regalo'), ta,
+    a.btn('👋 Recibir', () => { const t = ta.value; if (t.indexOf('gift=') >= 0) receiveGift(parseGift(t)); else receive(parse(t)); }));
   const n = Object.keys(m.friends).length;
   nodes.push(a.p(`Amigos: ${n} · visitas: ${m.stats.visits || 0}`), a.btn('Atrás', back || a.closePanel, 'ghost'));
   a.openPanel(nodes, { full: true });
@@ -142,6 +143,14 @@ function open(back) {
 /** Al abrir un enlace #visit=…: pregunta si se recibe la visita. */
 function checkHash() {
   const h = location.hash || '';
+  if (h.startsWith('#gift=')) {
+    const g = parseGift(h);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch { /* */ }
+    const a = A();
+    if (!g) { a.setMsg('El enlace del regalo no es válido', 4000); return; }
+    a.openPanel([a.p(`🎁 ${g.nick || 'Un amigo'} te manda un regalo`), a.p(giftName(g)), a.row(a.btn('Abrir', () => receiveGift(g)), a.btn('Ahora no', a.closePanel, 'ghost'))]);
+    return;
+  }
   if (!h.startsWith('#visit=')) return;
   const card = parse(h);
   try { history.replaceState(null, '', location.pathname + location.search); } catch { /* */ }
@@ -154,5 +163,130 @@ function checkHash() {
 }
 window.addEventListener('hashchange', () => A() && checkHash());
 
-L.visit = { open, myCard, encode, parse, link, receive, checkHash, cid, COOLDOWN };
+/* ================================ REGALOS ==================================
+   Un regalo es un enlace #gift=CÓDIGO (y QR). Al crearlo, el objeto sale de tu inventario.
+   Quien lo abre lo recibe una sola vez (cada regalo lleva un número único), hasta 7 días después
+   y como mucho 5 al día. Solo se aceptan comida de huerto, platos cocinados y flores. */
+const GIFT_DAYS = 7, GIFT_MAX_DAY = 5;
+const GIFT_FOODS = ['manzana', 'zanahoria', 'tomate', 'lechuga', 'fresa', 'pez'];
+const FLOWERS = {
+  f_tulip:   { icon: '🌷', name: 'Tulipán',        cost: 8,  happy: 18 },
+  f_bouquet: { icon: '💐', name: 'Ramo de flores', cost: 20, happy: 35 }
+};
+const uid = () => { const r = new Uint8Array(5); (crypto.getRandomValues ? crypto.getRandomValues(r) : r.forEach((_, i) => { r[i] = Math.random() * 256; })); return [...r].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 9); };
+const dayStr = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+const giftMeta = () => { const m = A().S().meta; m.gifts = m.gifts || {}; m.giftDay = m.giftDay || { d: '', n: 0 }; return m; };
+
+/** Qué se puede regalar ahora mismo (lo que hay en el inventario). */
+function giftables() {
+  const a = A(), s = a.S(), k = s.kitchen, out = [];
+  GIFT_FOODS.forEach(id => { const f = a.FOODS.find(x => x.id === id); if (f && (s.inv[id] || 0) > 0) out.push({ k: 'food', i: id, icon: f.icon, name: f.name, have: s.inv[id] }); });
+  (k.plates || []).forEach((p, idx) => { const r = L.kitchen.RECIPES.find(x => x.id === p.r); if (r) out.push({ k: 'plate', i: p.r, idx, m: p.m, st: p.st, icon: r.icon, name: `${r.name} ${'⭐'.repeat(p.st)}` }); });
+  Object.keys(FLOWERS).forEach(id => { if ((s.inv[id] || 0) > 0) out.push({ k: 'flower', i: id, icon: FLOWERS[id].icon, name: FLOWERS[id].name, have: s.inv[id] }); });
+  return out;
+}
+
+const giftLink = g => `${location.origin}${location.pathname}#gift=${b64(JSON.stringify(g))}`;
+
+function createGift(it) {
+  const a = A(), s = a.S();
+  if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg('Ahora no puedes enviar regalos'); return; }
+  const g = { v: 1, t: 'g', c: cid(), n: cleanNick(L.settings.get('nick')), k: it.k, i: it.i, u: uid(), ts: nowMs() };
+  if (it.k === 'plate') { g.m = Math.round(it.m * 100) / 100; g.st = it.st; }
+  // el objeto sale de tu inventario
+  if (it.k === 'plate') { const p = s.kitchen.plates; const idx = p.findIndex(x => x.r === it.i && x.st === it.st && x.m === it.m); if (idx < 0) { a.setMsg('Ese plato ya no está'); return; } p.splice(idx, 1); }
+  else { if (!(s.inv[it.i] > 0)) { a.setMsg('Ya no lo tienes'); return; } s.inv[it.i]--; L.kitchen.sync(); }
+  const m = giftMeta();
+  m.lastGift = { url: giftLink(g), name: `${it.icon} ${it.name}`, ts: g.ts };
+  L.progress.stat('giftsSent'); L.progress.check(); a.save(); a.render();
+  showGift(m.lastGift);
+}
+
+function showGift(lg, back) {
+  const a = A();
+  const left = Math.max(0, Math.ceil((lg.ts + GIFT_DAYS * 864e5 - nowMs()) / 864e5));
+  a.openPanel([
+    a.p(`🎁 Regalo listo: ${lg.name}`),
+    a.p(left > 0 ? `Tu amigo lo puede abrir durante ${left} día${left > 1 ? 's' : ''}.` : 'Este regalo ya ha caducado.'),
+    ...(left > 0 ? [qrCanvas(lg.url), a.row(
+      a.btn('📋 Copiar', async () => a.setMsg((await copy(lg.url)) ? 'Enlace copiado' : 'No se pudo copiar', 3000)),
+      a.btn('📤 Enviar', async () => {
+        try { if (navigator.share) await navigator.share({ title: 'Un regalo para tu Limagochi', text: '¡Te mando un regalo para tu Limagochi!', url: lg.url }); else a.setMsg((await copy(lg.url)) ? 'Enlace copiado' : 'No se pudo compartir', 3000); } catch { /* cancelado */ }
+      })
+    )] : []),
+    a.btn('Atrás', () => openGift(back), 'ghost')
+  ], { full: true });
+}
+
+function openGift(back) {
+  const a = A(), m = giftMeta(), items = giftables();
+  back = back || openGift._back; openGift._back = back;
+  const nodes = [a.p('🎁 Enviar un regalo'), a.p('Elige qué mandar. Sale de tu inventario y se convierte en un enlace para tu amigo.')];
+  if (m.lastGift && nowMs() - m.lastGift.ts < GIFT_DAYS * 864e5) nodes.push(a.btn(`↩ Último regalo: ${m.lastGift.name}`, () => showGift(m.lastGift, back), 'ghost'));
+  if (!items.length) nodes.push(a.p('No tienes nada para regalar. Cosecha, cocina o compra flores en la 🛒 tienda (🎁 Flores).'));
+  items.forEach(it => nodes.push(a.btn(`${it.icon} ${it.name}${it.have ? ' ×' + it.have : ''}`, () => confirmGift(it, back))));
+  nodes.push(a.btn('Atrás', back || a.closePanel, 'ghost'));
+  a.openPanel(nodes, { full: true });
+}
+function confirmGift(it, back) {
+  const a = A();
+  a.openPanel([
+    a.p(`¿Regalar ${it.icon} ${it.name}?`), a.p('Se quita de tu inventario y se crea el enlace.'),
+    a.row(a.btn('Sí, crear regalo', () => createGift(it)), a.btn('No', () => openGift(back), 'ghost'))
+  ]);
+}
+
+/** Valida el código de un regalo. Devuelve el regalo o null. */
+function parseGift(text) {
+  try {
+    let t = String(text || '').trim();
+    const i = t.indexOf('gift='); if (i >= 0) t = t.slice(i + 5);
+    t = t.replace(/[^\w-]/g, '');
+    if (!t || t.length > 500) return null;
+    const o = JSON.parse(unb64(t));
+    if (!o || o.v !== 1 || o.t !== 'g' || !/^[a-z0-9]{8,16}$/.test(o.c || '') || !/^[a-z0-9]{6,12}$/.test(o.u || '')) return null;
+    const ts = Number(o.ts); if (!ts || ts > nowMs() + 36e5) return null;
+    const g = { c: o.c, nick: cleanNick(o.n), k: o.k, i: o.i, u: o.u, ts };
+    if (g.k === 'food') { if (!GIFT_FOODS.includes(g.i)) return null; }
+    else if (g.k === 'flower') { if (!FLOWERS[g.i]) return null; }
+    else if (g.k === 'plate') {
+      if (!L.kitchen.RECIPES.some(r => r.id === g.i)) return null;
+      g.m = Math.min(1.6, Math.max(0.6, Number(o.m) || 1)); g.st = Math.min(3, Math.max(1, Math.round(Number(o.st) || 1)));
+    } else return null;
+    return g;
+  } catch { return null; }
+}
+const giftName = g => g.k === 'flower' ? `${FLOWERS[g.i].icon} ${FLOWERS[g.i].name}`
+  : g.k === 'plate' ? (() => { const r = L.kitchen.RECIPES.find(x => x.id === g.i); return `${r.icon} ${r.name} ${'⭐'.repeat(g.st)}`; })()
+  : (() => { const f = A().FOODS.find(x => x.id === g.i); return `${f.icon} ${f.name}`; })();
+
+function receiveGift(g) {
+  const a = A(), s = a.S(), m = giftMeta();
+  if (!g) { a.setMsg('Ese regalo no es válido', 3500); return false; }
+  if (g.c === cid()) { a.setMsg('Es un regalo tuyo: ¡ofrécelo a un amigo!', 4000); return false; }
+  if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg('Ahora no puede recibir regalos'); return false; }
+  if (nowMs() - g.ts > GIFT_DAYS * 864e5) { a.setMsg('Este regalo ha caducado', 3500); return false; }
+  if (m.gifts[g.u]) { a.setMsg('Este regalo ya lo abriste', 3500); return false; }
+  if (m.giftDay.d !== dayStr()) m.giftDay = { d: dayStr(), n: 0 };
+  if (m.giftDay.n >= GIFT_MAX_DAY) { a.setMsg('Hoy ya ha recibido muchos regalos. Vuelve mañana', 4000); return false; }
+  if (g.k === 'plate' && (s.kitchen.plates || []).length >= 6) { a.setMsg('La nevera está llena de platos: cómete alguno antes', 4000); return false; }
+  a.closePanel();
+  let happy = 8, line = '';
+  if (g.k === 'flower') { happy = FLOWERS[g.i].happy; line = 'Las flores le han alegrado el día'; }
+  else if (g.k === 'food') { s.inv[g.i] = (s.inv[g.i] || 0) + 1; L.kitchen.sync(); line = 'Lo guarda en la despensa'; }
+  else { s.kitchen.plates.push({ r: g.i, m: g.m, age: 0, st: g.st }); happy = 10; line = 'Lo guarda en la nevera'; }
+  s.happy = Math.min(100, s.happy + happy);
+  m.gifts[g.u] = g.ts;
+  const keys = Object.keys(m.gifts); if (keys.length > 80) keys.sort((x, y) => m.gifts[x] - m.gifts[y]).slice(0, keys.length - 80).forEach(k => delete m.gifts[k]);
+  m.giftDay.n++;
+  L.progress.stat('giftsGot'); L.progress.check();
+  const who = g.nick || 'Un amigo';
+  L.mail && L.mail.on('gift', { name: `${who}|${giftName(g)}|${g.u}` });
+  a.sound.play('happy');
+  a.setMsg(`🎁 ¡${who} te regala ${giftName(g)}! +${happy} 😊 · ${line}`, 5000);
+  a.save(); a.render();
+  return true;
+}
+
+L.visit = { open, myCard, encode, parse, link, receive, checkHash, cid, COOLDOWN, openGift, receiveGift, parseGift, FLOWERS };
 })();

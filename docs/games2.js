@@ -226,9 +226,9 @@ L.casino = {
 
 /* ================================== PESCA ================================= */
 const CATCH = [
-  { n: 'pez', w: 55, t: '🐟 ¡Un pez! Va a la despensa', fish: 1 }, { n: 'dorado', w: 15, t: '🐠 ¡Pez dorado! +3 🪙', fish: 1, lp: 3 },
-  { n: 'cangrejo', w: 12, t: '🦀 ¡Un cangrejo! +2 🪙', lp: 2 }, { n: 'bota', w: 10, t: '👢 Una bota vieja…' },
-  { n: 'estrella', w: 5, t: '⭐ ¡Estrella de mar! +5 🪙', lp: 5 }, { n: 'tesoro', w: 3, t: '💎 ¡TESORO! +10 🪙', lp: 10 }
+  { n: 'pez', w: 55, t: '🐟 ¡Un pez! Va a la despensa', fish: 1 }, { n: 'dorado', w: 15, t: '🐠 ¡Pez dorado! +4 🪙', fish: 1, lp: 4 },
+  { n: 'cangrejo', w: 12, t: '🦀 ¡Un cangrejo! +3 🪙', lp: 3 }, { n: 'bota', w: 10, t: '👢 Una bota vieja…' },
+  { n: 'estrella', w: 5, t: '⭐ ¡Estrella de mar! +6 🪙', lp: 6 }, { n: 'tesoro', w: 3, t: '💎 ¡TESORO! +12 🪙', lp: 12 }
 ];
 function fishing() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H, rows = a.petRows('happy');
@@ -240,7 +240,7 @@ function fishing() {
     if (s.phase === 'idle') { s.phase = 'wait'; s.t = 0; s.wait = (1.4 + Math.random() * 2.8) * (1 - F * 0.004); s.text = ''; a.sound.play('click'); hud(); }
     else if (s.phase === 'wait') { s.phase = 'res'; s.t = 0; s.got = null; s.text = '¡Muy pronto!'; a.sound.play('sad'); hud(); }
     else if (s.phase === 'bite') {
-      const adj = CATCH.map(x => Object.assign({}, x, { w: x.n === 'bota' ? x.w * (1 - F / 100) : x.n === 'pez' ? x.w : x.w * (1 + F / 50) })).concat(F >= 40 ? [{ n: 'atun', w: 8, t: '🐟 ¡Un atún enorme! +2 🪙', fish: 2, lp: 2 }] : []);
+      const adj = CATCH.map(x => Object.assign({}, x, { w: x.n === 'bota' ? x.w * (1 - F / 100) : x.n === 'pez' ? x.w : x.w * (1 + F / 50) })).concat(F >= 40 ? [{ n: 'atun', w: 8, t: '🐟 ¡Un atún enorme! +3 🪙', fish: 2, lp: 3 }] : []);
       let r = Math.random() * adj.reduce((n, x) => n + x.w, 0), c = adj[0];
       for (const x of adj) { r -= x.w; if (r < 0) { c = x; break; } }
       if (c.fish && Math.random() < F / 150) { c = Object.assign({}, c, { fish: c.fish + 1 }); }
@@ -322,7 +322,7 @@ function rps() {
           const win = s.me > s.pet;
           a.closePanel();
           L.mini.end('rps', win ? '¡Has ganado!' : 'Ha ganado Limagochi', [`Resultado: ${s.me} – ${s.pet}`],
-            { happy: win ? 10 : 4, energy: -3, hunger: -2, lp: win ? 3 : 0, win, score: s.me });
+            { happy: win ? 10 : 4, energy: -3, hunger: -2, lp: win ? 4 : 0, win, score: s.me });
         } else { s.phase = 'pick'; s.text = 'Elige'; hud(); ui(); }
       }
     },
@@ -367,7 +367,7 @@ function race() {
         const win = s.x >= s.rx;
         L.studio.xp('sport', win ? 1.8 : 1.2);
         L.mini.end('race', win ? '¡Has ganado la carrera!' : 'Te han adelantado…', [`Tropiezos: ${s.hits}`],
-          { happy: win ? 12 : 4, energy: -10, hunger: -6, weight: -0.4, lp: win ? 4 + Math.floor(SP / 20) : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
+          { happy: win ? 12 : 4, energy: -10, hunger: -6, weight: -0.4, lp: win ? 5 + Math.floor(SP / 20) : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
       }
     },
     draw() {

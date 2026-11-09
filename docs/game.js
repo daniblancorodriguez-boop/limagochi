@@ -958,7 +958,7 @@ function itemThumb(id) {
 let shopCat = null;
 const SHOP_CATS = [
   ['food', '🍣 Comida gourmet'], ['bg', '🖼️ Fondos'], ['furn', '🛋️ Muebles y juguetes'],
-  ['garden', '🌳 Jardín y semillas'], ['kitchen', '🍳 Cocina'], ['studio', '🎨 Estudio (talentos)']
+  ['garden', '🌳 Jardín y semillas'], ['kitchen', '🍳 Cocina'], ['studio', '🎨 Estudio (talentos)'], ['gifts', '🎁 Flores para regalar']
 ];
 function shopOwnBtn(i, where) {
   const own = state.owned.includes(i.id);
@@ -993,6 +993,10 @@ function shopNodes(cat) {
     L.kitchen.ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en la cocina')));
   } else if (cat === 'studio') {
     L.studio.ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en el estudio')));
+  } else if (cat === 'gifts') {
+    nodes.push(p('Se regalan por enlace desde ☰ Menú → Visitas → 🎁. Alegran mucho a tu amigo.'));
+    Object.entries(L.visit.FLOWERS).forEach(([id, f]) =>
+      nodes.push(btn(`${f.icon} ${f.name} · ${f.cost}🪙 (tienes ${s.inv[id] || 0})`, () => buy({ id, name: f.name, cost: f.cost, inv: true }), '', s.lp < f.cost)));
   }
   return nodes;
 }
@@ -1022,7 +1026,7 @@ function buy(item) {
   const s = state;
   if (s.lp < item.cost) { setMsg('Te faltan Lima Points'); return; }
   s.lp -= item.cost;
-  if (item.gourmet) s.inv[item.id] = (s.inv[item.id] || 0) + 1;
+  if (item.gourmet || item.inv) s.inv[item.id] = (s.inv[item.id] || 0) + 1;
   else { s.owned.push(item.id); if (item.type === 'bg') s.bg = item.key; if (item.id === 'apple') s.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 }; }
   Sound.play('coin'); setMsg(`Comprado: ${item.name}`);
   Store.save(); render(); openShop(shopCat);
@@ -1104,7 +1108,7 @@ function pick(dir) {
     guess.look = 0; guess.locked = false;
     if (guess.round >= 5) {
       const w = guess.wins; guess.active = false; closePanel();
-      reward({ happy: w >= 3 ? 35 : 12, energy: -12, hunger: -8, weight: -0.5, lp: w >= 3 ? 3 : 1, game: 'guess', win: w >= 3, score: w },
+      reward({ happy: w >= 3 ? 35 : 12, energy: -12, hunger: -8, weight: -0.5, lp: w >= 3 ? 4 : 1, game: 'guess', win: w >= 3, score: w },
              w >= 3 ? `¡Ganaste ${w}/5!` : `Perdiste (${w}/5)`);
     } else { guess.text = '¿Hacia dónde mirará?'; renderGuess(); render(); }
   }, 900);

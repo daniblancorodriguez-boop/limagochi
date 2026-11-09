@@ -66,6 +66,8 @@ const ACH = [
   { id: 'rps3',    icon: '✊', name: 'Campeón de manos',  desc: 'Gana 3 partidas de Piedra, papel o tijera.', prog: (m) => [m.stats.wins.rps || 0, 3] },
   { id: 'race3',   icon: '🏃', name: 'Velocista',         desc: 'Gana 3 carreras.',                        prog: (m) => [m.stats.wins.race || 0, 3] },
   { id: 'mem6',     icon: '🧠', name: 'Memoria de elefante', desc: 'Supera 6 rondas de Eco Lima.',             prog: (m) => [m.stats.best.memory || 0, 6] },
+  { id: 'gift1',    icon: '🎁', name: 'Detallista',         desc: 'Envía un regalo a un amigo.',               prog: (m) => [m.stats.giftsSent || 0, 1] },
+  { id: 'gift5',    icon: '💐', name: 'Amigo generoso',     desc: 'Envía 5 regalos.',                          prog: (m) => [m.stats.giftsSent || 0, 5] },
   { id: 'rich',     icon: '🪙', name: 'Ahorrador',          desc: 'Gana 100 Lima Points jugando.',            prog: (m) => [m.stats.lpEarned || 0, 100] },
   { id: 'tricks3',  icon: '🎓', name: 'Domador',            desc: 'Domina 3 trucos o palabras.',               prog: (m, s) => [mastered(s) + Object.values(s.words || {}).filter(v => v >= 100).length, 3] },
   { id: 'night5',   icon: '🌙', name: 'Búho nocturno',      desc: 'Acuéstalo de noche 5 veces.',               prog: (m) => [m.stats.nightSleeps || 0, 5] },
@@ -80,7 +82,7 @@ const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;
 
 /* ---- datos ---- */
-function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false }; }
+function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false, gifts: {}, giftDay: { d: '', n: 0 }, lastGift: null }; }
 /** Rellena huecos de una meta antigua o incompleta. */
 function fixMeta(m) {
   const b = blankMeta();
@@ -90,7 +92,9 @@ function fixMeta(m) {
   const clean = (o, n) => { const r = {}; for (const k of Object.keys(o && typeof o === 'object' ? o : {}).slice(0, n)) r[k] = o[k]; return r; };
   const letters = (Array.isArray(m.letters) ? m.letters : []).filter(x => x && typeof x.text === 'string').slice(-40)
     .map(x => ({ id: String(x.id || '').slice(0, 40), ts: Number(x.ts) || 0, from: String(x.from || '').slice(0, 30), icon: String(x.icon || '✉️').slice(0, 4), text: String(x.text).slice(0, 400), read: !!x.read }));
-  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20), bugs: clean(m.bugs, 30), bugsDone: !!m.bugsDone };
+  return { album: Object.assign({}, m.album), ach: Object.assign({}, m.ach), stats: st, friends: clean(m.friends, 200), letters, souvenirs: clean(m.souvenirs, 20), story: clean(m.story, 20), bugs: clean(m.bugs, 30), bugsDone: !!m.bugsDone,
+    gifts: clean(m.gifts, 80), giftDay: { d: String((m.giftDay && m.giftDay.d) || '').slice(0, 12), n: Number(m.giftDay && m.giftDay.n) || 0 },
+    lastGift: m.lastGift && typeof m.lastGift.url === 'string' && m.lastGift.url.length < 700 ? { url: m.lastGift.url, name: String(m.lastGift.name || '🎁').slice(0, 40), ts: Number(m.lastGift.ts) || 0 } : null };
 }
 const meta = () => A().S().meta;
 
