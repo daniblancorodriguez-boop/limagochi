@@ -97,3 +97,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.23.0
 - 📜 Historial de Limagochis (☰ Menú): cada vida se anota al morir o al cambiar de huevo (últimas 30).
 - Nuevo huevo: «Conservar bienes» o «Empezar desde 0» (siempre se guardan álbum, logros e historial; las habilidades empiezan en 0).
+
+## v3.24.0
+- 🏫 Colegio (niño/adolescente) y 💼 trabajo (adulto): aviso diario «el bus espera», ausencia de 5 h, aprendizaje de habilidades y palabras, sueldo y 4 rangos por profesión (`docs/school.js`).
+- Horario configurable en ⚙️ Ajustes, siempre 5 h y sin solaparse con el descanso del dueño; opción de ir sin preguntar; aviso push del bus con la app cerrada.

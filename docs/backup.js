@@ -114,11 +114,15 @@ function openSettings(back) {
     a.btn(`🌙 Ciclo día/noche: ${onoff(L.settings.get('cycle'))}`, () => { L.settings.set('cycle', !L.settings.get('cycle')); a.render(); openSettings(back); }),
     a.btn(`🖤 Iconos negros: ${onoff(L.settings.get('mono'))}`, () => { L.settings.set('mono', !L.settings.get('mono')); a.paintIcons(); openSettings(back); }),
     a.btn(`🔲 Píxel fino: ${onoff(L.settings.get('fine'))}`, () => { L.settings.set('fine', !L.settings.get('fine')); a.setFine(L.settings.get('fine')); openSettings(back); }),
-    a.btn(`😴 Descanso del dueño: ${onoff(L.settings.get('rest'))}`, () => { L.settings.set('rest', !L.settings.get('rest')); a.render(); openSettings(back); }),
+    a.btn(`😴 Descanso del dueño: ${onoff(L.settings.get('rest'))}`, () => { L.settings.set('rest', !L.settings.get('rest')); L.school.fixSlot(); a.render(); openSettings(back); }),
     ...(L.settings.get('rest') ? [a.row(
-      a.btn(`Desde ${hh(L.settings.get('restFrom'))}`, () => { const f = (L.settings.get('restFrom') + 1) % 24; L.settings.set('restFrom', f); fixRest(); openSettings(back); }),
-      a.btn(`Hasta ${hh(L.settings.get('restTo'))}`, () => { L.settings.set('restTo', (L.settings.get('restTo') + 1) % 24); fixRest(); openSettings(back); })
+      a.btn(`Desde ${hh(L.settings.get('restFrom'))}`, () => { const f = (L.settings.get('restFrom') + 1) % 24; L.settings.set('restFrom', f); fixRest(); L.school.fixSlot(); openSettings(back); }),
+      a.btn(`Hasta ${hh(L.settings.get('restTo'))}`, () => { L.settings.set('restTo', (L.settings.get('restTo') + 1) % 24); fixRest(); L.school.fixSlot(); openSettings(back); })
     ), a.p('Durante el descanso (máx. 8 h) las barras bajan más despacio y no hay cacas, enfermedades ni errores.')] : []),
+    a.btn(`🏫 Colegio y trabajo: ${onoff(L.settings.get('school'))}`, () => { L.settings.set('school', !L.settings.get('school')); a.render(); openSettings(back); }),
+    ...(L.settings.get('school') ? [a.btn(`🚌 Horario (5 h): ${L.school.slotText()}`, () => { L.settings.set('jobFrom', L.school.nextStart(L.school.hourStart())); openSettings(back); }),
+      a.btn(`🚌 Ir solo sin preguntar: ${onoff(L.settings.get('schoolAuto'))}`, () => { L.settings.set('schoolAuto', !L.settings.get('schoolAuto')); openSettings(back); }),
+      a.p('El horario nunca coincide con tu descanso. Si no va, no pasa nada: solo no aprende ni cobra.')] : []),
     a.btn(`🎃 Eventos de temporada: ${onoff(L.settings.get('events'))}`, () => { L.settings.set('events', !L.settings.get('events')); a.render(); openSettings(back); })
   ];
   if (push && push.supported()) {

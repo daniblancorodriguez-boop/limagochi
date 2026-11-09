@@ -261,5 +261,17 @@ setInterval(() => {
   say(w, s.words[w.id]);
 }, 45000);
 
-L.voice = { open, talk, decay, iq, iqPct, tricks: TRICKS, words: WORDS, supported: !!SR, isListening: () => listening };
+/** Estudio en el cole: suma `amount` a una palabra o truco aún sin dominar. Devuelve qué aprendió (texto) o null. */
+function study(amount) {
+  const a = A(), s = a.S(), cap = WORD_CAP[s.stage] || 0;
+  const open = [
+    ...WORDS.filter(w => (s.words[w.id] || 0) < Math.min(100, cap)).map(w => ({ k: 'w', id: w.id, n: `«${w.say}»` })),
+    ...TRICKS.filter(t => (s.skills[t.id] || 0) < 100).map(t => ({ k: 't', id: t.id, n: t.name.toLowerCase() }))
+  ];
+  if (!open.length) return null;
+  const x = open[Math.floor(Math.random() * open.length)], g = amount * Math.max(0.3, iq());
+  if (x.k === 'w') s.words[x.id] = Math.min(cap, (s.words[x.id] || 0) + g); else s.skills[x.id] = Math.min(100, (s.skills[x.id] || 0) + g);
+  return `practicó ${x.n}`;
+}
+L.voice = { open, talk, decay, study, iq, iqPct, tricks: TRICKS, words: WORDS, supported: !!SR, isListening: () => listening };
 })();

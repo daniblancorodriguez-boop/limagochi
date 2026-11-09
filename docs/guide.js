@@ -97,6 +97,13 @@ const TOPICS = [
     LI('Durante cada evento de temporada llega una historia de 3 capítulos (días 1, 3 y 5).'),
     LI('Al leer el capítulo final ganas 10 🪙 y un 🎩 recuerdo: elige gorro en Buzón → Recuerdos.')
   ] },
+  { icon: '🏫', title: 'Colegio y trabajo', body: () => [
+    LI('Cada día, 5 minutos antes de la hora elegida, aparece «🚌 El bus espera». Si lo aceptas, se va 5 horas: de niño o adolescente al cole, de adulto al trabajo.'),
+    LI('Mientras está fuera no hace caca, no enferma y las barras bajan despacio. Si no vas, no pasa nada: solo no aprende, no cobra ni asciende.'),
+    LI('🏫 Cole: aprende un poco de cada habilidad y practica alguna palabra o truco; más si está contento, con disciplina y listo.'),
+    LI('💼 Trabajo: cuando una habilidad llega a nivel 10 llega una oferta al buzón. Elige puesto en ☰ Menú → 💼 Trabajo. Cobra cada día y asciende (4 rangos) con días trabajados y nivel de habilidad.'),
+    LI('⚙️ Ajustes: horario (siempre 5 h y nunca en tu descanso), desactivar el cole/trabajo e «Ir solo sin preguntar» para que vaya aunque tengas la app cerrada.')
+  ] },
   { icon: '🤝', title: 'Visitas de amigos', body: () => [
     LI('☰ Menú → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
     LI('Para recibir una visita pega el enlace de tu amigo, o ábrelo directamente.'),

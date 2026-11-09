@@ -401,5 +401,11 @@ function showBar() {
   const x = T()[P.k];
   A().skillBar({ icon: TAL[P.k].icon, label: `${TAL[P.k].name} ${Math.floor(x.lv)}`, pct: x.lv, sub: `${Math.max(1, Math.ceil(P.total - P.min))} min` });
 }
-L.studio = { xp, extraLv, EXTRA, showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
+/** Experiencia en un talento (pintura, escritura, música) sin sesión de práctica: la usa el colegio y el trabajo. Solo si tiene el objeto. */
+function xpTalent(k, base) {
+  const x = T()[k]; if (!x || !owns(k)) return 0;
+  x.lv = Math.min(99, x.lv + base * Math.pow(1 - x.lv / 100, 1.6)); x.mx = Math.max(x.mx, x.lv); x.idle = 0;
+  return x.lv;
+}
+L.studio = { xp, xpTalent, extraLv, EXTRA, showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
 })();

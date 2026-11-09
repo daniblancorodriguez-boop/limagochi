@@ -161,7 +161,7 @@ function newState() {
     casino: { day: '', lost: 0, spins: 0, free: '' },                       // límites del casino por día
     garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
     skills: {}, words: {}, cause: '', track: { play: 0, hug: 0, sleep: 0 },       // lo que hace de niño (decide la forma de adolescente)
-    talent: L.studio.blank(), kitchen: L.kitchen.blank(),                                             // talentos: pintura, escritura y música
+    talent: L.studio.blank(), kitchen: L.kitchen.blank(), sch: L.school.blank(),                                             // talentos: pintura, escritura y música
     study: { n: 0, fat: 0, tired: false },     // lecciones de voz: inteligencia ganada y cansancio
     dirt: 10,                                  // suciedad 0–100 (se limpia con la ducha)
     hat: null,                                 // gorro de recuerdo elegido (id de evento)
@@ -181,7 +181,7 @@ function normalize(d) {
     v: 2,
     flags: Object.assign(b.flags, d.flags), food: Object.assign(b.food, d.food),
     inv: d.inv || {}, owned: d.owned || [], skills: d.skills || {}, words: d.words || {},
-    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino), talent: L.studio.fix(d.talent), kitchen: L.kitchen.fix(d.kitchen),
+    study: Object.assign(b.study, d.study), room: Object.assign(b.room, d.room), garden: Object.assign(b.garden, d.garden), casino: Object.assign(b.casino, d.casino), talent: L.studio.fix(d.talent), kitchen: L.kitchen.fix(d.kitchen), sch: L.school.fix(d.sch),
     meta: L.progress.fixMeta(d.meta)
   });
   ['hunger', 'happy', 'energy', 'discipline', 'dirt', 'taste'].forEach(k => { if (!Number.isFinite(s[k])) s[k] = k === 'dirt' ? 20 : 60; });   // repara valores rotos (NaN)
@@ -205,7 +205,8 @@ const Store = {
 
 let state = newState();
 let diedNow = false;
-let vacHud = false;
+let vacHud = false, awayHud = false;
+const busEl = $('#busBtn');
 let evo = null;               // animación de evolución en curso
 let simT = null;              // reloj simulado (ms) al recuperar una ausencia; null = tiempo real
 const clockNow = () => (simT === null ? Date.now() : simT);
@@ -408,9 +409,10 @@ function tick(dt) {
   const obese = isObese();
 
   const ph = cycleOn() ? L.world.phaseAt(clockNow()) : 'day', night = ph === 'night';
-  const rest = s.stage !== 'egg' && restAt(clockNow());
-  if (restPrev !== null && rest !== restPrev && !quiet) { setMsg(rest ? '🌙 Descanso: todo va más despacio mientras duermes' : '☀️ Buenos días: vuelve el ritmo normal', 4500); }
-  restPrev = rest;
+  const rest0 = s.stage !== 'egg' && restAt(clockNow());
+  if (restPrev !== null && rest0 !== restPrev && !quiet) { setMsg(rest0 ? '🌙 Descanso: todo va más despacio mientras duermes' : '☀️ Buenos días: vuelve el ritmo normal', 4500); }
+  restPrev = rest0;
+  const rest = rest0 || L.school.tick(dt, clockNow(), quiet);                   // fuera (cole/trabajo) cuenta como descanso: sin cacas, errores ni enfermedades
   if (s.sleeping) {
     s.energy = clamp(s.energy + R.sleep * dt);
     if (cycleOn() && L.world.isMorningAt(clockNow()) && s.energy >= 50) {            // amanece: se despierta solo
@@ -538,6 +540,7 @@ function onDeath() {
 
 /* ============================== ACCIONES ================================ */
 function canInteract() {
+  if (L.school.isAway()) { setMsg(L.school.hudText().replace(' · vuelve', ' · vuelve'), 3000); return false; }
   if (state.stage === 'dead') { setMsg('Limagochi ya no está…'); return false; }
   if (state.stage === 'egg') { setMsg('El huevo aún no ha eclosionado'); return false; }
   return true;
@@ -755,6 +758,7 @@ function openMenu() {
     menuBtn('voice', '🎓', 'Trucos y palabras', '', () => L.voice && L.voice.open()),
     menuBtn('guide', '❓', 'Guía', '', () => L.guide.open(openMenu)),
     menuBtn('settings', '⚙️', 'Ajustes', '', () => L.backup.openSettings(openMenu)),
+    menuBtn(state.stage === 'adult' ? 'work' : 'school', state.stage === 'adult' ? '💼' : '🏫', state.stage === 'adult' ? 'Trabajo' : 'Colegio', '', () => L.school.open(openMenu)),
     menuBtn('history', '📜', 'Historial', `${(m.history || []).length}`, () => openHistory(openMenu)),
     menuBtn('egg', '🥚', 'Nuevo huevo', '', openNewEgg),
     btn('Cerrar', closePanel, 'ghost')
@@ -1780,7 +1784,7 @@ function drawScene(now) {
   if (gar && cycleOn() && L.world.isNight()) { g.fillStyle = 'rgba(10,20,60,.38)'; g.fillRect(0, 0, W, H); }
   if (here() === 'studio') L.studio.drawFx(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
-  drawPet(now, frame, f);
+  if (!L.school.isAway()) drawPet(now, frame, f);
   if (gar) drawBug(now);
   drawGuessArrow();
 
@@ -1804,6 +1808,11 @@ function render() {
   alertEl.dataset.reason = reasons[0] ? reasons[0].text : '';
   if (s.pause) { if (!(L.mini && L.mini.active())) hud('🏖️ Vacaciones · el tiempo está detenido'); vacHud = true; }
   else if (vacHud) { hud(null); vacHud = false; }
+  if (L.school.isAway()) { if (!(L.mini && L.mini.active())) hud(L.school.hudText()); awayHud = true; }
+  else if (awayHud) { hud(null); awayHud = false; }
+  const bo = L.school.hasOffer() && !s.pause;
+  busEl.hidden = !bo;
+  if (bo) busEl.textContent = L.school.kind(s) === 'work' ? '🚌 ¡El bus del trabajo espera! Ir' : '🚌 ¡El bus del cole espera! Ir';
   $('#lp').textContent = `🪙 ${s.lp}`;
   const mini = !!(L.mini && L.mini.active());
   chipsEl.hidden = mini || s.stage === 'egg' || s.stage === 'dead';
@@ -1906,6 +1915,7 @@ function runAction(name) {
   closePanel();
   Sound.play('click');
   if (state.pause) { openVacation(); render(); return; }                  // de vacaciones: solo se puede volver
+  if (L.school.isAway()) { setMsg(L.school.hudText(), 3000); return; }       // en el cole o trabajando
   (ACTIONS[name] || (() => {}))();
   render();
 }
@@ -1961,6 +1971,7 @@ function bindUI() {
   $('#keyB').addEventListener('click', keyB);
   $('#keyC').addEventListener('click', keyC);
   $('#keyM').addEventListener('click', keyM);
+  busEl.addEventListener('click', () => { if (L.school.accept()) { Store.save(); render(); } });
   drawKeys();
   alertEl.addEventListener('click', () => setMsg(alertEl.dataset.reason || '…'));
 
@@ -2067,6 +2078,8 @@ function predictSchedule() {
   if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagochi está a punto de evolucionar!', 'Limagochi');
   const pr = s.talent && s.talent.practice;
   if (s.kitchen && s.kitchen.cook) add(s.kitchen.cook.total - s.kitchen.cook.min, 'event-cook', 'Ha terminado de cocinar: ¡a la mesa!', 'Limagochi');
+  const bus = L.school.nextOfferAt(now);
+  if (bus) out.push({ at: bus, tag: 'bus', title: 'Limagochi', body: '🚌 ¡El bus espera! Abre la app para que vaya.' });
   if (pr) add(pr.total - pr.min, 'event-practice', 'Ha terminado de practicar: ¡ve su obra!', 'Limagochi');
   if (s.sleeping) return out;                                               // dormido: no avisamos
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
