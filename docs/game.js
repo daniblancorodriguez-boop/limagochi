@@ -261,7 +261,7 @@ const minW = () => CFG.minWeight[state.stage] || 3;
 const need = () => CFG.needMult[state.stage] || { hunger: 1, happy: 1 };
 const poopRange = () => CFG.poopByStage[state.stage] || CFG.poopEvery;
 const isObese = () => state.weight > (CFG.obese[state.stage] || 99);
-/** Posición 0..1 en la barra de gordura: 0 = delgadísimo, 0,5 = equilibrado, 1 = obeso (límite de obesidad de su etapa). */
+/** Posición 0..1 en la barra de obesidad: 0 = peso mínimo, 1 = obeso (límite de obesidad de su etapa). */
 const fatPos = () => { const lo = minW(), hi = CFG.obese[state.stage] || 99; return Math.max(0, Math.min(1, (state.weight - lo) / Math.max(1, hi - lo))); };
 const formName = id => (META[id] && META[id].name) || '—';
 
@@ -625,7 +625,7 @@ function feed(f) {
   L.first && L.first.did('feed');
   L.progress.stat('fed'); if (f.cat === 'snack') L.progress.stat('snacks'); if (f.gourmet) L.progress.stat('gourmet');
   s.sweetLoad += f.sweet || 0;
-  fx('eat', 2600, { food: f }); Sound.play('eat');
+  fx('eat', 2600, { food: f }); Sound.play('eat'); showFatBar();
   if (old > 0.85 && !s.sick && Math.random() < 0.35) makeSick('🤢 La comida estaba pasada: se ha puesto malo');
   else if (s.sweetLoad >= 3 && !s.sick) makeSick('¡Caries! Demasiados dulces');
   else if (isObese()) setMsg('🚨 ¡Obeso! Índice peligroso: hazlo jugar', 5000);
@@ -1288,17 +1288,13 @@ function drawIcon(rows, x, y, cols = 7) {
 const HEART = ['.pp.pp.', 'ppppppp', 'ppppppp', '.ppppp.', '..ppp..', '...p...'];
 function drawHeart(x, y) { HEART.forEach((r, j) => [...r].forEach((c, i) => c !== '.' && R1(x + i, y + j, 1, 1, tint('#ff6fa8')))); }
 
-/** Barra de gordura sobre el Limagochi al comer: izquierda delgado · centro equilibrado · derecha obeso. */
-function drawFatBar(x, y, rows) {
-  const bx = x, by = Math.max(5, y + topRow(rows) - 9), pos = fatPos();
-  R1(bx - 2, by - 3, 28, 10, C.ink); R1(bx - 1, by - 2, 26, 8, C.bg);          // recuadro con fondo propio (no se confunde con la sala)
-  R1(bx, by, 24, 4, C.ink);                                                     // marco de la barra
-  R1(bx + 1, by + 1, 22, 2, C.light);                                           // zona delgado-equilibrado
-  for (let i = 12; i < 23; i += 2) R1(bx + i, by + 1, 1, 2, C.dark);            // zona de riesgo rayada (mitad derecha)
-  if (pos >= 1) R1(bx + 12, by + 1, 11, 2, C.dark);                             // obeso: toda la zona de riesgo se oscurece
-  R1(bx + 11, by - 2, 2, 2, C.ink); R1(bx + 11, by + 4, 2, 2, C.ink);           // marca del centro (equilibrado)
-  const px = bx + 1 + Math.round(pos * 19);
-  R1(px, by - 1, 2, 6, C.ink);                                                  // marcador
+/** Barra de obesidad al comer: fina, como las de habilidades. Vacía = bien; pasada la mitad avisa; llena = obeso. */
+let fatTimer = 0;
+function showFatBar() {
+  const pos = fatPos();
+  skillBar({ icon: pos >= 1 ? '🚨' : pos > 0.5 ? '⚠' : '✅', label: 'Obesidad', pct: pos * 100, sub: pos >= 1 ? 'obeso' : pos > 0.5 ? 'alta' : 'bien' });
+  clearTimeout(fatTimer);
+  fatTimer = setTimeout(() => { if (!L.studio.working() && !L.kitchen.cooking()) skillBar(null); }, 2800);
 }
 
 /** La comida vuela hacia la boca, se mastica a bocados y sale un corazón. p = progreso 0..1 */
@@ -1514,7 +1510,7 @@ function drawPet(now, frame, f) {
   if ((u === 'tv' || u === 'fit') && s.room.tv && Math.floor(now / 700) % 2) R1(31, 8, 1, 1, tint('#f7fbe6'));
   if (now < hugUntil) { const t = teddyPos(); for (let i = 0; i < 2; i++) { const q = ((now / 600) + i * 0.5) % 1; drawHeart(t.x + 2 + i * 4, Math.round(t.y - 2 - q * 8)); } }
   if (s.sick && !s.sleeping && !rot) drawSickness(now, x, y, rows);
-  if (t === 'eat') { drawEating(f, now, p, x, y, rows); drawFatBar(x, y, rows); }
+  if (t === 'eat') { drawEating(f, now, p, x, y, rows); }
   if (t === 'heal' && frame) { R1(x + 21, y + 2, 1, 5, C.ink); R1(x + 19, y + 4, 5, 1, C.ink); }
   if (t === 'confused') { R1(x + 20, y, 3, 1, C.ink); R1(x + 22, y + 1, 1, 2, C.ink); R1(x + 21, y + 3, 1, 1, C.ink); R1(x + 21, y + 5, 1, 1, C.ink); }
   if (t === 't_wave') {

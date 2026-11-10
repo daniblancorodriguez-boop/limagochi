@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.31.1 · barra de obesidad fina y silencio en el cole
+Al comer, la obesidad se muestra en la barra fina de arriba (la de las habilidades): vacía = bien, pasada la mitad avisa, llena = obeso; desaparece el recuadro grande sobre la mascota. En el cole o en el trabajo el Limagochi ya no dice palabras.
+
 ## v3.31.0 · estudio con piano y sesiones guardadas
 - Piano de cola propio (`tools/build_item.py piano imagen.png 34`), caballete un poco a la izquierda y escritorio pegado a la pared. Al tocar, pintar o escribir el Limagochi se dibuja de espaldas delante del objeto (`backRows()` quita la cara) y la pantalla del escritorio se pone blanca.
 - Sesiones guardadas: antes de cambiar de habitación, dormir, jugar, ducharlo, irse de vacaciones o enseñarle, si está practicando pregunta «¿Guardar la sesión y …?». La sesión se guarda (`talent.saved`) y se continúa desde el objeto con «▶ Continuar sesión»: mismo cuadro (se ve a medias en el caballete), canción o capítulo. Las interrupciones automáticas (sueño nocturno, hambre, enfermedad…) también guardan en vez de terminar la obra. «Terminar ahora» conserva la sesión corta de antes.

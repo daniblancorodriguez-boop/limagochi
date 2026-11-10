@@ -453,7 +453,7 @@ test('cole: no se le pueden enseñar palabras mientras está fuera y el cole pag
   noErrors(p);
 });
 
-test('peso: barra de gordura al comer, aviso de obesidad, sana engorda la mitad y quema pasiva', async () => {
+test('peso: barra de obesidad al comer, aviso de obesidad, sana engorda la mitad y quema pasiva', async () => {
   const p = await fresh();
   const r = await p.evaluate(() => {
     const a = LIMA.api, s = a.S(), out = {};
@@ -463,7 +463,7 @@ test('peso: barra de gordura al comer, aviso de obesidad, sana engorda la mitad 
     out.rice = +(s.weight - lo).toFixed(2);                                    // arroz: 1 g × 0,5
     out.msgLight = (document.querySelector('#msg') || {}).textContent || '';
     s.weight = (lo + hi) / 2 + 2; s.hunger = 30; s.sick = false; a.feed(a.FOODS.find(f => f.id === 'pizza'));
-    out.msgRisk = (document.querySelector('#msg') || {}).textContent || '';
+    out.msgRisk = (document.querySelector('#msg') || {}).textContent || ''; const sb = document.getElementById('skillbar'); out.bar = !sb.hidden && /Obesidad/.test(sb.textContent) && parseFloat(sb.querySelector('.sk-f').style.width) > 50;
     s.weight = hi + 1; s.hunger = 30; s.sick = false; a.feed(a.FOODS.find(f => f.id === 'burger'));
     out.msgObese = (document.querySelector('#msg') || {}).textContent || '';
     s.weight = 25; s.sleeping = false; s.hunger = 100; s.happy = 100; s.energy = 100; const w = s.weight; a.sim(180, T.at(10));       // 3 h despierto y saciado
@@ -472,6 +472,7 @@ test('peso: barra de gordura al comer, aviso de obesidad, sana engorda la mitad 
     return out;
   });
   eq(r.rice, 0.5, 'el arroz engorda la mitad');
+  ok(r.bar, 'barra fina de obesidad por encima de la mitad');
   ok(/obesidad peligroso/i.test(r.msgRisk), 'aviso de obesidad al pasar de la mitad: ' + r.msgRisk);
   ok(/obeso/i.test(r.msgObese) && /peligroso/i.test(r.msgObese), 'aviso de obeso: ' + r.msgObese);
   ok(!/obesidad peligroso/i.test(r.msgLight), 'sin aviso por debajo de la mitad');

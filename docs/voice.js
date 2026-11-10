@@ -102,6 +102,7 @@ function garble(txt, lv) {
   return txt;
 }
 function say(w, lv) {
+  if (L.school && L.school.isAway()) return;                 // en el cole o en el trabajo no habla
   const text = garble(w.say, lv);
   A().setMsg(`🗣 «${text}»`, 3200);
   if (!L.sound.enabled() || !('speechSynthesis' in window)) return;
@@ -268,7 +269,7 @@ function decay(dt) {
 setInterval(() => {
   if (!L.api) return;
   const s = L.api.S();
-  if (s.sleeping || s.pause || s.stage === 'dead' || s.stage === 'egg' || document.hidden || !L.sound.enabled()) return;
+  if ((L.school && L.school.isAway()) || s.sleeping || s.pause || s.stage === 'dead' || s.stage === 'egg' || document.hidden || !L.sound.enabled()) return;
   const known = WORDS.filter(w => (s.words[w.id] || 0) >= 10);
   if (!known.length || Math.random() > 0.2) return;
   const w = known[Math.floor(Math.random() * known.length)];
