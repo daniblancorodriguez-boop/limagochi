@@ -114,8 +114,16 @@ function say(w, lv) {
 
 /* ----------------------------- aprendizaje ------------------------------ */
 const lastRep = {};
+/** ¿Está en el cole o en el trabajo? Entonces no se le puede enseñar nada. */
+function awayNow() {
+  const a = A(), s = a.S();
+  if (!(L.school && L.school.isAway())) return false;
+  a.setMsg(s.sch && s.sch.away && s.sch.away.kind === 'work' ? '💼 Está trabajando: no puede aprender ahora' : '🏫 Está en el cole: no puede aprender ahora', 3500);
+  return true;
+}
 function ready(needTrick, key) {
   const a = A(), s = a.S();
+  if (awayNow()) return false;
   if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg('Aún no puede aprender'); return false; }
   if (s.sleeping) { a.setMsg('Zzz… está durmiendo'); return false; }
   if (s.sick) { a.setMsg('Está enfermo y no se concentra'); return false; }
@@ -189,6 +197,7 @@ function listen() {
   if (!SR) { setStatus('Este navegador no tiene reconocimiento de voz: usa los botones.'); return; }
   if (listening) { try { rec.stop(); } catch { /* */ } return; }
   const s = A().S();
+  if (awayNow()) return;
   if (s.sleeping) { A().setMsg('Zzz… está durmiendo'); return; }
   L.sound.unlock();
   rec = new SR();
@@ -208,6 +217,7 @@ function talk() {
   const a = A(), s = a.S();
   if (s.stage === 'egg') { a.setMsg('Aún está en el huevo'); return; }
   if (s.stage === 'dead') { a.setMsg('Limagochi ya no está…'); return; }
+  if (awayNow()) return;
   if (!SR) { a.setMsg('Tu navegador no admite voz: practica con los botones', 4000); open(); return; }
   statusEl = null; micBtn = null;
   listen();
@@ -228,6 +238,7 @@ function refresh() {
 function open() {
   const a = A(), s = a.S();
   if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg(s.stage === 'egg' ? 'Aún está en el huevo' : 'Limagochi ya no está…'); return; }
+  if (awayNow()) return;
   iqEl = a.p(''); statusEl = a.p('Di el nombre del truco o una palabra. Repítelo para que aprenda.');
   micBtn = a.btn('🎤 Hablarle', listen);
   tBtns = {}; wBtns = {};

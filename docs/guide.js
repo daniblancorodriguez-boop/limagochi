@@ -139,7 +139,7 @@ const TOPICS = [
     LI('👶 Bebé: ~65 minutos.'),
     LI('🧒 Niño: hasta el día 3 de vida.'),
     LI('😎 Adolescente: hasta el día 6.'),
-    LI('🌟 Adulto: unos 12 días de vida (menos si está obeso).'),
+    LI('🌟 Adulto: unos 16 días de vida (menos si está obeso).'),
     H('Qué forma tendrá'),
     LI('De bebé a niño: con 0–1 errores sale Niño bueno; con más, Niño travieso.'),
     LI('De niño a adolescente: con 0–2 errores sale Lima Joven; con más, Lima Macarra.'),

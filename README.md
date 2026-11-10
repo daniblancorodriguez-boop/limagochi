@@ -32,7 +32,7 @@ todo funciona salvo el Web Push. `limagochi-single.html` se abre con doble clic 
 | Web Push con la app cerrada | `server.js` + `docs/notify.js` (`LIMA.push`) |
 
 ## Tiempos (como el Tamagotchi original)
-Huevo 5 min · Bebé ~65 min · Niño hasta el día 3 · Adolescente hasta el día 6 · Adulto ~12 días. Hambre vacía en ~8 h, felicidad en ~10 h.
+Huevo 5 min · Bebé ~65 min · Niño hasta el día 3 · Adolescente hasta el día 6 · Adulto 16 días. Hambre vacía en ~8 h, felicidad en ~10 h.
 Por la noche (22:00–07:00, tu hora real) se duerme solo. Valores en `CFG` de `docs/game.js`.
 El selector «Vel.» (x10, x60) del pie acelera el tiempo para probar.
 
@@ -107,4 +107,13 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.25.1
 - En el cole o el trabajo ya no enferma (tampoco por el aviso de «va a crecer» ni por la vejez); si estaba enfermo al salir, se cura.
-- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 17 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
+- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 20 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
+
+## v3.26.0 · equilibrio de la economía
+- Vida adulta de 12 a **16 días** (vida total ≈ 22 días).
+- Sueldos por rango 12 / 22 / 38 / 60 🪙; el cole paga **3 🪙** al día y da **2,0** de experiencia por habilidad (antes 0,9). Monedas de flappy (20 por partida), tope diario (ninguno) y precios de la tienda, sin cambios.
+- Peso: la comida sana engorda la mitad y quema pasiva de 0,25 g por hora despierto. Un cuidador que solo da arroz ya no muere obeso.
+- **Barra de gordura** sobre el Limagochi al comer: izquierda delgado, centro equilibrado, derecha obeso (límite de su etapa). Pasada la mitad, cada comida avisa de «índice de obesidad peligroso».
+- Mientras está en el cole o el trabajo ya no se le puede enseñar palabras ni trucos (🎓 y 🎤).
+- `tools/economia.js`: simulador de vidas enteras (`node tools/economia.js`) con tablas de monedas, peso y días de cole/trabajo.
+- Pruebas: 20 escenarios (nuevos: cole sin enseñanza y paga, peso y barra, vida adulta de 16 días).

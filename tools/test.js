@@ -427,6 +427,65 @@ test('pantallas: todos los botones y menús se abren sin errores', async () => {
   noErrors(p);
 });
 
+
+test('cole: no se le pueden enseñar palabras mientras está fuera y el cole paga', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(), S = LIMA.school;
+    s.stage = 'child'; s.form = 'child_good'; s.happy = 80; s.discipline = 70; s.energy = 90; s.hunger = 90; s.sleeping = false; s.poops = 0;
+    let t = a.sim(6, T.at(8, 52));
+    S.accept(t);
+    const away = S.isAway(), w0 = JSON.stringify(s.words), k0 = JSON.stringify(s.skills), lp0 = s.lp;
+    LIMA.voice.open();
+    const panel = !!document.querySelector('#panel button');
+    LIMA.voice.talk();
+    const msgAway = (document.querySelector('#msg') || {}).textContent || '';
+    const same = JSON.stringify(s.words) === w0 && JSON.stringify(s.skills) === k0;       // antes de volver (al volver el propio cole sí enseña)
+    t = a.sim(330, t);
+    return { away, panel, same, back: !S.isAway(), pay: s.lp - lp0, msgAway };
+  });
+  ok(r.away, 'debía estar fuera');
+  ok(!r.panel, 'el menú de trucos y palabras no debe abrirse mientras está en el cole');
+  ok(r.same, 'no debe aprender palabras ni trucos desde el menú mientras está fuera');
+  ok(r.back, 'tras el cole vuelve');
+  eq(r.pay, 3, 'paga del cole');
+  noErrors(p);
+});
+
+test('peso: barra de gordura al comer, aviso de obesidad, sana engorda la mitad y quema pasiva', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(), out = {};
+    s.stage = 'adult'; s.form = 'flor'; s.sleeping = false; s.hunger = 30; s.happy = 50; s.taste = 0; s.sick = false;
+    const lo = a.CFG.minWeight.adult, hi = a.CFG.obese.adult;
+    s.weight = lo; s.hunger = 30; a.feed(a.FOODS.find(f => f.id === 'rice'));
+    out.rice = +(s.weight - lo).toFixed(2);                                    // arroz: 1 g × 0,5
+    out.msgLight = (document.querySelector('#msg') || {}).textContent || '';
+    s.weight = (lo + hi) / 2 + 2; s.hunger = 30; s.sick = false; a.feed(a.FOODS.find(f => f.id === 'pizza'));
+    out.msgRisk = (document.querySelector('#msg') || {}).textContent || '';
+    s.weight = hi + 1; s.hunger = 30; s.sick = false; a.feed(a.FOODS.find(f => f.id === 'burger'));
+    out.msgObese = (document.querySelector('#msg') || {}).textContent || '';
+    s.weight = 25; s.sleeping = false; s.hunger = 100; s.happy = 100; s.energy = 100; const w = s.weight; a.sim(180, T.at(10));       // 3 h despierto y saciado
+    out.loss = +(w - s.weight).toFixed(2);
+    out.bad = T.broken().concat(T.bars());
+    return out;
+  });
+  eq(r.rice, 0.5, 'el arroz engorda la mitad');
+  ok(/obesidad peligroso/i.test(r.msgRisk), 'aviso de obesidad al pasar de la mitad: ' + r.msgRisk);
+  ok(/obeso/i.test(r.msgObese) && /peligroso/i.test(r.msgObese), 'aviso de obeso: ' + r.msgObese);
+  ok(!/obesidad peligroso/i.test(r.msgLight), 'sin aviso por debajo de la mitad');
+  ok(r.loss > 0.6 && r.loss < 0.9, 'quema pasiva de ~0,25 g/h en 3 h (~0,75): ' + r.loss);
+  eq(r.bad.join(','), '', 'valores rotos');
+  noErrors(p);
+});
+
+test('economía: vida adulta de 16 días y sueldos nuevos', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => ({ life: LIMA.api.CFG.lifespanMin / 1440 }));
+  eq(r.life, 16, 'días de vida adulta');
+  noErrors(p);
+});
+
 /* ------------------------------- ejecución ------------------------------ */
 (async () => {
   const data = fs.mkdtempSync(path.join(os.tmpdir(), 'limagochi-test-'));

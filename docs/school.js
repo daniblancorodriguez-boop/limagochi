@@ -24,8 +24,10 @@ const PROF = {
   atleta:    { icon: '⚽', name: 'Deporte',     skill: 'sport',     ranks: ['Monitor', 'Entrenador', 'Atleta profesional', 'Campeón'] }
 };
 const PIDS = Object.keys(PROF);
+const SCHOOL_XP = 2.0;                                 // puntos de habilidad por día de cole (antes 0,9)
+const SCHOOL_PAY = 3;                                  // 🪙 de paga por día de cole
 const OFFER_LV = 10;                                   // nivel para que llegue la oferta
-const BASE = [10, 20, 35, 55];                         // 🪙 al día por rango
+const BASE = [12, 22, 38, 60];                         // 🪙 al día por rango
 const PROMO = [{ days: 2, lv: 25 }, { days: 3, lv: 45 }, { days: 3, lv: 70 }];   // para pasar al rango 1, 2 y 3
 
 const blank = () => ({ day: '', st: 'idle', away: null, job: null, ranks: {}, seen: {}, schoolDays: 0, workDays: 0, earned: 0, last: '' });
@@ -141,13 +143,14 @@ function finish(now, quiet) {
   const notes = [];
   if (a.kind === 'school') {
     sch.schoolDays++;
-    ['cooking', 'gardening', 'fishing', 'sport'].forEach(k => L.studio.xp(k, 0.9 * f, true));
-    ['painting', 'writing', 'music'].forEach(k => L.studio.xpTalent && L.studio.xpTalent(k, 0.9 * f));
+    ['cooking', 'gardening', 'fishing', 'sport'].forEach(k => L.studio.xp(k, SCHOOL_XP * f, true));
+    ['painting', 'writing', 'music'].forEach(k => L.studio.xpTalent && L.studio.xpTalent(k, SCHOOL_XP * f));
     const w = L.voice && L.voice.study ? L.voice.study(14 * f) : null;
     if (w) notes.push(w);
     s.happy = Math.min(100, s.happy + (f > 0.8 ? 6 : 2));
     s.discipline = Math.min(100, s.discipline + 1.5 * f);
-    notes.unshift('un poco de cada habilidad');
+    s.lp += SCHOOL_PAY; L.progress.stat('lpEarned', SCHOOL_PAY);
+    notes.unshift(`un poco de cada habilidad, +${SCHOOL_PAY} 🪙 de paga`);
     sch.last = `🏫 Volvió del cole: ${notes.join(', ')}.`;
   } else {
     const p = a.p || sch.job;
