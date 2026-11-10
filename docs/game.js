@@ -412,7 +412,9 @@ function tick(dt) {
   const rest0 = s.stage !== 'egg' && restAt(clockNow());
   if (restPrev !== null && rest0 !== restPrev && !quiet) { setMsg(rest0 ? '🌙 Descanso: todo va más despacio mientras duermes' : '☀️ Buenos días: vuelve el ritmo normal', 4500); }
   restPrev = rest0;
-  const rest = rest0 || L.school.tick(dt, clockNow(), quiet);                   // fuera (cole/trabajo) cuenta como descanso: sin cacas, errores ni enfermedades
+  const away = L.school.tick(dt, clockNow(), quiet);
+  const rest = rest0 || away;                                                    // fuera (cole/trabajo) cuenta como descanso: sin cacas, errores ni enfermedades
+  if (away && s.sick) { s.sick = false; s.sickMin = 0; s.preSick = false; }       // en el cole o el trabajo no enferma (si iba a crecer, el aviso llega al volver)
   if (s.sleeping) {
     s.energy = clamp(s.energy + R.sleep * dt);
     if (cycleOn() && L.world.isMorningAt(clockNow()) && s.energy >= 50) {            // amanece: se despierta solo
@@ -462,11 +464,11 @@ function tick(dt) {
 
   /* se pone malito poco antes de evolucionar (como el original): un aviso de que va a crecer, sin contar como error */
   const left = (CFG.stageMin[s.stage] || Infinity) - s.stageMin;
-  if (!quiet && !s.sick && !s.preSick && !s.sleeping && CFG.preSickMin[s.stage] && left > 0 && left <= CFG.preSickMin[s.stage]) {
+  if (!quiet && !away && !s.sick && !s.preSick && !s.sleeping && CFG.preSickMin[s.stage] && left > 0 && left <= CFG.preSickMin[s.stage]) {
     s.preSick = true; makeSick('🤒 Se encuentra raro… ¡va a crecer! Cúralo'); s.sickMistake = true;
   }
   /* vejez: en el último tramo de su vida enferma cada día y necesita dosis doble */
-  if (!quiet && s.stage === 'adult' && s.wear >= CFG.oldAgeAt * CFG.lifespanMin) {
+  if (!quiet && !away && s.stage === 'adult' && s.wear >= CFG.oldAgeAt * CFG.lifespanMin) {
     s.oldIn -= dt;
     if (s.oldIn <= 0) { s.oldIn = 1440; if (!s.sick) { makeSick('👴 Los años pesan: se ha puesto enfermo'); s.medicine = 4; s.sickMistake = true; } }
   }
@@ -513,7 +515,7 @@ function step(dtMin) {
 
 function attention() {
   const s = state, a = [];
-  if (s.stage === 'dead' || s.stage === 'egg' || s.sleeping || s.pause) return a;
+  if (s.stage === 'dead' || s.stage === 'egg' || s.sleeping || s.pause || L.school.isAway()) return a;
   if (s.hunger < 25) a.push({ key: 'hunger', text: 'Tiene hambre' });
   if (s.happy < 25) a.push({ key: 'sad', text: 'Está triste: ¡juega con él!' });
   if (s.energy < 15) a.push({ key: 'sleepy', text: 'Tiene sueño: apaga la luz' });
@@ -2101,10 +2103,20 @@ function predictSchedule() {
   return out.filter(o => o.at < now + 24 * 3600e3 && !seen.has(o.tag) && seen.add(o.tag)).sort((a, b) => a.at - b.at).slice(0, 8);
 }
 
+/** Solo para las pruebas automáticas: avanza `min` minutos de juego en silencio a partir de la hora `fromTs`. Devuelve la hora final. */
+function sim(min, fromTs) {
+  simT = Number.isFinite(fromTs) ? fromTs : Date.now();
+  quiet = true;
+  try { step(min); } finally { quiet = false; }
+  const t = simT; simT = null; lastTick = Date.now();
+  return t;
+}
+
 L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
+  sim, newEgg, CFG,
   speed: () => speed, predictSchedule, restAt, setFine, paintIcons, openMenu, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
 };
 

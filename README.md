@@ -104,3 +104,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.25.0
 - ☁️ Copia en la nube: la partida se sube al Worker (`/api/save/put` y `/api/save/get`, tabla `saves` en D1) bajo un código secreto de 12 caracteres; subida automática cada 6 h y recuperación con el código en cualquier dispositivo. Si dos dispositivos usan el mismo código, el servidor avisa en vez de sobrescribir.
+
+## v3.25.1
+- En el cole o el trabajo ya no enferma (tampoco por el aviso de «va a crecer» ni por la vejez); si estaba enfermo al salir, se cura.
+- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 17 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
