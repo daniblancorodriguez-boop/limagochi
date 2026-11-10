@@ -646,6 +646,7 @@ function clean() {
 /* ---- ducha: se frota con el dedo para quitar la suciedad ---- */
 function startShower() {
   if (!canInteract() || !awake()) return;
+  if (L.studio.session()) { guardPractice('ducharlo', startShower); return; }
   if (state.dirt < 15) { setMsg('Ya está limpísimo ✨'); return; }
   if (state.sick) { setMsg('Está enfermo: mejor no mojarlo'); return; }
   L.mini.start('shower');
@@ -678,6 +679,7 @@ function heal() {
 function toggleLight() {
   if (!canInteract()) return;
   const s = state;
+  if (!s.sleeping && L.studio.session()) { guardPractice('dormir', toggleLight); return; }
   if (!s.sleeping && cycleOn() && L.world.phase() === 'day' && s.energy >= 25) {      // de día solo se echa la siesta si está agotado
     refuse('☀️ Es de día: aún no tiene sueño. Duerme de noche');
     return;
@@ -838,6 +840,7 @@ function openVacation() {
 }
 function startVacation() {
   const s = state;
+  if (L.studio.session()) { guardPractice('irse de vacaciones', startVacation); return; }
   if (s.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
   if (s.pause) { openVacation(); return; }
   if (!confirm('¿Mandar a Limagochi de vacaciones? El tiempo se detiene (no crece ni necesita cuidados) hasta que lo recojas.')) return;
@@ -909,6 +912,18 @@ function setUse(u, text) {
   Sound.play('click'); Store.save(); render(); closePanel();
 }
 
+/** Si está en plena sesión (pintura, escritura o música), pregunta antes de cambiar de actividad: guardar la sesión y seguir luego. */
+function guardPractice(action, fn) {
+  const ss = L.studio && L.studio.session();
+  if (!ss) { fn(); return; }
+  openPanel([
+    p(`💾 Está practicando ${ss.name} (${ss.min}/${ss.total} min). ¿Guardar la sesión y ${action}?`),
+    p('Podrás continuarla después desde el estudio.'),
+    btn('💾 Guardar sesión y ' + action, () => { L.studio.save('cambio'); closePanel(); fn(); }),
+    btn('Seguir practicando', closePanel, 'ghost')
+  ]);
+}
+L.guardPractice = guardPractice;
 function setRoom(w) {
   const r = state.room;
   if (r.where === w) return;
@@ -1127,6 +1142,7 @@ function canPlay() {
 
 function startPlay() {
   if (!canPlay()) return;
+  if (L.studio.session()) { guardPractice('jugar', startPlay); return; }
   openPanel([
     p('¿A qué jugamos?'),
     btn('🎯 Adivina', startGuess),
@@ -1396,6 +1412,16 @@ function drawNote(x, y) { R1(x + 2, y, 1, 4, C.ink); R1(x, y + 3, 2, 2, C.ink); 
 
 let hugUntil = 0, ballUntil = 0, moving = false;
 const pos = { x: 12, y: 11, ok: false };
+function backRows(rows) {                         // vista de espaldas: sin ojos, brillo, mejillas ni boca (lo de dentro del cuerpo se rellena con el color vecino)
+  const at = (j, i) => j >= 0 && i >= 0 && j < 24 && i < 24 && rows[j][i] !== '.', FACE = 'KwpPfqQ';
+  return rows.map((r, j) => [...r].map((c, i) => {
+    if (c === '.' || !FACE.includes(c) || !(at(j - 1, i) && at(j + 1, i) && at(j, i - 1) && at(j, i + 1))) return c;
+    const n = {};
+    for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const q = (rows[j + dj] || '')[i + di]; if (q && q !== '.' && !FACE.includes(q)) n[q] = (n[q] || 0) + 1; }
+    const best = Object.keys(n).sort((x, y) => n[y] - n[x])[0];
+    return best || c;
+  }).join(''));
+}
 function drawPet(now, frame, f) {
   const s = state;
   if (s.stage === 'dead') { drawTomb(); return; }
@@ -1423,7 +1449,8 @@ function drawPet(now, frame, f) {
   else if (t === 'happy' || t.startsWith('t_') || t === 'heal' || s.pause) face = 'happy';
   else if (s.sick || avg < 30) face = 'sad';
   else if (avg > 78) face = 'happy';
-  const rows = set[face] || set.idle;
+  let rows = set[face] || set.idle;
+  if (here() === 'studio' && ['music', 'painting', 'writing'].includes(L.studio.working())) rows = backRows(rows);          // de espaldas a la pantalla
   if (s.pause && s.stage !== 'dead' && bgOk('playa')) { drawBeachPet(now, rows); return; }      // vacaciones: tumbado en la tumbona con gafas
 
   let flip = false, rot = false, inv = false;
@@ -1969,7 +1996,7 @@ function drawRoomPick() {
     b.setAttribute('aria-label', ROOMNAME[w]); b.title = ROOMNAME[w];
     b.textContent = ROOMICON[w];
     if (roomAlert(w) && w !== here()) { const d = document.createElement('i'); d.className = 'rp-dot'; b.append(d); }
-    b.addEventListener('click', e => { e.stopPropagation(); closeRoomPick(); if (w !== here() && canInteract()) setRoom(w); });
+    b.addEventListener('click', e => { e.stopPropagation(); closeRoomPick(); if (w !== here() && canInteract()) guardPractice('cambiar de habitación', () => setRoom(w)); });
     roomPickEl.append(b);
   });
 }
@@ -2143,7 +2170,7 @@ function bindUI() {
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
   $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
-  chipGo.addEventListener('click', () => { closeRoomPick(); if (canInteract()) setRoom(NEXTROOM[here()]); });
+  chipGo.addEventListener('click', () => { closeRoomPick(); if (canInteract()) guardPractice('cambiar de habitación', () => setRoom(NEXTROOM[here()])); });
   chipName.addEventListener('click', e => { e.stopPropagation(); if (roomPickEl.hidden) { if (!canInteract()) return; drawRoomPick(); roomPickEl.hidden = false; chipName.setAttribute('aria-expanded', 'true'); } else closeRoomPick(); });
   document.addEventListener('click', e => { if (!roomPickEl.hidden && !roomPickEl.contains(e.target)) closeRoomPick(); });
   let gridOn = true; try { gridOn = localStorage.getItem('limagochi.grid') !== '0'; } catch { /* */ }
@@ -2231,6 +2258,7 @@ function sim(min, fromTs) {
   return t;
 }
 
+L.drawItem = drawItem;
 L.api = { startWater,
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,

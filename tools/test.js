@@ -605,6 +605,46 @@ test('tele: apagada es estática y encendida se anima', async () => {
   noErrors(p);
 });
 
+test('estudio: la sesión se guarda (con aviso) al cambiar de sala, dormir o enseñar, y se continúa', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(async () => {
+    const a = LIMA.api, s = a.S(), T = () => s.talent, out = {};
+    LIMA.settings.set('cycle', false);
+    s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false; s.owned.push('easel', 'piano', 'desk'); s.room.where = 'studio';
+    s.hunger = s.happy = s.energy = 90; T().painting.lv = 30;
+    const start = () => { T().practice = { k: 'painting', total: 40, min: 10, seed: 123 }; };
+    const panel = () => document.getElementById('panel');
+    const clickText = t => [...panel().querySelectorAll('button')].find(b => b.textContent.includes(t)).click();
+    // 1) cambiar de sala: avisa y no cambia hasta confirmar
+    start(); document.getElementById('chipGo').click();
+    out.askRoom = !panel().hidden && panel().textContent.includes('Guardar sesión'); out.stillHere = s.room.where === 'studio' && !!T().practice;
+    clickText('Seguir practicando'); out.keep = !!T().practice && s.room.where === 'studio';
+    document.getElementById('chipGo').click(); clickText('Guardar sesión');
+    out.saved1 = !T().practice && T().saved.painting && T().saved.painting.min === 10 && T().saved.painting.seed === 123; out.moved = s.room.where !== 'studio';
+    // 2) dormir
+    s.room.where = 'studio'; start(); delete T().saved.painting;
+    document.querySelector('[data-action=light]').click();
+    out.askSleep = panel().textContent.includes('Guardar sesión') && !s.sleeping; clickText('Guardar sesión');
+    out.sleeping = s.sleeping && !T().practice && !!T().saved.painting;
+    // 3) dormido no se enseña: el panel de trucos y palabras no se abre
+    a.closePanel(); LIMA.voice.open(); out.noTeach = panel().hidden;
+    s.sleeping = false;
+    // 4) interrupción automática: se guarda en vez de terminar el cuadro
+    start(); delete T().saved.painting; const works = T().works.length; s.sleeping = true; LIMA.studio.tick(1, false);
+    out.auto = !T().practice && !!T().saved.painting && T().works.length === works;
+    s.sleeping = false;
+    // 5) continuar la sesión guardada: mismo cuadro y mismos minutos
+    a.closePanel(); LIMA.studio.open('st_easel'); clickText('Continuar');
+    out.resume = !!T().practice && T().practice.seed === 123 && T().practice.min === 10 && !T().saved.painting;
+    // 6) terminar: la obra conserva la semilla de la sesión
+    T().practice.min = 39.9; LIMA.studio.tick(0.5, true);
+    out.work = T().works.length === works + 1 && T().works[T().works.length - 1].seed === 123;
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se pueden desactivar', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

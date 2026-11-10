@@ -124,6 +124,7 @@ function awayNow() {
 function ready(needTrick, key) {
   const a = A(), s = a.S();
   if (awayNow()) return false;
+  if (L.studio && L.studio.session()) { L.guardPractice('enseñarle', () => A().setMsg('Sesión guardada: ya puedes enseñarle', 3500)); return false; }
   if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg('Aún no puede aprender'); return false; }
   if (s.sleeping) { a.setMsg('Zzz… está durmiendo'); return false; }
   if (s.sick) { a.setMsg('Está enfermo y no se concentra'); return false; }
@@ -199,6 +200,7 @@ function listen() {
   const s = A().S();
   if (awayNow()) return;
   if (s.sleeping) { A().setMsg('Zzz… está durmiendo'); return; }
+  if (L.studio && L.studio.session()) { L.guardPractice('enseñarle', () => A().setMsg('Sesión guardada: ya puedes enseñarle', 3500)); return; }
   L.sound.unlock();
   rec = new SR();
   rec.lang = 'es-ES'; rec.interimResults = false; rec.maxAlternatives = 4; rec.continuous = false;
@@ -239,6 +241,7 @@ function open() {
   const a = A(), s = a.S();
   if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg(s.stage === 'egg' ? 'Aún está en el huevo' : 'Limagochi ya no está…'); return; }
   if (awayNow()) return;
+  if (s.sleeping) { a.setMsg('Zzz… está durmiendo: no puede aprender'); return; }
   iqEl = a.p(''); statusEl = a.p('Di el nombre del truco o una palabra. Repítelo para que aprenda.');
   micBtn = a.btn('🎤 Hablarle', listen);
   tBtns = {}; wBtns = {};

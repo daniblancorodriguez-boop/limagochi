@@ -39,7 +39,7 @@ const hash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(
 const blank = () => ({
   painting: { lv: 0, mx: 0, idle: 0 }, writing: { lv: 0, mx: 0, idle: 0 }, music: { lv: 0, mx: 0, idle: 0 },
   extra: { cooking: { lv: 0, mx: 0, idle: 0 }, gardening: { lv: 0, mx: 0, idle: 0 }, fishing: { lv: 0, mx: 0, idle: 0 }, sport: { lv: 0, mx: 0, idle: 0 } },
-  works: [], book: [], sold: { day: '', n: {}, patron: false }, stats: { books: 0 }, practice: null, news: ''
+  works: [], book: [], sold: { day: '', n: {}, patron: false }, stats: { books: 0 }, practice: null, saved: {}, news: ''
 });
 function fix(d) {
   const b = blank();
@@ -49,7 +49,8 @@ function fix(d) {
   b.works = (Array.isArray(d.works) ? d.works : []).filter(w => w && typeof w.q === 'number').slice(0, MAX_WORKS);
   b.book = (Array.isArray(d.book) ? d.book : []).filter(q => typeof q === 'number').slice(0, CHAPTERS - 1);
   b.sold = Object.assign(b.sold, d.sold); b.stats = Object.assign(b.stats, d.stats);
-  b.practice = d.practice && TAL[d.practice.k] ? { k: d.practice.k, total: +d.practice.total || 10, min: +d.practice.min || 0 } : null;
+  b.practice = d.practice && TAL[d.practice.k] ? { k: d.practice.k, total: +d.practice.total || 10, min: +d.practice.min || 0, seed: +d.practice.seed || 0 } : null;
+  KEYS.forEach(k => { const v = d.saved && d.saved[k]; if (v && +v.total > 0) b.saved[k] = { total: +v.total, min: Math.max(0, Math.min(+v.min || 0, +v.total)), seed: +v.seed || 0 }; });   // sesiones guardadas para continuar
   b.news = typeof d.news === 'string' ? d.news : '';
   return b;
 }
@@ -89,8 +90,8 @@ function titleOf(k, q, seed) {
   if (k === 'book') return `${pick(BOOK_A)} ${pick(BOOK_B)}`;
   return `Capítulo ${seed % 90 + 1}`;
 }
-function makeWork(k) {                                        // k: painting | writing | music
-  const t = T(), lv = lvOf(k), q = clamp(Math.round(lv + (Math.random() * 16 - 8)), 1, 100), seed = Math.floor(Math.random() * 1e6);
+function makeWork(k, sessionSeed) {                           // k: painting | writing | music (sessionSeed: el mismo cuadro o canción de la sesión guardada)
+  const t = T(), lv = lvOf(k), q = clamp(Math.round(lv + (Math.random() * 16 - 8)), 1, 100), seed = sessionSeed || Math.floor(Math.random() * 1e6);
   const L2 = A();
   if (k === 'writing') {
     t.book.push(q);
@@ -211,30 +212,43 @@ function why(k) {
   if (s.energy < 15) return 'Está cansado: que descanse primero';
   return null;
 }
-function begin(k, mins) {
-  const a = A(), t = T(), bad = why(k);
+function begin(k, mins, resume) {
+  const a = A(), t = T(), bad = why(k), sv = t.saved[k];
   if (bad) { a.closePanel(); a.setMsg('⚠️ ' + bad, 4000); a.sound.play('refuse'); return; }
   if (t.practice) { a.setMsg('Ya está practicando', 2500); return; }
-  t.practice = { k, total: mins, min: 0 };
+  if (resume && sv) { t.practice = { k, total: sv.total, min: sv.min, seed: sv.seed }; }
+  else t.practice = { k, total: mins, min: 0, seed: Math.floor(Math.random() * 1e6) };
+  delete t.saved[k];                                                      // la sesión nueva sustituye a la guardada
   a.closePanel(); a.sound.play('trick');
-  a.setMsg(`${TAL[k].icon} Empieza a practicar ${mins} min`, 3000);
+  a.setMsg(resume && sv ? `${TAL[k].icon} Continúa: quedan ${Math.max(1, Math.ceil(sv.total - sv.min))} min` : `${TAL[k].icon} Empieza a practicar ${mins} min`, 3000);
   a.save(); a.render();
+}
+/** Guarda la sesión en curso para continuarla más tarde (mismo cuadro, canción o capítulo). */
+function save(reason, quiet) {
+  const a = A(), t = T(), P = t.practice;
+  if (!P) return false;
+  t.practice = null; t.saved[P.k] = { total: P.total, min: P.min, seed: P.seed || 0 };
+  const why2 = { dormir: 'Tiene sueño', enfermo: 'Se ha puesto enfermo', hambre: 'Tiene hambre', triste: 'Está triste', cansado: 'Está agotado', llamada: 'Le llama la atención', trav: 'Se ha puesto travieso', pausa: '' }[reason] || '';
+  const msg = `${why2 ? why2 + '. ' : ''}💾 Sesión de ${TAL[P.k].name.toLowerCase()} guardada (${Math.round(P.min)}/${Math.round(P.total)} min): podrás continuarla`;
+  if (quiet) t.news = msg; else { a.setMsg(msg, 5000); a.sound.play('click'); }
+  barOn = false; a.skillBar && a.skillBar(null);
+  a.save(); return true;
 }
 function finish(reason, quiet) {
   const a = A(), t = T(), P = t.practice;
   if (!P) return;
   t.practice = null;
   let msg;
-  if (P.min >= 5) { msg = makeWork(P.k).text; if (reason !== 'done') msg += ' (sesión corta)'; }
+  if (P.min >= 5) { msg = makeWork(P.k, P.seed).text; if (reason !== 'done') msg += ' (sesión corta)'; }
   else msg = 'Ha dejado de practicar';
-  const why2 = { dormir: 'Tiene sueño', enfermo: 'Se ha puesto enfermo', hambre: 'Tiene hambre', triste: 'Está triste', cansado: 'Está agotado', llamada: 'Le llama la atención', trav: 'Se ha puesto travieso', pausa: '' }[reason];
-  if (why2) msg = `${why2}. ${msg}`;
   if (quiet) { t.news = msg; }
   else { a.setMsg(msg, 5000); a.sound.play(P.min >= 5 ? 'win' : 'sad'); L.notify && L.notify.event && L.notify.event('Limagochi', msg); }
   barOn = false; a.skillBar && a.skillBar(null);
   L.progress && L.progress.check();
 }
 function stop() { if (!T().practice) return false; finish('stop', false); A().render(); return true; }
+/** Descripción de la sesión en curso (para avisar antes de cambiar de actividad), o null. */
+function session() { const P = T().practice; return P ? { k: P.k, name: TAL[P.k].name.toLowerCase(), min: Math.round(P.min), total: Math.round(P.total) } : null; }
 
 let barOn = false;
 function tick(dt, quiet) {
@@ -254,7 +268,7 @@ function tick(dt, quiet) {
   const P = t.practice;
   if (!P) { if (barOn) { barOn = false; a.skillBar(null); } return; }
   const reason = s.sleeping ? 'dormir' : s.pause ? 'pausa' : s.sick ? 'enfermo' : s.call ? 'llamada' : s.mess ? 'trav' : s.hunger < 15 ? 'hambre' : s.happy < 12 ? 'triste' : s.energy < 12 ? 'cansado' : null;
-  if (reason) { finish(reason, quiet); return; }
+  if (reason) { save(reason, quiet); return; }
   const x = t[P.k];
   x.lv = Math.min(99, x.lv + gain(x.lv) * dt * (s.happy < 40 ? 0.7 : 1)); x.mx = Math.max(x.mx, x.lv);
   s.happy = clamp(s.happy - 0.10 * dt, 0, 100); s.energy = clamp(s.energy - 0.12 * dt, 0, 100); s.discipline = clamp(s.discipline + 0.03 * dt, 0, 100);
@@ -271,12 +285,13 @@ function openTalent(k) {
   const a = A(), t = T(), P = t.practice, nodes = [a.p(talentLine(k))];
   if (!owns(k)) { a.setMsg('Compra el objeto en la 🛒 tienda (Estudio)', 3000); return; }
   if (P && P.k === k) {
-    nodes.push(a.p(`Practicando… ${Math.max(1, Math.ceil(P.total - P.min))} min`), a.btn('Parar y guardar lo hecho', () => { a.closePanel(); stop(); }));
+    nodes.push(a.p(`Practicando… ${Math.max(1, Math.ceil(P.total - P.min))} min`), a.btn('💾 Guardar sesión y seguir luego', () => { a.closePanel(); save('stop'); a.render(); }), a.btn('✔ Terminar ahora (sesión corta)', () => { a.closePanel(); stop(); }, 'ghost'));
   } else if (P) nodes.push(a.p(`Ahora practica ${TAL[P.k].name.toLowerCase()}`));
   else if (why(k)) nodes.push(a.p('⚠️ ' + why(k)));
   else {
-    const m = maxMin();
-    nodes.push(a.p(`Aguanta hasta ${m} min por sesión (según su disciplina)`));
+    const m = maxMin(), sv = t.saved[k];
+    if (sv) nodes.push(a.p(`💾 Sesión guardada: ${Math.round(sv.min)}/${Math.round(sv.total)} min`), a.btn(`▶ Continuar sesión · quedan ${Math.max(1, Math.ceil(sv.total - sv.min))} min`, () => begin(k, 0, true)));
+    nodes.push(a.p(`Aguanta hasta ${m} min por sesión (según su disciplina)${sv ? '. Empezar de nuevo descarta la sesión guardada' : ''}`));
     nodes.push(a.btn(`${TAL[k].icon} Sesión larga · ${m} min`, () => begin(k, m)));
     if (m > 12) nodes.push(a.btn('Sesión corta · 10 min', () => begin(k, 10)));
   }
@@ -354,29 +369,30 @@ function drawItems(now) {
   put(69, 9, 22, 13, '#c98f4a'); put(70, 10, 20, 11, '#e6c88a');
   put(76, 12, 8, 8, '#ffd84d'); put(77, 13, 6, 6, '#ffb300'); put(79, 14, 2, 4, '#ffd84d');
   // caballete
-  if (owns('painting')) {
+  if (owns('painting')) { A().ctx.save(); A().ctx.translate(1, 0);
     put(10, 46, 2, 14, '#6b4a1f'); put(26, 46, 2, 14, '#6b4a1f'); put(18, 30, 2, 28, '#8a5a2c');
     put(8, 26, 22, 18, '#6b4a1f'); put(10, 28, 18, 14, '#fff8e6');
     const last = t.works.filter(x => x.k === 'painting').slice(-1)[0];
     if (w === 'painting') { const p = Math.floor(now / 400) % 6; put(11, 29, 16, 12, '#fff8e6'); for (let i = 0; i <= p; i++) put(12 + (i * 5) % 13, 30 + (i * 3) % 9, 4, 2, ['#3b82d6', '#e0392f', '#ffd84d', '#2f7d32', '#b99cff', '#ff8fb1'][i % 6]); }
+    else if (t.saved.painting) {                                                         // cuadro a medias: se ve lo pintado hasta ahora
+      const sv = t.saved.painting, rows = Math.max(1, Math.round(12 * sv.min / sv.total)), cx = A().ctx;
+      cx.save(); cx.beginPath(); cx.rect(10 / 2, 29 / 2, 16 / 2, rows / 2 * 1); cx.clip();
+      paintArt((x, y, ww, hh, c) => put(10 + x, 29 + y, ww, hh, c), sv.seed || 1, Math.max(lvOf('painting'), 26)); cx.restore();
+    }
     else if (last) paintArt((x, y, ww, hh, c) => put(10 + x, 29 + y, ww, hh, c), last.seed, last.q);
     put(30, 50, 4, 8, '#c98f4a'); put(30, 50, 4, 2, '#e0392f');                           // pinturas
+    A().ctx.restore();
   }
   // escritorio
-  if (owns('writing')) {
+  if (owns('writing')) { A().ctx.save(); A().ctx.translate(-2, -3);
     put(36, 46, 30, 4, '#8a5a2c'); put(36, 46, 30, 1, '#a8713a'); put(38, 50, 3, 12, '#6b4a1f'); put(61, 50, 3, 12, '#6b4a1f');
-    put(44, 36, 14, 10, '#cfd6de'); put(45, 37, 12, 7, w === 'writing' ? '#dff3ff' : '#2a3a4f'); put(41, 45, 20, 2, '#9aa5b1');
+    put(44, 36, 14, 10, '#cfd6de'); put(45, 37, 12, 7, w === 'writing' ? '#ffffff' : '#2a3a4f'); put(41, 45, 20, 2, '#9aa5b1');
     put(38, 43, 5, 3, '#fff8e6'); put(38, 43, 5, 1, '#e0e0e0');
     if (w === 'writing') for (let i = 0; i < 3; i++) put(47, 39 + i * 2, 4 + (Math.floor(now / 300) + i) % 4, 1, '#2a2433');
+    A().ctx.restore();
   }
-  // piano
-  if (owns('music')) {
-    put(66, 32, 28, 4, '#2a2433'); put(66, 36, 28, 14, '#3a3346'); put(64, 46, 32, 3, '#fff8e6');
-    for (let x = 65; x < 95; x += 3) put(x, 46, 1, 3, '#2a2433');
-    for (let x = 67; x < 95; x += 6) put(x, 44, 2, 3, '#2a2433');
-    put(68, 50, 3, 12, '#2a2433'); put(89, 50, 3, 12, '#2a2433');
-    if (w === 'music') { const k = Math.floor(now / 250) % 8; put(65 + k * 3, 47, 2, 2, '#ffd84d'); }
-  }
+  // piano de cola (sprite propio)
+  if (owns('music')) { LIMA.drawItem('piano', 31, 13); if (w === 'music') { const k = Math.floor(now / 250) % 8; A().ctx.fillStyle = '#ffd84d'; A().ctx.fillRect(34 + k * 1.5, 20.5, 1, 1); } }
 }
 function drawFx(now) {
   const w = working(); if (!w) return;
@@ -388,14 +404,14 @@ function drawFx(now) {
     else put(x, y, 2, 2, ['#3b82d6', '#e0392f', '#ffd84d'][i]);
   }
 }
-const HITS = [['st_easel', 4, 12, 18, 31, 'easel'], ['st_desk', 17, 18, 33, 31, 'desk'], ['st_piano', 32, 16, 48, 31, 'piano'], ['st_shelf', 23, 4, 33, 10, null], ['st_market', 34, 3, 47, 12, null]];
+const HITS = [['st_easel', 5, 12, 19, 31, 'easel'], ['st_desk', 16, 13, 31, 31, 'desk'], ['st_piano', 31, 13, 48, 30, 'piano'], ['st_shelf', 23, 4, 33, 10, null], ['st_market', 34, 3, 47, 12, null]];
 function hit(x, y) {
   const s = A().S();
   for (const [id, x0, y0, x1, y1, need] of HITS) if (x >= x0 && x < x1 && y >= y0 && y < y1 && (!need || s.owned.includes(need))) return id;
   if (y >= 3 && y < 12 && x >= 1 && x < 23) return 'st_shelf';                       // galería de cuadros
   return null;
 }
-const petPos = () => { const w = working(); return { painting: { x: 15, y: 11 }, writing: { x: 14, y: 11 }, music: { x: 27, y: 11 } }[w] || { x: 12, y: 11 }; };
+const petPos = () => { const w = working(); return { painting: { x: -1, y: 11 }, writing: { x: 12, y: 13 }, music: { x: 27, y: 11 } }[w] || { x: 12, y: 11 }; };
 
 function showBar() {
   const P = T().practice; if (!P) return;
@@ -408,5 +424,5 @@ function xpTalent(k, base) {
   x.lv = Math.min(99, x.lv + base * Math.pow(1 - x.lv / 100, 1.6)); x.mx = Math.max(x.mx, x.lv); x.idle = 0;
   return x.lv;
 }
-L.studio = { xp, xpTalent, extraLv, EXTRA, showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
+L.studio = { save, session, xp, xpTalent, extraLv, EXTRA, showBar, ITEMS, TAL, KEYS, fix, blank, tick, stress, stop, working, petPos, drawBack, drawItems, drawFx, hit, open, openStatus, market, play, lvOf, nActive, maxMin, priceOf };
 })();
