@@ -13,6 +13,9 @@ def mask(im):
     return np.array(m) > 127
 ims = [load(OFF), load(ON)]; ms = [mask(i) for i in ims]
 union = ms[0] | ms[1]; ys, xs = np.where(union); x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
+wd = union.sum(1)
+while wd[y1 - 1] < 0.9 * wd.max(): y1 -= 1          # sin peana: solo el marco de la tele
+print('alto recortado', y1 - y0)
 def sprite(cols, ncol):
     rows = round(cols * (y1 - y0) / (x1 - x0))
     out = []
@@ -35,7 +38,7 @@ def sprite(cols, ncol):
         blk = idx[k * rows:(k + 1) * rows]
         vr.append([''.join(chr(97 + remap[int(blk[j, i])]) if o[1][j, i] else '.' for i in range(cols)) for j in range(rows)])
     return {'pal': colors, 'rows': vr}
-tv = {'sm': sprite(14, 20), 'lg': sprite(36, 26), 'hd': sprite(34, 30)}
+tv = {'sm': sprite(14, 20), 'lg': sprite(36, 26), 'hd': sprite(42, 32)}
 s = open('docs/items.js').read(); i = s.index('LIMA.ITEMS = ') + len('LIMA.ITEMS = ')
 d, end = json.JSONDecoder().raw_decode(s[i:]); d['tv'] = tv
 open('docs/items.js', 'w').write(s[:i] + json.dumps(d, separators=(',', ':')) + s[i + end:])

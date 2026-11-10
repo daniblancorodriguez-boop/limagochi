@@ -589,7 +589,7 @@ test('playa: tumbado en la tumbona con gafas de sol y sin muebles', async () => 
 
 test('tele: apagada es estática y encendida se anima', async () => {
   const p = await fresh();
-  const grab = () => p.evaluate(() => { LIMA.api.render(); return Array.from(LIMA.api.ctx.getImageData(4, 22, 34, 22).data); });
+  const grab = () => p.evaluate(() => { LIMA.api.render(); return Array.from(LIMA.api.ctx.getImageData(2, 12, 42, 26).data); });
   const setup = on => p.evaluate(on => {
     const a = LIMA.api, s = a.S(); LIMA.settings.set('cycle', false);
     s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false; s.owned.push('tv', 'sofa'); s.room.where = 'salon'; s.room.tv = on; s.room.use = on ? 'tv' : 'sit';

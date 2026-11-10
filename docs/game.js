@@ -111,7 +111,7 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
 /* lámpara: al fondo junto al cabecero de la cama, más pequeña (k) y apoyada en y = 26 */
 const LAMP = { x: 21, y: 26, k: 0.8 };
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 2, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 1, y: 6 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 28 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 19, y: 27 } };
 /* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
 const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom', flowers: 'garden', can: 'garden', lounger: 'garden', plot: 'garden', apple: 'garden', pool: 'garden', easel: 'studio', desk: 'studio', piano: 'studio' };
 const NEXTROOM = { salon: 'bedroom', bedroom: 'garden', garden: 'studio', studio: 'kitchen', kitchen: 'salon' };
@@ -1013,11 +1013,11 @@ function hitObject(x, y) {
   const o = { includes: has }, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
   if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';      // la pelota va por delante de la cama
+  if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
   if (o.includes('tv') && inside('tv', ROOM.tv)) return 'tv';
   if (o.includes('sofa') && inside('sofa', ROOM.sofa)) return 'sofa';
   if (o.includes('bed') && inside('bed', ROOM.bed)) return 'bed';
   if (o.includes('lamp') && x >= LAMP.x && x < LAMP.x + itemSize('lamp').w * LAMP.k && y >= LAMP.y - itemSize('lamp').h * LAMP.k && y < LAMP.y) return 'lamp';
-  if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
   if (o.includes('lounger') && x >= 33 && x < 44 && y >= 27 && y < 34) return 'lounger';
   if (o.includes('pool') && x >= 29 && x < 45 && y >= 18 && y < 28) return 'pool';
   if (o.includes('plot') && x >= 13 && x < 26 && y >= 20 && y < 29) return 'plot';
@@ -1537,14 +1537,13 @@ function drawHouse(now) {
   if (o.includes('rug')) drawItem('rug', ROOM.rug.x, ROOM.rug.y);
   if (o.includes('picture')) drawItem('picture', ROOM.picture.x, ROOM.picture.y);
   if (o.includes('lamp')) { const lh = itemSize('lamp').h; g.save(); g.translate(LAMP.x, LAMP.y - lh * LAMP.k); g.scale(LAMP.k, LAMP.k); drawItem('lamp', 0, 0, s.room.lamp ? 1 : 0); g.restore(); }
-  if (o.includes('plant')) drawItem('plant', ROOM.plant.x, ROOM.plant.y);
   if (o.includes('bed')) drawItem('bed', ROOM.bed.x, ROOM.bed.y);
   if (o.includes('sofa')) drawItem('sofa', ROOM.sofa.x, ROOM.sofa.y);
   if (o.includes('tv')) {
     const t = ROOM.tv, w = itemSize('tv').w;
-    const th = itemSize('tv').h; R1(t.x - 1, t.y + th, w + 2, 1, C.ink); R1(t.x, t.y + th + 1, w, 1, C.dark);              // estante
     drawTv(t.x, t.y, !!s.room.tv, now);
   }
+  if (o.includes('plant')) drawItem('plant', ROOM.plant.x, ROOM.plant.y);
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
   if (o.includes('ball')) {
     const bh = itemSize('ball').h, bw = itemSize('ball').w;
@@ -1868,7 +1867,7 @@ function drawBeachPet(now, rows) {
 
 /** Ventana: salón (centro) y habitación (con luna de noche). */
 function drawWindow(now) {
-  const bed = here() === 'bedroom', x = bed ? 31 : 22, y = 3, w = 11, h = 10;
+  const bed = here() === 'bedroom', x = bed ? 31 : 29, y = 3, w = 11, h = 10;
   R1(x - 1, y - 1, w + 2, h + 2, C.ink);
   const ph0 = cycleOn() ? L.world.phase() : 'day';
   R1(x, y, w, h, ph0 === 'night' ? '#16224d' : ph0 === 'dusk' ? '#f2a56a' : '#8fc8ff');

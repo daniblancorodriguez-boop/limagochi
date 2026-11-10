@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.30.0 · tele de pared
+La tele pasa a 21×13 px y cuelga de la pared sin base (`tools/build_tv.py` recorta la peana). La ventana del salón se mueve a la derecha, la planta queda por delante de la tele y apoyada en la pared, y la alfombra baja y queda bajo el sofá.
+
 ## v3.29.1 · salón con pared lisa
 Se quita el estampado de la pared del salón (`tools/build_bg.py` deja un degradado suave por filas); el papel de la tienda se sigue viendo encima.
 
