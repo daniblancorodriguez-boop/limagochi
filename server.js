@@ -102,10 +102,43 @@ function readBody(req) {
 }
 const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
 
+/* copia de la partida en la nube (misma API que el Worker; aquí se guarda en data/saves.json) */
+const SAVES_FILE = path.join(DATA, 'saves.json');
+let saves = {};
+try { saves = JSON.parse(fs.readFileSync(SAVES_FILE, 'utf8')); } catch { saves = {}; }
+const MAX_SAVE = 200 * 1024, SAVE_GAP = Number(process.env.SAVE_GAP_MS) || 20000;
+const validCode = c => typeof c === 'string' && /^[a-hjkmnp-z2-9]{12}$/.test(c);
+const codeId = c => require('crypto').createHash('sha256').update('limagochi-save:' + c).digest('hex');
+function readBig(req) {
+  return new Promise((resolve, reject) => {
+    let n = 0; const chunks = [];
+    req.on('data', c => { n += c.length; if (n > MAX_SAVE + 4096) { reject(new Error('body')); req.destroy(); } else chunks.push(c); });
+    req.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString() || '{}')); } catch { reject(new Error('json')); } });
+    req.on('error', reject);
+  });
+}
+async function saveApi(req, res, url) {
+  let b;
+  try { b = await readBig(req); } catch { return send(res, 400, { error: 'bad body' }); }
+  if (!validCode(b.code)) return send(res, 400, { error: 'bad code' });
+  const id = codeId(b.code), now = Date.now(), row = saves[id];
+  if (url === '/api/save/get') return row ? send(res, 200, { ok: true, data: row.data, updated: row.updated }) : send(res, 404, { error: 'unknown' });
+  if (url === '/api/save/put') {
+    if (typeof b.dev !== 'string' || !/^[\w-]{6,40}$/.test(b.dev) || typeof b.data !== 'string' || b.data.length < 20 || b.data.length > MAX_SAVE || b.data[0] !== '{') return send(res, 400, { error: 'bad data' });
+    if (row && row.dev !== b.dev && !b.force) return send(res, 409, { error: 'conflict', updated: row.updated });
+    if (row && now - row.updated < SAVE_GAP) return send(res, 429, { error: 'slow', updated: row.updated });
+    saves[id] = { dev: b.dev, data: b.data, updated: now };
+    try { fs.writeFileSync(SAVES_FILE, JSON.stringify(saves)); } catch { /* */ }
+    return send(res, 200, { ok: true, updated: now });
+  }
+  return send(res, 404, { error: 'not found' });
+}
+
 async function api(req, res, url) {
   if (req.method === 'GET' && url === '/api/push/key') return send(res, 200, { key: VAPID.publicKey });
   if (req.method === 'GET' && url === '/api/health') return send(res, 200, { ok: true, subs: Object.keys(subs).length, dry: DRY });
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
+  if (url.startsWith('/api/save/')) return saveApi(req, res, url);
   let b;
   try { b = await readBody(req); } catch { return send(res, 400, { error: 'bad body' }); }
   if (!validId(b.id)) return send(res, 400, { error: 'bad id' });

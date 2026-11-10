@@ -8,6 +8,7 @@
 import { buildPushPayload } from '@block65/webcrypto-web-push';
 
 const MAX_BODY = 64 * 1024, MAX_SUBS = 5000, MAX_SCHEDULE = 12, MAX_PER_TICK = 40;
+const MAX_SAVE = 200 * 1024, MAX_SAVES = 5000, SAVE_GAP = 20000, SAVE_KEEP = 365 * 86400e3;      // copias de partida en la nube
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -30,15 +31,17 @@ function cleanSchedule(list) {
 }
 
 let ready = null;
-function init(env) {            // crea la tabla la primera vez (no hace falta migrar nada a mano)
-  if (!ready) ready = env.DB.exec('CREATE TABLE IF NOT EXISTS subs (id TEXT PRIMARY KEY, sub TEXT NOT NULL, schedule TEXT NOT NULL, next_at INTEGER NOT NULL DEFAULT 0, updated INTEGER NOT NULL)').catch(e => { ready = null; throw e; });
+function init(env) {            // crea las tablas la primera vez (no hace falta migrar nada a mano)
+  if (!ready) ready = env.DB.exec('CREATE TABLE IF NOT EXISTS subs (id TEXT PRIMARY KEY, sub TEXT NOT NULL, schedule TEXT NOT NULL, next_at INTEGER NOT NULL DEFAULT 0, updated INTEGER NOT NULL)')
+    .then(() => env.DB.exec('CREATE TABLE IF NOT EXISTS saves (id TEXT PRIMARY KEY, dev TEXT NOT NULL, data TEXT NOT NULL, updated INTEGER NOT NULL)'))
+    .catch(e => { ready = null; throw e; });
   return ready;
 }
 const nextAt = sched => (sched.length ? sched[0].at : 0);
 
-async function readJson(request) {
+async function readJson(request, max = MAX_BODY) {
   const text = await request.text();                 // text/plain para evitar «preflight» desde el móvil
-  if (text.length > MAX_BODY) throw new Error('body');
+  if (text.length > max) throw new Error('body');
   return JSON.parse(text || '{}');
 }
 
@@ -57,14 +60,51 @@ async function deliver(env, subJson, msg) {
   } catch (e) { console.log('push error', e && e.message); return 'error'; }
 }
 
+/* ------------------------- copia de la partida en la nube -------------------------
+   La partida se guarda bajo un código secreto de 12 caracteres que solo conoce el jugador
+   (en la base de datos solo queda su huella SHA-256). Sin cuentas ni datos personales. */
+const validCode = c => typeof c === 'string' && /^[a-hjkmnp-z2-9]{12}$/.test(c);
+const validDev = d => typeof d === 'string' && /^[\w-]{6,40}$/.test(d);
+async function codeId(code) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('limagochi-save:' + code));
+  return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function saveApi(request, env, path) {
+  let b;
+  try { b = await readJson(request, MAX_SAVE + 4096); } catch { return json({ error: 'bad body' }, 400); }
+  if (!validCode(b.code)) return json({ error: 'bad code' }, 400);
+  await init(env);
+  const id = await codeId(b.code), now = Date.now();
+  if (path === '/api/save/get') {
+    const row = await env.DB.prepare('SELECT data, updated FROM saves WHERE id = ?').bind(id).first();
+    if (!row) return json({ error: 'unknown' }, 404);
+    return json({ ok: true, data: row.data, updated: row.updated });
+  }
+  if (path === '/api/save/put') {
+    if (!validDev(b.dev) || typeof b.data !== 'string' || b.data.length < 20 || b.data.length > MAX_SAVE || b.data[0] !== '{') return json({ error: 'bad data' }, 400);
+    const row = await env.DB.prepare('SELECT dev, updated FROM saves WHERE id = ?').bind(id).first();
+    if (row) {
+      if (row.dev !== b.dev && !b.force) return json({ error: 'conflict', updated: row.updated }, 409);    // otra instalación usa este código
+      if (now - row.updated < SAVE_GAP) return json({ error: 'slow', updated: row.updated }, 429);
+    } else {
+      const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM saves').first();
+      if (n && n.n >= MAX_SAVES) return json({ error: 'full' }, 503);
+    }
+    await env.DB.prepare('INSERT OR REPLACE INTO saves (id, dev, data, updated) VALUES (?, ?, ?, ?)').bind(id, b.dev, b.data, now).run();
+    return json({ ok: true, updated: now });
+  }
+  return json({ error: 'not found' }, 404);
+}
+
 async function api(request, env, path) {
   if (request.method === 'GET' && path === '/api/push/key') return json({ key: env.VAPID_PUBLIC });
   if (request.method === 'GET' && path === '/api/health') {
     await init(env);
     const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM subs').first();
-    return json({ ok: true, subs: n ? n.n : 0, configured: !!env.VAPID_PRIVATE && !String(env.VAPID_PUBLIC).startsWith('REEMPLAZAR') });
+    return json({ ok: true, subs: n ? n.n : 0, saves: true, configured: !!env.VAPID_PRIVATE && !String(env.VAPID_PUBLIC).startsWith('REEMPLAZAR') });
   }
   if (request.method !== 'POST') return json({ error: 'method' }, 405);
+  if (path.startsWith('/api/save/')) return saveApi(request, env, path);
   let b;
   try { b = await readJson(request); } catch { return json({ error: 'bad body' }, 400); }
   if (!validId(b.id)) return json({ error: 'bad id' }, 400);
@@ -121,7 +161,10 @@ async function tick(env) {
     else await env.DB.prepare('UPDATE subs SET schedule = ?, next_at = ? WHERE id = ?').bind(JSON.stringify(rest), nextAt(rest), row.id).run();
   }
   // limpieza (una vez por hora): suscripciones sin actividad desde hace 60 días
-  if (new Date(now).getUTCMinutes() === 0) await env.DB.prepare('DELETE FROM subs WHERE updated < ?').bind(now - 60 * 86400e3).run();
+  if (new Date(now).getUTCMinutes() === 0) {
+    await env.DB.prepare('DELETE FROM subs WHERE updated < ?').bind(now - 60 * 86400e3).run();
+    await env.DB.prepare('DELETE FROM saves WHERE updated < ?').bind(now - SAVE_KEEP).run();      // copias sin tocar en un año
+  }
 }
 
 export default {

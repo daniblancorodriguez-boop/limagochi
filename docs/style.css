@@ -316,6 +316,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
     linear-gradient(to right, rgba(29, 42, 18, .07) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(29, 42, 18, .07) 1px, transparent 1px);
 }
+.codebox { align-self: center; padding: 8px 12px; border: 2px dashed var(--ink); border-radius: 8px; font-size: 16px; font-weight: 800; letter-spacing: .08em; background: var(--lcd); user-select: all; }
 .bus {
   position: absolute; left: 50%; top: 30px; transform: translateX(-50%); z-index: 4;
   padding: 6px 12px; border: 2px solid var(--ink); border-radius: 8px;

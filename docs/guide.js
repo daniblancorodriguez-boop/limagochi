@@ -191,6 +191,7 @@ const TOPICS = [
     LI('⚙️ Ajustes → Vacaciones detiene el tiempo: no crece, no pasa hambre ni enferma. Vuelve cuando quieras con «Volver de vacaciones».'),
     H('No pierdas tu Limagochi'),
     LI('Se guarda solo en este dispositivo. Sigue viviendo (y envejeciendo) aunque cierres la app.'),
+    LI('☁️ Copia en la nube (☰ Menú → ⚙️ Ajustes): actívala y apunta tu código secreto de 12 letras. La partida se guarda sola cada 6 h y, con el código, la recuperas en cualquier móvil aunque se borren los datos del navegador.'),
     LI('☰ Menú → ⚙️ Ajustes → Exportar para guardar una copia; Importar para recuperarla en otro móvil.'),
     LI('📡 Avisos con la app cerrada: solo si el juego está alojado con servidor de avisos.')
   ] }

@@ -101,3 +101,6 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.24.0
 - 🏫 Colegio (niño/adolescente) y 💼 trabajo (adulto): aviso diario «el bus espera», ausencia de 5 h, aprendizaje de habilidades y palabras, sueldo y 4 rangos por profesión (`docs/school.js`).
 - Horario configurable en ⚙️ Ajustes, siempre 5 h y sin solaparse con el descanso del dueño; opción de ir sin preguntar; aviso push del bus con la app cerrada.
+
+## v3.25.0
+- ☁️ Copia en la nube: la partida se sube al Worker (`/api/save/put` y `/api/save/get`, tabla `saves` en D1) bajo un código secreto de 12 caracteres; subida automática cada 6 h y recuperación con el código en cualquier dispositivo. Si dos dispositivos usan el mismo código, el servidor avisa en vez de sobrescribir.
