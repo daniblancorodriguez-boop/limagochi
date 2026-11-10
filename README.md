@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.29.1 · salón con pared lisa
+Se quita el estampado de la pared del salón (`tools/build_bg.py` deja un degradado suave por filas); el papel de la tienda se sigue viendo encima.
+
 ## v3.29.0 · iconos propios
 - 🎨 **143 iconos nuevos** (negro con huecos transparentes, hechos con Nano Banana) en 9 hojas `docs/ico/g1…g9.png`, y los 26 que ya había: sustituyen a los emojis del sistema en todos los menús, la tienda, la comida, los logros, los trucos, los eventos… Se generan con `python3 tools/build_glyphs.py CARPETA` (hoja1…hoja9, 4×4 celdas; el blanco pasa a transparente y cada icono se centra en 96×96) y escribe `docs/glyphs_map.js` (emoji → icono).
 - `docs/glyphs.js` hace el cambio al vuelo (observa el DOM) con una máscara tintada con el color del texto; el emoji queda dentro del `<span>` (invisible), así que el texto y los lectores de pantalla no cambian. Depende del ajuste «Iconos negros»: apagado, vuelven los emojis.

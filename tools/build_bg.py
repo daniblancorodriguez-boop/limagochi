@@ -25,7 +25,13 @@ def bake(name):
         out.paste(part, (0, c))
     return out
 for n in ['salon', 'cuarto', 'estudio', 'cocina', 'jardin', 'playa']:
-    im = bake(n); im.save(os.path.join(OUT, n + '.png'), optimize=True)
+    im = bake(n)
+    if n == 'salon':                                    # pared lisa: se quita el estampado (queda solo un degradado suave)
+        a = np.array(im).astype(float)
+        for y in range(3, 50):
+            a[y] = np.median(a[y], axis=0)
+        im = Image.fromarray(a.round().astype('uint8'))
+    im.save(os.path.join(OUT, n + '.png'), optimize=True)
     if n in ('jardin', 'playa'):
         a = np.array(im).astype(int); al = np.full((72, 96), 255)
         if n == 'jardin':
