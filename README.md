@@ -107,7 +107,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.25.1
 - En el cole o el trabajo ya no enferma (tampoco por el aviso de «va a crecer» ni por la vejez); si estaba enfermo al salir, se cura.
-- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 20 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
+- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 22 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
 
 ## v3.26.0 · equilibrio de la economía
 - Vida adulta de 12 a **16 días** (vida total ≈ 22 días).
@@ -117,3 +117,10 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - Mientras está en el cole o el trabajo ya no se le puede enseñar palabras ni trucos (🎓 y 🎤).
 - `tools/economia.js`: simulador de vidas enteras (`node tools/economia.js`) con tablas de monedas, peso y días de cole/trabajo.
 - Pruebas: 20 escenarios (nuevos: cole sin enseñanza y paga, peso y barra, vida adulta de 16 días).
+
+## v3.27.0 · primeros pasos (punto 4, parte aprobada)
+- 🎁 **Regalo de bienvenida:** 20 🪙 en la primera vida de una partida nueva.
+- 🌟 **Primeros pasos:** 5 mini-misiones (dar de comer, limpiar una caca, jugar un minijuego, comprar algo, ir al cole) con 5 🪙 cada una y 10 🪙 extra al completarlas. Una única pista contextual sobre la pantalla («Tiene hambre: pulsa 🍔»), y la lista en ☰ Menú → 🌟 Primeros pasos mientras estén activos (`docs/first.js`).
+- Solo para partidas nuevas: las que ya existían no reciben regalo, misiones ni pistas (`meta.first`).
+- El desbloqueo de salas, juegos y menús por etapa queda aparcado.
+- Pruebas: 22 escenarios (nuevos: primeros pasos y partida existente sin ellos).

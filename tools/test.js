@@ -432,6 +432,7 @@ test('cole: no se le pueden enseñar palabras mientras está fuera y el cole pag
   const p = await fresh();
   const r = await p.evaluate(() => {
     const a = LIMA.api, s = a.S(), S = LIMA.school;
+    s.meta.first.on = false;                                          // sin la misión «ir al cole»: aquí se mide solo la paga
     s.stage = 'child'; s.form = 'child_good'; s.happy = 80; s.discipline = 70; s.energy = 90; s.hunger = 90; s.sleeping = false; s.poops = 0;
     let t = a.sim(6, T.at(8, 52));
     S.accept(t);
@@ -483,6 +484,62 @@ test('economía: vida adulta de 16 días y sueldos nuevos', async () => {
   const p = await fresh();
   const r = await p.evaluate(() => ({ life: LIMA.api.CFG.lifespanMin / 1440 }));
   eq(r.life, 16, 'días de vida adulta');
+  noErrors(p);
+});
+
+
+test('primeros pasos: regalo de 20 🪙, 5 misiones con premio y una pista a la vez', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(), F = LIMA.first, out = {};
+    out.gift = s.lp; out.on = F.active(); out.n0 = F.count();
+    s.stage = 'child'; s.form = 'child_good'; s.sleeping = false; s.sick = false;
+    s.hunger = 40; s.poops = 0; s.happy = 90;
+    out.hintHungry = F.hint();                                             // pendiente «comer» y tiene hambre
+    a.feed(a.FOODS.find(f => f.id === 'rice'));
+    out.afterFeed = [s.lp, F.count()];
+    s.poops = 1; out.hintPoop = F.hint();
+    document.querySelector('[data-action=clean]').click();
+    s.happy = 40; s.energy = 80; out.hintBored = F.hint();
+    a.reward({ happy: 10, energy: -5, game: 'guess', win: true, score: 3, lp: 0 });
+    out.hintShop = F.hint();
+    s.lp = Math.max(s.lp, 40);
+    a.closePanel();
+    document.querySelector('[data-action=shop]').click();
+    const cat = [...document.querySelectorAll('#panel button')].find(b => !/Cerrar|Cancelar/.test(b.textContent));
+    if (cat) cat.click();
+    const buyBtn = [...document.querySelectorAll('#panel button')].find(b => /\d+🪙/.test(b.textContent) && !b.disabled);
+    if (buyBtn) buyBtn.click();
+    a.closePanel();
+    out.n4 = F.count();
+    const lp4 = s.lp;
+    let t = a.sim(6, T.at(8, 52)); LIMA.school.accept(t); a.sim(330, t);   // ir al cole
+    out.final = [F.count(), F.active(), s.lp - lp4];
+    out.hintEnd = F.hint(); out.menu = (() => { a.closePanel(); a.openMenu(); return [...document.querySelectorAll('#panel button')].some(b => /Primeros pasos/.test(b.textContent)); })();
+    out.bad = T.broken().concat(T.bars());
+    return out;
+  });
+  eq(r.gift, 20, 'regalo de bienvenida'); ok(r.on, 'primeros pasos activos en partida nueva'); eq(r.n0, 0, 'misiones al empezar');
+  ok(/hambre/i.test(r.hintHungry), 'pista de hambre: ' + r.hintHungry);
+  eq(r.afterFeed[1], 1, 'misión de comer'); eq(r.afterFeed[0], 25, 'regalo 20 + 5 de la misión de comer');
+  ok(/caca/i.test(r.hintPoop), 'pista de caca: ' + r.hintPoop);
+  ok(/aburrido/i.test(r.hintBored), 'pista de jugar: ' + r.hintBored);
+  ok(/tienda|🛒|🪙/.test(r.hintShop), 'pista de comprar: ' + r.hintShop);
+  eq(r.n4, 4, 'cuatro misiones antes del cole');
+  eq(r.final[0], 5, 'las 5 misiones'); eq(r.final[1], false, 'terminado: ya no está activo');
+  ok(r.final[2] >= 5 + 10 + 3, 'premio de la misión + bonus + paga del cole: ' + r.final[2]);
+  eq(r.hintEnd, '', 'sin pista al terminar'); ok(!r.menu, 'el botón del menú desaparece al terminar');
+  eq(r.bad.join(','), '', 'valores rotos');
+  noErrors(p);
+});
+
+test('primeros pasos: una partida que ya existía no recibe regalo ni misiones', async () => {
+  const p = await fresh();
+  const save = await p.evaluate(() => { const o = JSON.parse(LIMA.api.getSave()); o.lp = 0; delete o.meta.first; return JSON.stringify(o); });
+  await p.context().addInitScript(`localStorage.setItem('limagochi.v1', ${JSON.stringify(save)});`);     // se aplica al recargar, después de que la página vieja guarde
+  await p.reload(); await p.waitForFunction(() => window.LIMA && LIMA.api && LIMA.api.S()); await p.evaluate(() => LIMA.api.closePanel());
+  const r = await p.evaluate(() => ({ lp: LIMA.api.S().lp, on: LIMA.first.active(), hint: LIMA.first.hint() }));
+  eq(r.lp, 0, 'sin regalo en una partida existente'); eq(r.on, false, 'sin misiones'); eq(r.hint, '', 'sin pistas');
   noErrors(p);
 });
 

@@ -82,7 +82,7 @@ const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;
 
 /* ---- datos ---- */
-function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false, gifts: {}, giftDay: { d: '', n: 0 }, lastGift: null, history: [], lives: 0 }; }
+function blankMeta() { return { album: {}, ach: {}, stats: { fed: 0, snacks: 0, gourmet: 0, cleans: 0, heals: 0, scolds: 0, played: 0, wins: {}, best: {}, lpEarned: 0, nightSleeps: 0, events: {}, showers: 0, visits: 0 }, friends: {}, letters: [], souvenirs: {}, story: {}, bugs: {}, bugsDone: false, gifts: {}, giftDay: { d: '', n: 0 }, lastGift: null, history: [], lives: 0, first: { on: false, fin: false, done: {} } }; }
 /** Rellena huecos de una meta antigua o incompleta. */
 function fixMeta(m) {
   const b = blankMeta();
@@ -99,6 +99,7 @@ function fixMeta(m) {
       age: Number(x.age) || 0, cause: String(x.cause || 'vejez').slice(0, 12), lp: Number(x.lp) || 0, mistakes: Number(x.mistakes) || 0, books: Number(x.books) || 0, tricks: Number(x.tricks) || 0,
       tal: Object.fromEntries(['painting', 'writing', 'music', 'cooking', 'gardening', 'fishing', 'sport'].map(k => [k, Number(x.tal && x.tal[k]) || 0])) })),
     lives: Number(m.lives) || 0,
+    first: { on: !!(m.first && m.first.on), fin: !!(m.first && m.first.fin), done: Object.fromEntries(['feed', 'clean', 'play', 'buy', 'school'].filter(k => m.first && m.first.done && m.first.done[k]).map(k => [k, 1])) },
     lastGift: m.lastGift && typeof m.lastGift.url === 'string' && m.lastGift.url.length < 700 ? { url: m.lastGift.url, name: String(m.lastGift.name || '🎁').slice(0, 40), ts: Number(m.lastGift.ts) || 0 } : null };
 }
 const meta = () => A().S().meta;

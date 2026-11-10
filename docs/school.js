@@ -149,7 +149,7 @@ function finish(now, quiet) {
     if (w) notes.push(w);
     s.happy = Math.min(100, s.happy + (f > 0.8 ? 6 : 2));
     s.discipline = Math.min(100, s.discipline + 1.5 * f);
-    s.lp += SCHOOL_PAY; L.progress.stat('lpEarned', SCHOOL_PAY);
+    s.lp += SCHOOL_PAY; L.progress.stat('lpEarned', SCHOOL_PAY); L.first && L.first.did('school');
     notes.unshift(`un poco de cada habilidad, +${SCHOOL_PAY} 🪙 de paga`);
     sch.last = `🏫 Volvió del cole: ${notes.join(', ')}.`;
   } else {

@@ -252,7 +252,7 @@ function present() {
   }
   vctx.putImageData(outImg, 0, 0);
 }
-const msgEl = $('#msg'), hudEl = $('#hud'), alertEl = $('#alert'), panel = $('#panel');
+const hintEl = $('#hint'), msgEl = $('#msg'), hudEl = $('#hud'), alertEl = $('#alert'), panel = $('#panel');
 const roomPickEl = $('#roomPick'), chipsEl = $('#chips'), chipName = $('#chipName'), chipGo = $('#chipGo'), stageEl = $('.stage');
 const iconBtns = $$('#icons button');
 const meterEls = $$('.meter');
@@ -623,6 +623,7 @@ function feed(f) {
   s.discipline = clamp(s.discipline + f.disc);
   s.weight = clamp(s.weight + f.weight * (f.grp === 'healthy' ? CFG.healthyWeightK : 1), minW(), 99);
   s.food[f.diet]++;
+  L.first && L.first.did('feed');
   L.progress.stat('fed'); if (f.cat === 'snack') L.progress.stat('snacks'); if (f.gourmet) L.progress.stat('gourmet');
   s.sweetLoad += f.sweet || 0;
   fx('eat', 2600, { food: f }); Sound.play('eat');
@@ -637,7 +638,7 @@ function feed(f) {
 function clean() {
   if (!canInteract()) return;
   if (!state.poops && !state.art.length) { setMsg('Todo está limpio'); return; }
-  state.art = []; state.poops = 0; state.flags.poop = false; L.progress.stat('cleans');
+  state.art = []; state.poops = 0; state.flags.poop = false; L.progress.stat('cleans'); L.first && L.first.did('clean');
   state.happy = clamp(state.happy + 5);
   fx('clean', 1400); Sound.play('clean'); setMsg('¡Limpio y reluciente!');
   Store.save();
@@ -764,6 +765,7 @@ function openMenu() {
     menuBtn('mail', '✉️', 'Buzón', un ? `(${un})` : '', () => L.mail.open(openMenu)),
     menuBtn('visit', '🤝', 'Visitas', '', () => L.visit.open(openMenu)),
     menuBtn('voice', '🎓', 'Trucos y palabras', '', () => L.voice && L.voice.open()),
+    ...(L.first && L.first.active() ? [menuBtn('logros', '🌟', 'Primeros pasos', `${L.first.count()}/${L.first.steps.length}`, () => L.first.open(openMenu))] : []),
     menuBtn('guide', '❓', 'Guía', '', () => L.guide.open(openMenu)),
     menuBtn('settings', '⚙️', 'Ajustes', '', () => L.backup.openSettings(openMenu)),
     menuBtn(state.stage === 'adult' ? 'work' : 'school', state.stage === 'adult' ? '💼' : '🏫', state.stage === 'adult' ? 'Trabajo' : 'Colegio', '', () => L.school.open(openMenu)),
@@ -1104,7 +1106,7 @@ function buy(item) {
   s.lp -= item.cost;
   if (item.gourmet || item.inv) s.inv[item.id] = (s.inv[item.id] || 0) + 1;
   else { s.owned.push(item.id); if (item.type === 'bg') s.bg = item.key; if (item.id === 'apple') s.garden.apple = { m: 0, wet: WET, fruits: 0, fm: 0 }; }
-  Sound.play('coin'); setMsg(`Comprado: ${item.name}`);
+  Sound.play('coin'); setMsg(`Comprado: ${item.name}`); L.first && L.first.did('buy');
   Store.save(); render(); openShop(shopCat);
 }
 
@@ -1112,7 +1114,7 @@ function buySeed(k) {
   const s = state;
   if (s.lp < SEED_COST) { setMsg('Te faltan Lima Points'); return; }
   s.lp -= SEED_COST; s.inv['seed_' + k] = (s.inv['seed_' + k] || 0) + 1;
-  Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); Store.save(); render(); openShop(shopCat);
+  Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); L.first && L.first.did('buy'); Store.save(); render(); openShop(shopCat);
 }
 
 /* ============================== MINIJUEGOS ============================== */
@@ -1151,7 +1153,7 @@ function reward({ happy = 0, energy = 0, hunger = 0, weight = 0, lp = 0, game, w
   fx('happy', 1800);
   Sound.play(lp > 0 ? 'win' : 'sad');
   setMsg(`${msg}${lp ? ` +${lp} 🪙${ev ? ' ×2' : ''}` : ''}`, 3500);
-  if (game) L.progress.game(game, win, score, lp);
+  if (game) { L.progress.game(game, win, score, lp); L.first && L.first.did('play'); }
   Store.save(); render();
 }
 
@@ -1837,6 +1839,8 @@ function render() {
   $('#lp').textContent = `🪙 ${s.lp}`;
   const mini = !!(L.mini && L.mini.active());
   chipsEl.hidden = mini || s.stage === 'egg' || s.stage === 'dead';
+  const hintTxt = (!mini && !s.pause && !s.sleeping && !L.school.isAway() && s.stage !== 'egg' && s.stage !== 'dead' && L.first) ? L.first.hint() : '';
+  hintEl.hidden = !hintTxt; hintEl.textContent = hintTxt;
   chipName.textContent = ROOMNAME[here()];
   chipGo.textContent = '→ ' + ROOMICON[NEXTROOM[here()]];
   chipGo.setAttribute('aria-label', 'Ir a: ' + ROOMNAME[NEXTROOM[here()]]);
@@ -2192,6 +2196,7 @@ function init() {
   lastKeys = new Set(attention().map(r => r.key));
   recordCurrent();
   L.mail && L.mail.poll();
+  if (!saved && L.first) L.first.welcome();              // partida nueva: regalo de bienvenida y primeros pasos
   if (!saved) {                                          // primera vez: abre la guía
     let seen = false;
     try { seen = localStorage.getItem('limagochi.guide') === '1'; localStorage.setItem('limagochi.guide', '1'); } catch { /* */ }

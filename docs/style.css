@@ -349,3 +349,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .rp:active { background: var(--lcd); }
 .rp-dot { position: absolute; top: 1px; right: 1px; width: 9px; height: 9px; border-radius: 50%; background: #e0392f; border: 1px solid var(--ink); }
 .stage:has(.panel:not([hidden])) .roompick { display: none; }
+
+/* primeros pasos: pista contextual */
+.hint { position: absolute; left: 6px; right: 6px; bottom: 30px; z-index: 3; padding: 2px 6px; font-size: 10px; font-weight: 800; text-align: center;
+  color: var(--ink); background: rgba(212, 229, 164, .92); border: 1px solid var(--ink); border-radius: 8px; pointer-events: none; }
+.hint[hidden] { display: none; }
+.stage:has(.panel:not([hidden])) .hint { display: none; }
