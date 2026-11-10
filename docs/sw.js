@@ -4,10 +4,11 @@
    · Web Push: muestra el aviso salvo que la app esté a la vista.
    · Al tocar un aviso enfoca (o abre) la app.
    ========================================================================== */
-const VERSION = 'limagochi-v3.27.0';
+const VERSION = 'limagochi-v3.28.0';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.json',
   'sprites.js', 'items.js', 'config.js', 'audio.js', 'world.js', 'notify.js', 'bugs.js', 'forms2.js', 'progress.js', 'guide.js', 'backup.js', 'lib/qrcode.js', 'mail.js', 'visit.js', 'minigames.js', 'games2.js', 'studio.js', 'kitchen.js', 'school.js', 'voice.js', 'first.js', 'game.js',
+  'bg/salon.png', 'bg/cuarto.png', 'bg/estudio.png', 'bg/cocina.png', 'bg/jardin.png', 'bg/jardin_k.png', 'bg/playa.png', 'bg/playa_k.png',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
   'ico/album.png', 'ico/bugs.png', 'ico/clean.png', 'ico/clean2.png', 'ico/disc.png', 'ico/egg.png', 'ico/energy.png', 'ico/feed.png', 'ico/guide.png', 'ico/happy.png', 'ico/heal.png', 'ico/history.png', 'ico/work.png', 'ico/school.png', 'ico/hunger.png', 'ico/light.png', 'ico/logros.png', 'ico/mail.png', 'ico/play.png', 'ico/scold.png', 'ico/settings.png', 'ico/shop.png', 'ico/shower.png', 'ico/status.png', 'ico/teach.png', 'ico/visit.png', 'ico/voice.png'
 ];

@@ -33,7 +33,6 @@ function buildBackup() {
     app: 'limagochi', format: 1, exported: new Date().toISOString(),
     save: JSON.parse(A().getSave()),
     settings: L.settings.all(),
-    lcd: rd('limagochi.lcd') === '1',
     shell: rd('limagochi.shell') || null
   };
 }
@@ -75,10 +74,8 @@ function importText(text) {
   if (!A().replaceState(d.save)) return { ok: false, msg: 'No se pudo cargar la partida' };
   if (d.settings) L.settings.replace(d.settings);
   try {
-    localStorage.setItem('limagochi.lcd', d.lcd ? '1' : '0');
     if (typeof d.shell === 'string' && /^#[0-9a-f]{6}$/i.test(d.shell)) { localStorage.setItem('limagochi.shell', d.shell); document.documentElement.style.setProperty('--shell', d.shell); }
   } catch { /* */ }
-  A().setLcd(!!d.lcd);
   return { ok: true, msg: '✅ Partida importada' };
 }
 

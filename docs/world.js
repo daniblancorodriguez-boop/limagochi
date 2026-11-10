@@ -84,24 +84,23 @@ const T = c => (L.api && L.api.tint ? L.api.tint(c) : c);
 const px = (g, x, y, w, h, c) => { g.fillStyle = T(c); g.fillRect(x, y, w, h); };
 const draw = (g, x, y, rows, map) => rows.forEach((r, j) => [...r].forEach((ch, i) => { if (map[ch]) px(g, x + i, y + j, 1, 1, map[ch]); }));
 
-function skyColors(lcd) {
+function skyColors() {
   const p = phase();
-  if (lcd) return { day: '#d4e5a4', dusk: '#b8d474', night: '#3f5a28' }[p];
   return { day: '#d4e5a4', dusk: '#ecd49a', night: '#27324f' }[p];
 }
 
-function sky(g, W, H, t, lcd) {
+function sky(g, W, H, t) {
   const p = phase();
-  g.fillStyle = skyColors(lcd); g.fillRect(0, 0, W, H);
+  g.fillStyle = skyColors(); g.fillRect(0, 0, W, H);
   if (p === 'night') {
-    const star = lcd ? '#b8d474' : '#f7fbe6';
+    const star = '#f7fbe6';
     [[4, 3], [11, 8], [19, 4], [27, 10], [33, 3], [44, 8], [8, 15], [40, 16], [23, 14]].forEach(([x, y], i) => {
       if ((Math.floor(t / 600) + i) % 5) px(g, x, y, 1, 1, star);
     });
-    draw(g, 38, 4, ['.hhh.', 'hhh..', 'hh...', 'hhh..', '.hhh.'], { h: lcd ? '#d4e5a4' : '#f4ecc8' });      // luna
+    draw(g, 38, 4, ['.hhh.', 'hhh..', 'hh...', 'hhh..', '.hhh.'], { h: '#f4ecc8' });      // luna
   } else if (p === 'dusk') {
-    px(g, 0, 26, W, 7, lcd ? '#d4e5a4' : '#f3b98a');                                                           // franja de atardecer
-    px(g, 0, 22, W, 4, lcd ? '#c9de92' : '#f6cf95');
+    px(g, 0, 26, W, 7, '#f3b98a');                                                           // franja de atardecer
+    px(g, 0, 22, W, 4, '#f6cf95');
   }
 }
 

@@ -13,7 +13,6 @@ const Sound = L.sound;
 /* ============================== CONFIG ================================== */
 const CFG = {
   saveKey: 'limagochi.v1',
-  lcdKey: 'limagochi.lcd',
   shellKey: 'limagochi.shell',
   maxOfflineMin: 14 * 1440,           // máximo que se simula al volver (14 días)
   dayMin: 1440,                       // 1 día de vida = 24 h reales
@@ -112,7 +111,7 @@ const itemSize = id => { const r = L.ITEMS[id].hd.rows[0]; return { w: Math.ceil
 /* los muebles grandes se apoyan en el suelo (y = 34 − alto) aunque cambie su dibujo */
 /* lámpara: al fondo junto al cabecero de la cama, más pequeña (k) y apoyada en y = 26 */
 const LAMP = { x: 21, y: 26, k: 0.8 };
-const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 3, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
+const ROOM = { bed: { x: 0, y: 34 - itemSize('bed').h }, sofa: { x: 26, y: 34 - itemSize('sofa').h }, tv: { x: 2, y: 11 }, lamp: { x: 27, y: 34 - itemSize('lamp').h }, plant: { x: 19, y: 34 - itemSize('plant').h }, picture: { x: 5, y: 2 }, rug: { x: 12, y: 24 } };
 /* dos cuartos: salón (sofá, tele, planta, alfombra, pelota, peluche) y habitación (cama, lámpara, cuadro) */
 const ROOMOF = { sofa: 'salon', tv: 'salon', plant: 'salon', rug: 'salon', ball: 'salon', plush: 'salon', bed: 'bedroom', lamp: 'bedroom', picture: 'bedroom', flowers: 'garden', can: 'garden', lounger: 'garden', plot: 'garden', apple: 'garden', pool: 'garden', easel: 'studio', desk: 'studio', piano: 'studio' };
 const NEXTROOM = { salon: 'bedroom', bedroom: 'garden', garden: 'studio', studio: 'kitchen', kitchen: 'salon' };
@@ -1195,14 +1194,8 @@ function pick(dir) {
 /* ============================== RENDER ================================== */
 const C = { ink: '#1d2a12', dark: '#3f5a28', mid: '#7d9f45', light: '#b8d474', bg: '#d4e5a4', poop: '#6b4a1f' };
 const SICK = { l: 'N', g: 'm', G: 'M', f: 'N', q: 'm', Q: 'M' };
-let lcdMode = false;
-try { lcdMode = localStorage.getItem(CFG.lcdKey) === '1'; } catch { /* */ }
-
-const lum = h => { const n = parseInt(h.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255); };
-const LCDTONE = {};
-for (const ch in PAL) { const l = lum(PAL[ch]); LCDTONE[ch] = l < 50 ? C.ink : l < 110 ? C.dark : l < 170 ? C.mid : l < 232 ? C.light : C.bg; }
-const tint = c => { if (!lcdMode) return c; const l = lum(c); return l < 50 ? C.ink : l < 110 ? C.dark : l < 170 ? C.mid : l < 232 ? C.light : C.bg; };
-const colorOf = (ch, sick) => { if (sick && SICK[ch]) ch = SICK[ch]; return lcdMode ? LCDTONE[ch] : PAL[ch]; };
+const tint = c => c;                                   // (antes pasaba los colores al modo LCD; ya no existe, se deja como identidad)
+const colorOf = (ch, sick) => { if (sick && SICK[ch]) ch = SICK[ch]; return PAL[ch]; };
 
 function drawSprite(rows, x, y, o = {}) {
   const sc = o.scale || 1;
@@ -1230,12 +1223,13 @@ function fx(type, dur = 1500, data = null) { current = { type, start: Date.now()
 
 const R1 = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 
-function drawWallpaper() {
+function drawWallpaper(over) {                          // over: dibujado encima del fondo ilustrado (trazo blanco suave)
+  const lt = over ? 'rgba(255,255,255,.4)' : C.light, md = over ? 'rgba(255,255,255,.55)' : C.mid;
   switch (state.bg) {
-    case 'dots':   for (let y = 2; y < 31; y += 5) for (let x = (y / 5 | 0) % 2 ? 2 : 0; x < W; x += 5) R1(x, y, 1, 1, C.light); break;
-    case 'clouds': [[4, 5], [28, 9], [18, 15]].forEach(([x, y]) => { R1(x, y + 2, 10, 3, C.light); R1(x + 2, y, 6, 2, C.light); }); break;
-    case 'stars':  [[5, 4], [14, 10], [26, 5], [38, 12], [9, 19], [33, 22], [42, 4]].forEach(([x, y]) => { R1(x, y - 1, 1, 3, C.mid); R1(x - 1, y, 3, 1, C.mid); }); break;
-    case 'bricks': for (let y = 0; y < 33; y += 6) { R1(0, y, W, 1, C.light); for (let x = (y / 6 | 0) % 2 ? 4 : 0; x < W; x += 8) R1(x, y, 1, 6, C.light); } break;
+    case 'dots':   for (let y = 2; y < 31; y += 5) for (let x = (y / 5 | 0) % 2 ? 2 : 0; x < W; x += 5) R1(x, y, 1, 1, lt); break;
+    case 'clouds': [[4, 5], [28, 9], [18, 15]].forEach(([x, y]) => { R1(x, y + 2, 10, 3, lt); R1(x + 2, y, 6, 2, lt); }); break;
+    case 'stars':  [[5, 4], [14, 10], [26, 5], [38, 12], [9, 19], [33, 22], [42, 4]].forEach(([x, y]) => { R1(x, y - 1, 1, 3, md); R1(x - 1, y, 3, 1, md); }); break;
+    case 'bricks': for (let y = 0; y < 33; y += 6) { R1(0, y, W, 1, lt); for (let x = (y / 6 | 0) % 2 ? 4 : 0; x < W; x += 8) R1(x, y, 1, 6, lt); } break;
   }
 }
 
@@ -1415,18 +1409,18 @@ function drawPet(now, frame, f) {
   else if (s.sick || avg < 30) face = 'sad';
   else if (avg > 78) face = 'happy';
   const rows = set[face] || set.idle;
+  if (s.pause && s.stage !== 'dead' && bgOk('playa')) { drawBeachPet(now, rows); return; }      // vacaciones: tumbado en la tumbona con gafas
 
   let flip = false, rot = false, inv = false;
   const u = s.room.use;
   let bx = 12, by = 11, slot = null;
   if (guess.active) by = 1;                                                   // arriba, para que el panel de Adivina no lo tape
-  else if (s.pause) { bx = 16; by = 12; }                                    // tumbado bajo la sombrilla
   else if (here() === 'kitchen' && L.kitchen.cooking()) { const sp = L.kitchen.petPos(); bx = sp.x; by = sp.y; }
   else if (here() === 'studio' && L.studio.working()) { const sp = L.studio.petPos(); bx = sp.x; by = sp.y; }
   else if (u === 'sit') { bx = ROOM.sofa.x - 3; by = ROOM.sofa.y - 13; slot = 'sofa'; }
   else if (u === 'lie') { bx = ROOM.sofa.x - 1; by = ROOM.sofa.y - 8; slot = 'sofa'; }
   else if (u === 'bed' || (s.sleeping && has('bed') && !s.sick)) { bx = ROOM.bed.x + 10 - 12; by = ROOM.bed.y + 3 - topRow(rows); slot = 'bed'; }
-  else if (u === 'tv' || u === 'fit') { bx = 18; by = 11 - (u === 'fit' ? Math.floor(now / 250) % 2 * 2 : 0); }
+  else if (u === 'tv' || u === 'fit') { bx = 20; by = 11 - (u === 'fit' ? Math.floor(now / 250) % 2 * 2 : 0); }
   else if (u === 'sun') { bx = 31; by = 19; slot = 'sun'; }
   else if (u === 'pool') { bx = 30; by = 12 - frame; slot = 'pool'; }
   else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
@@ -1517,6 +1511,23 @@ function drawItem(id, x, y, variant = 0, fromRow = 0) {
     g.fillRect(x + i / 2, y + j / 2, 0.5, 0.5);
   }
 }
+/** La tele: apagada es estática; encendida, la imagen «tiembla» (filas de píxeles que se desplazan) y una franja de luz la recorre. */
+function drawTv(x, y, on, now) {
+  const it = L.ITEMS.tv.hd, rows = it.rows[on ? 1 : 0], n = rows.length, w = rows[0].length;
+  const s0 = Math.round(n * 0.08), s1 = Math.round(n * 0.86), tk = Math.floor(now / 130), roll = s0 + (tk % (s1 - s0));
+  for (let j = 0; j < n; j++) {
+    const inScr = on && j >= s0 && j < s1;
+    const dx = inScr && ((tk * 7 + j * 13) % 9 === 0) ? ((tk + j) % 2 ? 1 : -1) : 0;
+    for (let i = 0; i < w; i++) {
+      const c = rows[j][i]; if (c === '.') continue;
+      let di = i;
+      if (dx && i >= 2 && i < w - 2) { di = i + dx; if (di < 2 || di >= w - 2) continue; }
+      g.fillStyle = it.pal[c.charCodeAt(0) - 97];
+      g.fillRect(x + di / 2, y + j / 2, 0.5, 0.5);
+      if (inScr && j === roll && i >= 2 && i < w - 2) { g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(x + di / 2, y + j / 2, 0.5, 0.5); }
+    }
+  }
+}
 function drawHouse(now) {
   const s = state, o = { includes: has };
   if (here() === 'garden') drawGarden(now);
@@ -1531,7 +1542,7 @@ function drawHouse(now) {
   if (o.includes('tv')) {
     const t = ROOM.tv, w = itemSize('tv').w;
     const th = itemSize('tv').h; R1(t.x - 1, t.y + th, w + 2, 1, C.ink); R1(t.x, t.y + th + 1, w, 1, C.dark);              // estante
-    drawItem('tv', t.x, t.y, s.room.tv ? 1 : 0);
+    drawTv(t.x, t.y, !!s.room.tv, now);
   }
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
   if (o.includes('ball')) {
@@ -1780,11 +1791,86 @@ function openApple() {
   openPanel(nodes);
 }
 
+
+/* ============================ FONDOS ILUSTRADOS ============================ */
+/* Imágenes de docs/bg/ (96×72, hechas con tools/build_bg.py). Si una no carga, se usa el dibujo de código. */
+const BG = {};
+['salon', 'cuarto', 'estudio', 'cocina', 'jardin', 'jardin_k', 'playa', 'playa_k'].forEach(n => {
+  const im = new Image(); im.onload = () => { try { render(); } catch { /* aún sin partida */ } }; im.src = 'bg/' + n + '.png'; BG[n] = im;
+});
+const bgOk = n => !!(BG[n] && BG[n].complete && BG[n].naturalWidth);
+/** Interior: la imagen (con el papel de la tienda por encima en salón y cuarto) y el tinte de atardecer/noche. */
+function bgIndoor(name, wall) {
+  if (!bgOk(name)) return false;
+  g.drawImage(BG[name], 0, 0, W, H);
+  if (wall) drawWallpaper(true);
+  const ph = cycleOn() ? L.world.phase() : 'day';
+  if (ph === 'night') { g.fillStyle = 'rgba(14,22,70,.66)'; g.fillRect(0, 0, W, H); }
+  else if (ph === 'dusk') { g.fillStyle = 'rgba(240,140,80,.22)'; g.fillRect(0, 0, W, H); }
+  return true;
+}
+LIMA.bgIndoor = bgIndoor;
+/** Exterior: de día la imagen entera; al atardecer y de noche manda el cielo del juego (la imagen sin cielo va encima). */
+function bgOutdoor(name, now) {
+  if (!bgOk(name) || !bgOk(name + '_k')) return false;
+  const ph = L.world.phase(), dusk = ph === 'dusk';
+  if (ph === 'day') g.drawImage(BG[name], 0, 0, W, H);
+  else { if (dusk) { P(0, 0, 96, 68, '#f6b27a'); P(0, 40, 96, 16, '#f59a7c'); P(0, 56, 96, 12, '#e87f7f'); gdisc(78, 26, 4, '#ffe08a'); } g.drawImage(BG[name + '_k'], 0, 0, W, H); }
+  if (ph !== 'night') {
+    if (!dusk) gdisc(78, 9, 4, '#ffe45c');
+    [[10, 7], [36, 4], [56, 10]].forEach(([x, y], i) => { const cx = Math.floor(x + now / 1500 * (1 + i * 0.3)) % 110 - 14; P(cx, y, 12, 2, '#fff'); P(cx + 2, y - 1, 7, 1, '#fff'); P(cx + 3, y + 2, 7, 1, '#e8f4ff'); });
+  }
+  return true;
+}
+
+/* ------------------------- playa: sombrilla y tumbona ------------------------- */
+const LOUNGE = { x: 6, y: 26 };
+function drawBeachLounge() {
+  const x0 = LOUNGE.x, y0 = LOUNGE.y, ux = 25;
+  R1(ux, 11, 1, 16, '#6b4a1f');                                                            // sombrilla
+  [[8, ux - 7, ux + 7], [9, ux - 9, ux + 9], [10, ux - 11, ux + 11]].forEach(([yy, a, b]) => { for (let xx = a; xx <= b; xx++) R1(xx, yy, 1, 1, ((xx - a) >> 1) % 2 ? '#f7fbe6' : '#e0523f'); });
+  R1(x0 + 2, y0 + 7, 31, 1, '#d9bd7c');                                                    // sombra en la arena
+  R1(x0 + 6, y0 + 3, 1, 4, '#cfd6de'); R1(x0 + 28, y0 + 3, 1, 4, '#cfd6de');             // patas
+  for (let i = 0; i < 8; i++) { const hh = Math.round((8 - i) * 0.5); R1(x0 + i, y0 - hh, 1, 3 + hh, '#2b7fc4'); R1(x0 + i, y0 - hh, 1, 1, '#6ec6ff'); }   // respaldo
+  R1(x0 + 8, y0, 24, 3, '#2b7fc4'); R1(x0 + 8, y0, 24, 1, '#6ec6ff');                     // asiento
+  for (let i = 11; i < 31; i += 3) R1(x0 + i, y0 + 1, 1, 2, '#fff');
+  R1(x0 - 1, y0 - 6, 4, 3, '#fff8e6'); R1(x0 - 1, y0 - 4, 4, 1, '#e6d8b8');                // almohada
+}
+/** Gafas de sol: una banda oscura a la altura de los ojos (se detectan en el dibujo de cada forma). */
+function eyeBand(rows) {
+  let top = topRow(rows), bot = top, minI = 24, maxI = 0;
+  rows.forEach((r, j) => { if (/[^.]/.test(r)) { bot = j; for (let i = 0; i < 24; i++) if (r[i] !== '.') { minI = Math.min(minI, i); maxI = Math.max(maxI, i); } } });
+  const h = bot - top + 1; let ey = -1, ex0 = 99, ex1 = -1;
+  for (let j = top + Math.floor(h * 0.25); j <= top + Math.ceil(h * 0.6) && j <= bot; j++) {
+    for (let i = 1; i < 23; i++) if (rows[j][i] === 'K' && rows[j][i - 1] !== '.' && rows[j][i - 1] !== 'K' && rows[j][i + 1] !== '.' && rows[j][i + 1] !== 'K') {
+      if (ey < 0) ey = j;
+      if (j <= ey + 1) { ex0 = Math.min(ex0, i); ex1 = Math.max(ex1, i); }
+    }
+    if (ey >= 0) break;
+  }
+  if (ey < 0 || ex1 - ex0 < 2) { const w = maxI - minI + 1; ey = top + Math.round(h * 0.42); ex0 = minI + Math.round(w * 0.28); ex1 = maxI - Math.round(w * 0.28); }
+  return { x: ex0 - 1, y: ey, w: ex1 - ex0 + 3, minI, maxI, top, bot };
+}
+/** Vacaciones: el Limagochi tumbado en la tumbona (aplastado y reclinado hacia el respaldo), con gafas de sol. */
+function drawBeachPet(now, rows) {
+  const e = eyeBand(rows), ratio = 0.72, K = Math.round((e.bot - e.top + 1) * ratio), lift = Math.floor(now / 900) % 2 ? 1 : 0;
+  const y0 = LOUNGE.y - K + 1 - lift, xb = LOUNGE.x + 20 - 12, sick = state.sick;
+  const sh = k => -Math.round((K - 1 - k) * 0.3);
+  for (let k = 0; k < K; k++) {
+    const r = rows[e.top + Math.min(e.bot - e.top, Math.floor(k / ratio))];
+    for (let i = 0; i < 24; i++) if (r[i] !== '.') R1(xb + i + sh(k), y0 + k, 1, 1, colorOf(r[i], sick));
+  }
+  const gk = Math.min(K - 1, Math.round((e.y - e.top) * ratio)), gx = xb + e.x + sh(gk);
+  R1(gx, y0 + gk, e.w, 1, '#15151f'); R1(gx + 1, y0 + gk, 1, 1, '#8a9ac0'); R1(gx + e.w - 2, y0 + gk, 1, 1, '#8a9ac0');   // gafas
+  if (Math.floor(now / 700) % 2) { R1(LOUNGE.x + 29, LOUNGE.y - 12, 1, 1, '#fff8c0'); R1(LOUNGE.x + 28, LOUNGE.y - 11, 3, 1, '#fff8c0'); R1(LOUNGE.x + 29, LOUNGE.y - 10, 1, 1, '#fff8c0'); }   // destello de sol
+}
+
 /** Ventana: salón (centro) y habitación (con luna de noche). */
 function drawWindow(now) {
   const bed = here() === 'bedroom', x = bed ? 31 : 22, y = 3, w = 11, h = 10;
   R1(x - 1, y - 1, w + 2, h + 2, C.ink);
-  R1(x, y, w, h, bed ? C.mid : C.light);
+  const ph0 = cycleOn() ? L.world.phase() : 'day';
+  R1(x, y, w, h, ph0 === 'night' ? '#16224d' : ph0 === 'dusk' ? '#f2a56a' : '#8fc8ff');
   R1(x + w / 2 - 0.5, y, 1, h, C.ink); R1(x, y + h / 2 - 0.5, w, 1, C.ink);
   if (bed && cycleOn() && L.world.isNight()) { R1(x + 2, y + 1, 2, 2, C.bg); }
 }
@@ -1795,16 +1881,17 @@ function drawScene(now) {
   const f = current;
 
   const gar = here() === 'garden';
-  L.world.sky(g, W, H, now, lcdMode);
+  L.world.sky(g, W, H, now);
   const stu = here() === 'studio' || here() === 'kitchen';
-  if (gar) drawGardenBack(now); else if (here() === 'studio') L.studio.drawBack(); else if (here() === 'kitchen') L.kitchen.drawBack(); else drawWallpaper();
+  const bgDone = s.pause ? bgOutdoor('playa', now) : gar ? bgOutdoor('jardin', now) : stu ? false : bgIndoor(here() === 'bedroom' ? 'cuarto' : 'salon', true);
+  if (!bgDone) { if (gar) drawGardenBack(now); else if (here() === 'studio') L.studio.drawBack(); else if (here() === 'kitchen') L.kitchen.drawBack(); else drawWallpaper(); }
   L.world.decor(g, L.world.event(), now, W, H);
-  if (s.pause) drawBeach(now); else if (!gar && !stu) drawWindow(now);
-  if (!gar && !stu) for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
+  if (s.pause) { if (bgDone) drawBeachLounge(); else drawBeach(now); } else if (!gar && !stu) drawWindow(now);
+  if (!gar && !stu && !s.pause && !bgDone) for (let x = 0; x < W; x += 2) R1(x, 33, 1, 1, C.dark);
 
   if (!gar && !stu) for (const [x, y, w, h] of state.art) R1(x, y, w, h, C.dark);       // garabatos (los muebles quedan por delante)
-  drawHouse(now);
-  if (gar && cycleOn() && L.world.isNight()) { g.fillStyle = 'rgba(10,20,60,.38)'; g.fillRect(0, 0, W, H); }
+  if (!s.pause) drawHouse(now);
+  if ((gar || s.pause) && cycleOn() && L.world.isNight()) { g.fillStyle = 'rgba(10,20,60,.38)'; g.fillRect(0, 0, W, H); }
   if (here() === 'studio') L.studio.drawFx(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   if (!L.school.isAway()) drawPet(now, frame, f);
@@ -1986,7 +2073,6 @@ function drawKeys() { ['A', 'B', 'C'].forEach(k => { $('#key' + k).innerHTML = p
 function setToolIcons() {
   $('#btnSound').textContent = Sound.enabled() ? '🔊' : '🔇';
   $('#btnNotify').textContent = L.notify && L.notify.enabled() ? '🔔' : '🔕';
-  $('#btnLcd').textContent = lcdMode ? '🟩' : '🎨';
 }
 
 function bindUI() {
@@ -2049,10 +2135,6 @@ function bindUI() {
   const applyGrid = () => { stageEl.classList.toggle('grid', gridOn); $('#btnGrid').textContent = gridOn ? '▦' : '▢'; };
   applyGrid();
   $('#btnGrid').addEventListener('click', () => { gridOn = !gridOn; try { localStorage.setItem('limagochi.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); });
-  $('#btnLcd').addEventListener('click', () => {
-    lcdMode = !lcdMode; try { localStorage.setItem(CFG.lcdKey, lcdMode ? '1' : '0'); } catch { /* */ }
-    setToolIcons(); render();
-  });
   $('#btnNotify').addEventListener('click', async () => {
     if (!L.notify) return;
     const r = await L.notify.toggle();
@@ -2092,7 +2174,6 @@ function replaceState(raw) {
   closePanel(); Store.save(); render();
   return true;
 }
-function setLcd(v) { lcdMode = !!v; setToolIcons(); render(); }
 
 /** Próximos avisos si nadie cuida a la mascota: [{at, tag, title, body}] (para el Web Push con la app cerrada). */
 function predictSchedule() {
@@ -2138,7 +2219,7 @@ function sim(min, fromTs) {
 L.api = {
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
-  tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState, setLcd,
+  tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState,
   sim, newEgg, CFG,
   speed: () => speed, predictSchedule, restAt, setFine, paintIcons, openMenu, isHere: here, skillBar, feed, FOODS, openFeed, makeSick, openFridge
 };
@@ -2178,6 +2259,11 @@ function init() {
   paintIcons();
   setFine(L.settings.get('fine') !== false);
   setInterval(() => { if (!document.hidden) present(); }, 50);
+  let tvStep = 0;
+  setInterval(() => {                                    // la tele encendida suena bajito (solo si la ves en el salón)
+    const s = state; if (!s || quiet || !s.room || !s.room.tv || s.sleeping || s.pause || document.hidden || here() !== 'salon' || !Sound.enabled()) return;
+    Sound.play('tvNote', tvStep++);
+  }, 600);
   const saved = Store.load();
   if (saved) {
     state = saved;

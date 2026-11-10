@@ -186,7 +186,7 @@ const TOPICS = [
   { icon: '💾', title: 'Copia, avisos y manejo', body: () => [
     H('Controles'),
     LI('Toca los iconos de arriba, o usa los botones físicos: A cambia de opción, B acepta, ↩ vuelve atrás y MENÚ abre el menú (logros, álbum, buzón, ajustes…).'),
-    LI('Botones de abajo: 🔊 sonido · 🔔 avisos · 🎨 color/LCD · colores de la carcasa.'),
+    LI('Botones de abajo: 🔊 sonido · 🔔 avisos · ▦ rejilla de píxeles · colores de la carcasa.'),
     H('Vacaciones 🏖️'),
     LI('⚙️ Ajustes → Vacaciones detiene el tiempo: no crece, no pasa hambre ni enferma. Vuelve cuando quieras con «Volver de vacaciones».'),
     H('No pierdas tu Limagochi'),

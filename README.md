@@ -107,7 +107,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.25.1
 - En el cole o el trabajo ya no enferma (tampoco por el aviso de «va a crecer» ni por la vejez); si estaba enfermo al salir, se cura.
-- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 22 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
+- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 25 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
 
 ## v3.26.0 · equilibrio de la economía
 - Vida adulta de 12 a **16 días** (vida total ≈ 22 días).
@@ -124,3 +124,11 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - Solo para partidas nuevas: las que ya existían no reciben regalo, misiones ni pistas (`meta.first`).
 - El desbloqueo de salas, juegos y menús por etapa queda aparcado.
 - Pruebas: 22 escenarios (nuevos: primeros pasos y partida existente sin ellos).
+
+## v3.28.0 · arte propio (punto 5)
+- 🖼️ **Fondos ilustrados** (hechos con Nano Banana) en `docs/bg/`: salón, cuarto, estudio, cocina, jardín y playa, a 96×72. Se generan con `python3 tools/build_bg.py CARPETA` (reduce, alinea suelo y valla con los muebles y guarda el jardín y la playa también sin cielo, `*_k.png`). De día se ve la imagen; al atardecer y de noche manda el cielo del juego en los exteriores y un tinte en los interiores. El papel pintado de la tienda se dibuja encima en trazo blanco suave. Si una imagen no carga (p. ej. `limagochi-single.html`), se usa el dibujo anterior.
+- 🪟 La ventana del salón y del cuarto tiene el cristal azul de día, naranja al atardecer y azul oscuro de noche.
+- 🏖️ **Vacaciones:** playa con sombrilla y tumbona; el Limagochi está tumbado en ella con gafas de sol (sin los muebles de casa).
+- 📺 **Tele nueva** (apagada y encendida, `python3 tools/build_tv.py tv_off.png tv_on.png`): encendida, las filas de píxeles de la pantalla se desplazan y una franja de luz la recorre; suena una melodía suave y corta mientras está encendida y la ves en el salón (respeta el botón de sonido).
+- ➖ **Se elimina el modo LCD** (botón 🎨, función y guardado en las copias; las copias antiguas se importan igual). El pixel fino sigue en Ajustes.
+- Pruebas: 25 escenarios (nuevos: fondos y sin modo LCD, playa con gafas, tele animada).

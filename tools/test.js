@@ -543,6 +543,68 @@ test('primeros pasos: una partida que ya existía no recibe regalo ni misiones',
   noErrors(p);
 });
 
+test('fondos: cada cuarto se dibuja con su imagen y ya no existe el modo LCD', async () => {
+  const p = await fresh();
+  for (const f of ['salon', 'cuarto', 'estudio', 'cocina', 'jardin', 'jardin_k', 'playa', 'playa_k']) {
+    const r = await p.evaluate(n => fetch('bg/' + n + '.png').then(x => x.status), f);
+    eq(r, 200, 'bg/' + f + '.png');
+  }
+  const r = await p.evaluate(async () => {
+    const a = LIMA.api, s = a.S(); LIMA.settings.set('cycle', false);
+    s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false;
+    const load = n => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.src = 'bg/' + n + '.png'; });
+    const px = (c, x, y) => Array.from(c.getImageData(x, y, 1, 1).data).slice(0, 3);
+    const out = {};
+    for (const [where, img] of [['salon', 'salon'], ['bedroom', 'cuarto'], ['studio', 'estudio'], ['kitchen', 'cocina'], ['garden', 'jardin']]) {
+      s.room.where = where; a.render();
+      const im = await load(img), cv = document.createElement('canvas'); cv.width = 96; cv.height = 72;
+      const x = cv.getContext('2d'); x.drawImage(im, 0, 0);
+      const got = px(a.ctx, 2, 2), want = px(x, 2, 2);
+      out[where] = got.every((v, i) => Math.abs(v - want[i]) <= 3);
+    }
+    out.noLcd = !document.getElementById('btnLcd') && typeof a.setLcd === 'undefined';
+    return out;
+  });
+  for (const k of ['salon', 'bedroom', 'studio', 'kitchen', 'garden']) ok(r[k], 'fondo ilustrado en ' + k);
+  ok(r.noLcd, 'sin botón ni función de modo LCD');
+  noErrors(p);
+});
+
+test('playa: tumbado en la tumbona con gafas de sol y sin muebles', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(); LIMA.settings.set('cycle', false);
+    s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false; s.owned.push('sofa', 'tv', 'bed');
+    s.pause = { since: Date.now() }; s.room.where = 'salon'; a.render();
+    const d = a.ctx.getImageData(0, 0, 96, 72).data;
+    let glasses = 0, red = 0;
+    for (let i = 0; i < d.length; i += 4) { if (d[i] === 21 && d[i + 1] === 21 && d[i + 2] === 31) glasses++; if (d[i] === 224 && d[i + 1] === 82 && d[i + 2] === 63) red++; }   // gafas y franjas rojas de la sombrilla
+    s.pause = null; s.room.where = 'salon'; a.render();
+    return { glasses, red };
+  });
+  ok(r.glasses >= 6, 'gafas de sol dibujadas: ' + r.glasses);
+  ok(r.red > 20, 'sombrilla: ' + r.red);
+  noErrors(p);
+});
+
+test('tele: apagada es estática y encendida se anima', async () => {
+  const p = await fresh();
+  const grab = () => p.evaluate(() => { LIMA.api.render(); return Array.from(LIMA.api.ctx.getImageData(4, 22, 34, 22).data); });
+  const setup = on => p.evaluate(on => {
+    const a = LIMA.api, s = a.S(); LIMA.settings.set('cycle', false);
+    s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false; s.owned.push('tv', 'sofa'); s.room.where = 'salon'; s.room.tv = on; s.room.use = on ? 'tv' : 'sit';
+    for (let i = 0; i < 30; i++) a.render();                                            // la mascota llega a su sitio (fuera del recuadro de la tele)
+    LIMA.sound.play('tvNote', 0);
+  }, on);
+  const diff = (a, b) => a.reduce((n, v, i) => n + (v !== b[i] ? 1 : 0), 0);
+  await setup(false); const o1 = await grab(); await p.waitForTimeout(700); const o2 = await grab();
+  eq(diff(o1, o2), 0, 'apagada: no cambia');
+  await setup(true); let max = 0, prev = await grab();
+  for (let i = 0; i < 6; i++) { await p.waitForTimeout(140); const n = await grab(); max = Math.max(max, diff(prev, n)); prev = n; }
+  ok(max > 15, 'encendida: los píxeles se mueven (' + max + ')');
+  noErrors(p);
+});
+
 /* ------------------------------- ejecución ------------------------------ */
 (async () => {
   const data = fs.mkdtempSync(path.join(os.tmpdir(), 'limagochi-test-'));

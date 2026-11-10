@@ -261,6 +261,11 @@ function open(id) {
 /* ------------------------------ dibujo ------------------------------ */
 const put = (x, y, w, h, c) => { const a = A(); a.ctx.fillStyle = a.tint(c); a.ctx.fillRect(x / 2, y / 2, w / 2, h / 2); };
 function drawBack() {
+  if (LIMA.bgIndoor('cocina')) {                              // fondo ilustrado (docs/bg/cocina.png) + ventana y reloj
+    put(60, 4, 14, 12, '#6b4a1f'); put(61, 5, 12, 10, '#bfe6ff'); put(66, 5, 1, 10, '#6b4a1f'); put(61, 10, 12, 1, '#6b4a1f');
+    put(30, 6, 8, 8, '#fff'); put(31, 7, 6, 6, '#fff8e6'); put(34, 8, 1, 3, '#2a2433'); put(34, 10, 2, 1, '#2a2433');
+    return;
+  }
   put(0, 0, 96, 72, '#f4ead2');
   for (let y = 0; y < 44; y += 6) put(0, y, 96, 1, '#e3d6b6');
   for (let x = 0; x < 96; x += 6) for (let y = 0; y < 44; y += 12) put(x + ((y / 12) % 2 ? 3 : 0), y, 1, 6, '#e3d6b6');

@@ -328,6 +328,7 @@ function open(id) {
 /* ------------------------------ dibujo de la sala ------------------------------ */
 const put = (x, y, w, h, c) => { const a = A(); a.ctx.fillStyle = a.tint(c); a.ctx.fillRect(x / 2, y / 2, w / 2, h / 2); };
 function drawBack() {
+  if (LIMA.bgIndoor('estudio')) return;                       // fondo ilustrado (docs/bg/estudio.png); si no carga, el dibujo de abajo
   put(0, 0, 96, 72, '#e9d9b8'); put(0, 0, 96, 3, '#d4c096');
   for (let x = 0; x < 96; x += 12) put(x, 3, 1, 41, '#dfcba0');                           // listones de papel pintado
   put(0, 44, 96, 2, '#8a5a2c'); put(0, 46, 96, 26, '#b07a46');
