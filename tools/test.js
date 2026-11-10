@@ -615,11 +615,11 @@ test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se 
     const m = document.querySelector('#panel .gi'), css = m ? getComputedStyle(m).maskImage || getComputedStyle(m).webkitMaskImage : '';
     LIMA.settings.set('mono', false); a.paintIcons();
     const off = document.querySelectorAll('#panel .gi').length, txt2 = document.querySelector('#panel').textContent;
-    const files = await Promise.all(['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9'].map(n => fetch('ico/' + n + '.png').then(x => x.status)));
+    const files = await Promise.all(['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9', 'g10'].map(n => fetch('ico/' + n + '.png').then(x => x.status)));
     return { on, off, same: txt === txt2, css, files, map: Object.keys(LIMA.GLYPHS.sheet).length };
   });
   ok(r.on > 0, 'iconos puestos: ' + r.on); eq(r.off, 0, 'sin iconos al desactivar'); ok(r.same, 'el texto es el mismo con y sin iconos');
-  ok(/url/.test(r.css), 'máscara del icono: ' + r.css); eq(r.files.join(','), '200,200,200,200,200,200,200,200,200', 'hojas de iconos');
+  ok(/url/.test(r.css), 'máscara del icono: ' + r.css); eq(r.files.join(','), '200,200,200,200,200,200,200,200,200,200', 'hojas de iconos');
   ok(r.map >= 140, 'emojis cubiertos: ' + r.map);
   noErrors(p);
 });

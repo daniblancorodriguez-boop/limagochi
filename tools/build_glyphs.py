@@ -4,7 +4,7 @@
 import sys, os, json
 import numpy as np
 from PIL import Image
-SRC = sys.argv[1]
+SRC = sys.argv[1]; ONLY = int(sys.argv[2]) if len(sys.argv) > 2 else 0       # ONLY = N: solo procesa la hoja N y la añade al mapa existente (las hojas antiguas ya no hacen falta)
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs')
 # orden de cada hoja (id, emoji que sustituye); '' = celda vacía
 SHEETS = [
@@ -17,6 +17,7 @@ SHEETS = [
  [('fridge','🧊'),('plate','🍽'),('steak','🍖'),('quill','✍'),('notes','🎵🎼'),('rod','🎣'),('dumbbell','🏋'),('sprout','🌱'),('piano','🎹'),('chartup','📈'),('chartdown','📉'),('books','📚'),('slot','🎰'),('ferris','🎡'),('runner','🏃'),('fist','✊')],
  [('dart','🎯'),('stopwatch','⏱'),('jump','🦘'),('dance','💃'),('spin','🌀'),('cartwheel','🤸'),('meditate','🧘'),('yawn','🥱'),('wave','👋'),('clap','👏'),('kiss','😘'),('skull','💀'),('handup','🙋'),('hug','🤗'),('greenheart','💚'),('dice','🎲')],
  [('pumpkin','🎃'),('fir','🎄'),('ribbonheart','💝'),('blossom','🌸'),('ghost','👻'),('bat','🦇'),('rose','🌹'),('daisy','🌼'),('shell','🐚'),('bouquet','💐'),('rainbow','🌈'),('comet','☄'),('bird','🐦'),('dove','🕊'),('drop','💧'),('','')],
+ [('blackheart','🖤'),('gridsq','🔲'),('mushroom','🍄'),('pepper','🌶'),('grapes','🍇'),('pumpkin2',''),('sunflower','🌻'),('moonflower','🏵'),('fir2',''),('arrowheart','💘'),('tulip2',''),('sunglasses',''),('ghost2',''),('seedbag','🌰'),('diamond','💎'),('gift2','')],
 ]
 # iconos que ya existían (docs/ico/NOMBRE.png) y los emojis que ahora también los usan en cualquier texto
 OLD = {'feed':'🍔','play':'🎮','heal':'💊','clean':'🧹','shower':'🚿','light':'💡','scold':'📢','teach':'🎤','shop':'🛒','status':'📊','hunger':'🍴','happy':'😊','energy':'⚡','clean2':'🛁','voice':'🎓','logros':'🏆','album':'📖','bugs':'🦋','mail':'✉','visit':'🤝','guide':'❓','settings':'⚙','history':'📜','egg':'🥚','school':'🏫','work':'💼'}
@@ -35,7 +36,10 @@ def norm(cell, box=84):
     im = Image.fromarray((al * 255).astype('uint8')).resize((max(1, round(w * k)), max(1, round(h * k))), Image.LANCZOS)
     cv = Image.new('L', (96, 96), 0); cv.paste(im, ((96 - im.width) // 2, (96 - im.height) // 2)); return cv
 emo, sheet = {}, {}
+MAP = os.path.join(OUT, 'glyphs_map.js')
+if ONLY: emo = json.loads(open(MAP, encoding='utf-8').read().split('LIMA.GLYPHS = ', 1)[1].rstrip().rstrip(';'))['sheet']
 for n, cells in enumerate(SHEETS, 1):
+    if ONLY and n != ONLY: continue
     p = None
     for ext in ('jpg', 'png', 'jpeg'):
         q = os.path.join(SRC, f'hoja{n}.{ext}')
@@ -53,6 +57,7 @@ for n, cells in enumerate(SHEETS, 1):
         sheet[gid] = ['g%d' % n, i % 4, i // 4]
     out.save(os.path.join(OUT, 'ico', f'g{n}.png'), optimize=True)
 old = {c: n for n, c in OLD.items()}
+if ONLY: old = json.loads(open(MAP, encoding='utf-8').read().split('LIMA.GLYPHS = ', 1)[1].rstrip().rstrip(';'))['old']
 js = '/* LIMAGOCHI · iconos propios (generado por tools/build_glyphs.py): emoji -> icono. */\nLIMA.GLYPHS = ' + json.dumps({'sheet': emo, 'old': old}, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(os.path.join(OUT, 'glyphs_map.js'), 'w', encoding='utf-8').write(js)
 print(len(emo), 'emojis ->', len(sheet), 'iconos nuevos;', len(old), 'antiguos')

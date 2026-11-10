@@ -954,7 +954,7 @@ function openObject(id) {
       closePanel();
       if (Date.now() - (r.water || 0) < 30 * 60000) { setMsg('La planta ya está regada 🪴'); return; }
       r.water = Date.now(); s.happy = clamp(s.happy + 4);
-      Sound.play('happy'); setMsg('🪴 Riega la planta: +felicidad'); Store.save(); render();
+      startWater(ROOM.plant.x + 1, ROOM.plant.y - 8); Sound.play('happy'); setMsg('🪴 Riega la planta: +felicidad'); Store.save(); render();
     }));
     return;
   }
@@ -1220,6 +1220,20 @@ function petRows(face) {
 }
 
 let current = null;                       // efecto visual activo
+/* ---- riego: la regadera (icono propio) parpadea 5 s sobre lo que se riega ---- */
+let watering = null; const gIco = {};
+function startWater(x, y) { watering = { until: Date.now() + 5000, x, y }; render(); }
+function drawWatering(now) {
+  if (!watering) return;
+  if (Date.now() > watering.until) { watering = null; return; }
+  const s = L.GLYPHS && L.GLYPHS.sheet['🫗']; if (!s) return;
+  const im = gIco[s[0]] || (gIco[s[0]] = Object.assign(new Image(), { src: 'ico/' + s[0] + '.png' })); if (!im.complete || !im.naturalWidth) return;
+  if (Math.floor(now / 350) % 2) return;                                          // intermitente
+  const x = watering.x, y = watering.y;
+  g.drawImage(im, s[1] * 96, s[2] * 96, 96, 96, x, y, 12, 12);
+  const k = Math.floor(now / 175) % 3; [[x + 3, 13], [x + 6, 14], [x + 9, 13]].forEach(([dx, dy], i) => R1(dx, y + dy + ((k + i) % 3), 1, 2, '#4aa8e0'));
+}
+
 function fx(type, dur = 1500, data = null) { current = { type, start: Date.now(), dur, data }; render(); }
 
 const R1 = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
@@ -1763,7 +1777,7 @@ function openPlot() {
     Sound.play('coin'); setMsg(`🧺 Cosechado: ${ready.length}${extra ? ` (+${extra} extra 🌟)` : ''}. Está en la nevera`); Store.save(); render(); closePanel();
   }));
   if (plants.some(x => x.m < CROPS[x.k].need)) nodes.push(btn('💧 Regar', () => {
-    plants.forEach(x => { x.wet = WET; }); L.studio.xp('gardening', 0.3); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel();
+    plants.forEach(x => { x.wet = WET; }); startWater(14, 8); L.studio.xp('gardening', 0.3); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel();
   }));
   Object.keys(CROPS).filter(cropOpen).forEach(k => {
     const n = s.inv['seed_' + k] || 0;
@@ -1786,7 +1800,7 @@ function openApple() {
     L.studio.xp('gardening', 0.7 * A.fruits); s.inv.manzana = (s.inv.manzana || 0) + A.fruits; for (let i = 0; i < A.fruits; i++) L.progress.stat('harvest'); A.fruits = 0;
     Sound.play('coin'); setMsg('🍎 Manzanas recogidas. Están en Sanas'); Store.save(); render(); closePanel();
   }));
-  if (A.wet < WET * 0.9) nodes.push(btn('💧 Regar', () => { A.wet = WET; L.studio.xp('gardening', 0.3); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel(); }));
+  if (A.wet < WET * 0.9) nodes.push(btn('💧 Regar', () => { A.wet = WET; startWater(0, 2); L.studio.xp('gardening', 0.3); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel(); }));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes);
 }
@@ -1895,6 +1909,7 @@ function drawScene(now) {
   if (here() === 'studio') L.studio.drawFx(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   if (!L.school.isAway()) drawPet(now, frame, f);
+  drawWatering(now);
   if (gar) drawBug(now);
   drawGuessArrow();
 
@@ -2216,7 +2231,7 @@ function sim(min, fromTs) {
   return t;
 }
 
-L.api = {
+L.api = { startWater,
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState,
@@ -2298,7 +2313,7 @@ function init() {
     watch();
   }, 1000);
   let lastRender = 0;                                   // animación: rápida mientras hay efecto, lenta en reposo
-  setInterval(() => { const n = Date.now(); if (evo || current || moving || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
+  setInterval(() => { const n = Date.now(); if (evo || current || watering || moving || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
   setInterval(Store.save, 5000);                        // autoguardado
   setInterval(() => syncPush(), 60000);                 // renueva los avisos del servidor
   setTimeout(() => syncPush(), 3000);

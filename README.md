@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.30.1 · regadera y hoja 10 de iconos
+Al regar (planta, huerto o manzano) la regadera (icono propio) parpadea 5 s sobre lo regado, con gotas. Hoja 10 de iconos (`ico/g10.png`: 🖤 🔲 🍄 🌶 🍇 🌻 🏵 💘 🌰 💎 y extras sin emoji propio); `tools/build_glyphs.py CARPETA 10` añade solo esa hoja al mapa existente.
+
 ## v3.30.0 · tele de pared
 La tele pasa a 21×13 px y cuelga de la pared sin base (`tools/build_tv.py` recorta la peana). La ventana del salón se mueve a la derecha, la planta queda por delante de la tele y apoyada en la pared, y la alfombra baja y queda bajo el sofá.
 
