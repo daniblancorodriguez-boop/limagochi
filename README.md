@@ -107,7 +107,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.25.1
 - En el cole o el trabajo ya no enferma (tampoco por el aviso de «va a crecer» ni por la vejez); si estaba enfermo al salir, se cura.
-- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 25 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
+- Pruebas automáticas: `npm test` (`tools/test.js`) abre el juego en un navegador sin pantalla y comprueba 26 escenarios: una vida entera cuidada y otra abandonada, comida y café, recetas, colegio, trabajo, horarios, descanso, huevo nuevo, guardado y partidas antiguas, regalos, copia en la nube, tienda y todas las pantallas. Se ejecutan también en GitHub en cada subida.
 
 ## v3.26.0 · equilibrio de la economía
 - Vida adulta de 12 a **16 días** (vida total ≈ 22 días).
@@ -138,3 +138,10 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
+
+## v3.29.0 · iconos propios
+- 🎨 **143 iconos nuevos** (negro con huecos transparentes, hechos con Nano Banana) en 9 hojas `docs/ico/g1…g9.png`, y los 26 que ya había: sustituyen a los emojis del sistema en todos los menús, la tienda, la comida, los logros, los trucos, los eventos… Se generan con `python3 tools/build_glyphs.py CARPETA` (hoja1…hoja9, 4×4 celdas; el blanco pasa a transparente y cada icono se centra en 96×96) y escribe `docs/glyphs_map.js` (emoji → icono).
+- `docs/glyphs.js` hace el cambio al vuelo (observa el DOM) con una máscara tintada con el color del texto; el emoji queda dentro del `<span>` (invisible), así que el texto y los lectores de pantalla no cambian. Depende del ajuste «Iconos negros»: apagado, vuelven los emojis.
+- Para que cada objeto tenga su icono, la regadera, el huerto, el manzano y los fondos de nubes y estrellas usan otro emoji interno (🫗 🌿 🍏 ⛅ 🌠).
+- Quedan como emoji: 🖤 y 🔲 de Ajustes y los textos tipográficos (flechas, ✓, ✕, barras).
+- Pruebas: 26 escenarios (nuevo: iconos propios).

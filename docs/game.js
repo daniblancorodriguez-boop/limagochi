@@ -77,10 +77,10 @@ const tasteLabel = t => t < 25 ? 'Sano' : t < 50 ? 'Normal' : t < 75 ? 'Capricho
 /* ---- jardín: objetos, cultivos y tiempos (en minutos de juego) ---- */
 const GARDEN_ITEMS = [
   { id: 'flowers', icon: '🌷', name: 'Flores',   cost: 15,  desc: 'decoran el jardín' },
-  { id: 'can',     icon: '🚿', name: 'Regadera', cost: 20,  desc: 'las plantas crecen un 30% más rápido' },
+  { id: 'can',     icon: '🫗', name: 'Regadera', cost: 20,  desc: 'las plantas crecen un 30% más rápido' },
   { id: 'lounger', icon: '🪑', name: 'Tumbona',  cost: 40,  desc: 'tócala para tomar el sol' },
-  { id: 'plot',    icon: '🥕', name: 'Huerto',   cost: 70,  desc: 'planta semillas y cosecha' },
-  { id: 'apple',   icon: '🌳', name: 'Manzano',  cost: 90,  desc: 'da manzanas con el tiempo' },
+  { id: 'plot',    icon: '🌿', name: 'Huerto',   cost: 70,  desc: 'planta semillas y cosecha' },
+  { id: 'apple',   icon: '🍏', name: 'Manzano',  cost: 90,  desc: 'da manzanas con el tiempo' },
   { id: 'pool',    icon: '🏊', name: 'Piscina',  cost: 500, desc: 'chapuzón: mucha felicidad y se limpia' },
   { id: 'rod',     icon: '🎣', name: 'Caña mejor', cost: 60, desc: 'la pesca pica antes y se escapa menos' }
 ];
@@ -91,8 +91,8 @@ const SEED_COST = 5, WET = 480, APPLE = { young: 240, adult: 720, every: 180, ma
 
 const SHOP_EXTRAS = [
   { id: 'bg_dots',   type: 'bg',  key: 'dots',   icon: '🔹', name: 'Fondo lunares',   cost: 15 },
-  { id: 'bg_clouds', type: 'bg',  key: 'clouds', icon: '☁️', name: 'Fondo nubes',     cost: 20 },
-  { id: 'bg_stars',  type: 'bg',  key: 'stars',  icon: '✨', name: 'Fondo estrellas', cost: 25 },
+  { id: 'bg_clouds', type: 'bg',  key: 'clouds', icon: '⛅', name: 'Fondo nubes',     cost: 20 },
+  { id: 'bg_stars',  type: 'bg',  key: 'stars',  icon: '🌠', name: 'Fondo estrellas', cost: 25 },
   { id: 'bg_bricks', type: 'bg',  key: 'bricks', icon: '🧱', name: 'Fondo ladrillos', cost: 20 },
   { id: 'ball',      type: 'toy', icon: '⚽', name: 'Pelota',  cost: 20, desc: 'se aburre un 15% menos', img: 'ball' },
   { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos', img: 'teddy' },
@@ -822,6 +822,7 @@ function paintIcons(root = document) {
     if (on) { el.textContent = ''; const i = document.createElement('img'); i.className = 'ic'; i.alt = ''; i.src = `ico/${el.dataset.ico}.png`; i.draggable = false; el.append(i); }
     else el.textContent = el.dataset.emo;
   });
+  if (L.glyphs) L.glyphs.sync(on);
 }
 
 /* ---- vacaciones: el tiempo se detiene (no crece, no pasa hambre, no enferma ni muere) ---- */
