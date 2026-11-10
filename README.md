@@ -135,3 +135,6 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 
 ## v3.28.1
 - El suelo del salón empieza más arriba (al 70 % de la pantalla en lugar del 92 %): los muebles quedan apoyados sobre él.
+
+## v3.28.2
+- El suelo del cuarto también empieza al 70 % de la pantalla.
