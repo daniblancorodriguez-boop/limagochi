@@ -310,6 +310,7 @@ function market(back) {
     nodes.push(a.btn(`🎩 Mecenas: ${priceOf(best, true)} 🪙 por «${best.title || 'capítulo'}»`, () => { sell(best, true); market(back); }));
   }
   if (!list.length) nodes.push(a.p('Aún no hay obras. Practica en el estudio.'));
+  nodes.push(a.btn('🧺 Vender cosecha y platos', () => a.openSell(() => market(back)), 'ghost'));
   list.forEach(w => {
     const label = `${w.k === 'painting' ? '🖼️' : w.k === 'song' ? '🎼' : w.k === 'book' ? '📚' : '📄'} ${w.title || 'Capítulo'} · calidad ${w.q} · ${priceOf(w)} 🪙`;
     const wrap = document.createElement('div'); wrap.className = 'shopitem';

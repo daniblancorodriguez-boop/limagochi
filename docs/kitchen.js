@@ -23,7 +23,7 @@ const ITEMS = [
 ];
 const BASIC = { salad: 3, lime: 3, soup: 2, fries: 2, cookie: 2 };                      // tope de cada alimento de la nevera básica
 const REFILL = 120;                                                           // minutos entre reposiciones (+1 de cada)
-const LIFE = { manzana: 5, zanahoria: 5, tomate: 4, lechuga: 3, pez: 3, fresa: 3, sushi: 3, paella: 4, limecake: 5 };   // días (la miel no caduca)
+const LIFE = { manzana: 5, zanahoria: 5, tomate: 4, lechuga: 3, pez: 3, fresa: 3, seta: 3, pimiento: 4, uva: 4, calabaza: 6, girasol: 6, florlunar: 5, sushi: 3, paella: 4, limecake: 5 };   // días (la miel no caduca)
 const ING = { lechuga: '🥬', tomate: '🍅', zanahoria: '🥕', manzana: '🍎', pez: '🐟', fresa: '🍓', miel: '🍯' };
 
 const RECIPES = [
@@ -35,6 +35,11 @@ const RECIPES = [
   { id: 'r_honey',  icon: '🍯', name: 'Pastel de miel',     lv: 25, need: { miel: 2, manzana: 1 },                 cat: 'snack', hunger: 18, happy: 44, energy: 3, weight: 1.5, disc: 0, diet: 'candy', sweet: 1 },
   { id: 'r_straw',  icon: '🍰', name: 'Tarta de fresa',     lv: 20, need: { fresa: 2, miel: 1 },                 cat: 'snack', hunger: 14, happy: 40, energy: 3, weight: 1.2, disc: 0, diet: 'candy', sweet: 0.7 },
   { id: 'r_paella', icon: '🥘', name: 'Paella casera',      lv: 35, need: { pez: 2, tomate: 1, zanahoria: 1 },     cat: 'meal',  hunger: 54, happy: 16, energy: 6, weight: 1.2, disc: 2, diet: 'meat' },
+  { id: 'r_seta',   icon: '🍄', name: 'Revuelto de setas',  lv: 30, need: { seta: 2 },                             cat: 'meal',  hunger: 44, happy: 10, energy: 5, weight: 0.6, disc: 2, diet: 'veg' },
+  { id: 'r_uva',    icon: '🍇', name: 'Zumo de uva',        lv: 35, need: { uva: 2 },                              cat: 'snack', hunger: 12, happy: 42, energy: 6, weight: 0.5, disc: 0, diet: 'candy', sweet: 0.3 },
+  { id: 'r_pim',    icon: '🌶', name: 'Pimientos rellenos', lv: 40, need: { pimiento: 2, tomate: 1 },              cat: 'meal',  hunger: 52, happy: 14, energy: 6, weight: 0.9, disc: 2, diet: 'veg' },
+  { id: 'r_pipas',  icon: '🌻', name: 'Pipas tostadas',     lv: 45, need: { girasol: 1 },                          cat: 'snack', hunger: 10, happy: 38, energy: 3, weight: 0.6, disc: 0, diet: 'veg' },
+  { id: 'r_calab',  icon: '🎃', name: 'Crema de calabaza',  lv: 50, need: { calabaza: 1, zanahoria: 1 },           cat: 'meal',  hunger: 58, happy: 18, energy: 7, weight: 0.6, disc: 3, diet: 'veg' },
   { id: 'r_chef',   icon: '🍽️', name: 'Menú del chef',      lv: 55, need: { pez: 1, lechuga: 1, tomate: 1, zanahoria: 1, miel: 1 }, cat: 'meal', hunger: 64, happy: 26, energy: 8, weight: 1.2, disc: 3, diet: 'meat' }
 ];
 

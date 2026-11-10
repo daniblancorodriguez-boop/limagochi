@@ -65,6 +65,12 @@ const FOODS = [
   { id: 'zanahoria', stock: true, grp: 'healthy', cat: 'meal',  icon: '🥕', name: 'Zanahoria', hunger: 18, happy: -1, energy: 3, weight: 0.3, disc: 2, diet: 'veg' },
   { id: 'tomate',    stock: true, grp: 'healthy', cat: 'meal',  icon: '🍅', name: 'Tomate',    hunger: 12, happy: 2,  energy: 2, weight: 0.2, disc: 1, diet: 'veg' },
   { id: 'lechuga',   stock: true, grp: 'healthy', cat: 'meal',  icon: '🥬', name: 'Lechuga',   hunger: 10, happy: -1, energy: 2, weight: 0.1, disc: 2, dirt: -6, diet: 'veg' },
+  { id: 'seta',      stock: true, grp: 'healthy', cat: 'meal',  icon: '🍄', name: 'Seta',      hunger: 16, happy: 0,  energy: 3, weight: 0.2, disc: 2, diet: 'veg' },
+  { id: 'pimiento',  stock: true, grp: 'healthy', cat: 'meal',  icon: '🌶', name: 'Pimiento',  hunger: 14, happy: 1,  energy: 3, weight: 0.2, disc: 2, diet: 'veg' },
+  { id: 'uva',       stock: true, grp: 'healthy', cat: 'meal',  icon: '🍇', name: 'Uvas',      hunger: 10, happy: 8,  energy: 4, weight: 0.2, disc: 1, diet: 'veg' },
+  { id: 'calabaza',  stock: true, grp: 'healthy', cat: 'meal',  icon: '🎃', name: 'Calabaza',  hunger: 22, happy: 0,  energy: 4, weight: 0.3, disc: 2, diet: 'veg' },
+  { id: 'girasol',   stock: true, grp: 'healthy', cat: 'meal',  icon: '🌻', name: 'Pipas de girasol', hunger: 8, happy: 6, energy: 2, weight: 0.3, disc: 1, diet: 'veg' },
+  { id: 'florlunar', stock: true, grp: 'snack',   cat: 'snack', icon: '🏵', name: 'Flor lunar (regalo)', hunger: 0, happy: 45, weight: 0, disc: 2, diet: 'veg' },
   { id: 'pez',       stock: true, grp: 'healthy', cat: 'meal',  icon: '🐟', name: 'Pez fresco', hunger: 26, happy: 1, energy: 4, weight: 0.6, disc: 2, diet: 'meat' },
   { id: 'miel',      stock: true, grp: 'snack',   cat: 'snack', icon: '🍯', name: 'Miel',      hunger: 6,  happy: 24, weight: 1, disc: -2, diet: 'candy', sweet: 0.6 },
   { id: 'sushi', grp: 'gourmet', cat: 'meal',  icon: '🍣', name: 'Sushi gourmet', hunger: 40, happy: 15, weight: 1,  disc: 0, diet: 'meat',  gourmet: true, cost: 12 },
@@ -84,7 +90,21 @@ const GARDEN_ITEMS = [
   { id: 'pool',    icon: '🏊', name: 'Piscina',  cost: 500, desc: 'chapuzón: mucha felicidad y se limpia' },
   { id: 'rod',     icon: '🎣', name: 'Caña mejor', cost: 60, desc: 'la pesca pica antes y se escapa menos' }
 ];
-const CROPS = { zanahoria: { icon: '🥕', name: 'zanahoria', need: 180 }, tomate: { icon: '🍅', name: 'tomate', need: 300 }, lechuga: { icon: '🥬', name: 'lechuga', need: 120 }, fresa: { icon: '🍓', name: 'fresa', need: 360, lv: 30 } };
+/* cultivos: need = minutos de crecimiento · lv = nivel de jardinería · seed = precio de la semilla · sell = precio de venta por unidad
+   Cada semilla da 2 unidades (single: solo 1). night: solo crece de noche. */
+const CROPS = {
+  zanahoria: { icon: '🥕', name: 'zanahoria', need: 180, sell: 3 }, tomate: { icon: '🍅', name: 'tomate', need: 300, sell: 4 },
+  lechuga: { icon: '🥬', name: 'lechuga', need: 120, sell: 3 }, fresa: { icon: '🍓', name: 'fresa', need: 360, lv: 30, sell: 5 },
+  seta:      { icon: '🍄', name: 'seta',       need: 480,  lv: 45, seed: 10, sell: 7 },
+  pimiento:  { icon: '🌶', name: 'pimiento',   need: 600,  lv: 55, seed: 12, sell: 9 },
+  uva:       { icon: '🍇', name: 'uva',        need: 720,  lv: 65, seed: 15, sell: 11 },
+  calabaza:  { icon: '🎃', name: 'calabaza',   need: 960,  lv: 75, seed: 18, sell: 14 },
+  girasol:   { icon: '🌻', name: 'girasol',    need: 1200, lv: 85, seed: 22, sell: 17 },
+  florlunar: { icon: '🏵', name: 'flor lunar', need: 1440, lv: 95, seed: 30, sell: 55, single: true, night: true }
+};
+const SELL_EXTRA = { manzana: 3, pez: 6, miel: 6 };              // otros ingredientes que también se venden (y dan precio a los platos)
+const sellOf = id => (CROPS[id] ? CROPS[id].sell : SELL_EXTRA[id]) || 0;
+const seedCost = k => CROPS[k].seed || SEED_COST;
 const gLv = () => L.studio.extraLv('gardening');
 const cropOpen = k => gLv() >= (CROPS[k].lv || 0);
 const SEED_COST = 5, WET = 480, APPLE = { young: 240, adult: 720, every: 180, max: 3 };
@@ -153,6 +173,7 @@ function newState() {
     sleeping: false,
     call: false, callMin: 0, callsN: 0,
     preSick: false, oldIn: 1440,               // enfermedad previa a evolucionar · cuenta atrás de la enfermedad de vejez
+    wellFed: 0, season: null,                   // minutos de «bien alimentado» (plato casero) · disfraz de temporada { ev, n, on }
     taste: 20, refuseN: 0, refuseCap: 0,        // paladar (0–100) · rechazos seguidos de comida sana y su tope (3–5)
     mess: null, art: [], messIn: 120,           // travesuras: {kind:'shout'|'paint', min} · garabatos en pantalla · minutos hasta la próxima
     mistakes: 0, neglect: 0, sweetLoad: 0,
@@ -438,7 +459,8 @@ function tick(dt) {
   const k = s.sleeping || rest ? 0.35 : 1;
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   const nd = need();
-  s.hunger = clamp(s.hunger - R.hunger * nd.hunger * L.studio.stress().hunger * dt * k);
+  const fedK = s.wellFed > 0 ? 0.75 : 1; s.wellFed = Math.max(0, (s.wellFed || 0) - dt);      // bien alimentado (plato casero): el hambre baja un 25 % más despacio
+  s.hunger = clamp(s.hunger - R.hunger * nd.hunger * L.studio.stress().hunger * dt * k * fedK);
   const st = L.studio.stress();
   s.happy = clamp(s.happy - (R.happy * nd.happy * k * toy * st.happy + s.poops * 0.05 + (s.sick ? 0.1 : 0) + (s.dirt > 70 ? 0.03 : 0)) * dt);
   s.dirt = clamp(s.dirt + (R.dirt * k + s.poops * 0.02) * dt);
@@ -605,6 +627,9 @@ function feed(f) {
   if (f.gourmet || f.stock) { if (!(s.inv[f.id] > 0)) return; s.inv[f.id]--; }
   else if (f.fromBasic) { if (!(s.kitchen.basic[f.id] > 0)) return; s.kitchen.basic[f.id]--; }
   else if (f.plate !== undefined) { L.kitchen.eatPlate(f.plate); }
+  const homeMade = f.plate !== undefined, dressed = !!f.event && L.season.ate(s, f.event);
+  if (homeMade) s.wellFed = Math.max(s.wellFed || 0, f.cat === 'meal' ? 240 : 120);
+  if (dressed) L.progress.record('cos_' + f.event);
   if (f.grp === 'healthy' && s.taste >= 40 && s.hunger >= 10) {                // acostumbrado a la rápida: puede rechazar lo sano
     if (!s.refuseCap) s.refuseCap = 3 + Math.floor(Math.random() * 3);          // aguanta de 3 a 5 rechazos seguidos
     const pRefuse = Math.min(0.8, (s.taste - 40) / 60) * (1 - s.discipline / 200);
@@ -630,6 +655,9 @@ function feed(f) {
   else if (s.sweetLoad >= 3 && !s.sick) makeSick('¡Caries! Demasiados dulces');
   else if (isObese()) setMsg('🚨 ¡Obeso! Índice peligroso: hazlo jugar', 5000);
   else if (fatPos() > 0.5) setMsg('⚠️ Índice de obesidad peligroso: toma medidas', 4500);
+  else if (dressed) setMsg(`${(L.world.event() || {}).icon || '🎉'} ¡Se ha disfrazado: ${L.season.COS[f.event].name}!`, 5000);
+  else if (f.event && s.season && !s.season.on) setMsg(`¡Ñam! ${f.name} · disfraz: ${s.season.n}/${L.season.NEED}`, 3500);
+  else if (homeMade) setMsg(`🍽️ ¡Ñam! Bien alimentado: el hambre baja más despacio ${f.cat === 'meal' ? 4 : 2} h`, 4500);
   else setMsg(`¡Ñam! ${f.name}`);
   Store.save(); render();
 }
@@ -1081,7 +1109,7 @@ function shopNodes(cat) {
   } else if (cat === 'garden') {
     GARDEN_ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en el jardín')));
     if (s.owned.includes('plot')) Object.keys(CROPS).filter(cropOpen).forEach(k =>
-      nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${SEED_COST}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < SEED_COST)));
+      nodes.push(btn(`${CROPS[k].icon} Semillas de ${CROPS[k].name} · ${seedCost(k)}🪙 → vende ${CROPS[k].single ? '' : '2×'}${CROPS[k].sell}🪙 (tienes ${s.inv['seed_' + k] || 0})`, () => buySeed(k), '', s.lp < seedCost(k))));
   } else if (cat === 'kitchen') {
     L.kitchen.ITEMS.forEach(i => nodes.push(shopOwnBtn(i, 'en la cocina')));
   } else if (cat === 'studio') {
@@ -1127,8 +1155,8 @@ function buy(item) {
 
 function buySeed(k) {
   const s = state;
-  if (s.lp < SEED_COST) { setMsg('Te faltan Lima Points'); return; }
-  s.lp -= SEED_COST; s.inv['seed_' + k] = (s.inv['seed_' + k] || 0) + 1;
+  if (s.lp < seedCost(k)) { setMsg('Te faltan Lima Points'); return; }
+  s.lp -= seedCost(k); s.inv['seed_' + k] = (s.inv['seed_' + k] || 0) + 1;
   Sound.play('coin'); setMsg(`Semilla de ${CROPS[k].name}`); L.first && L.first.did('buy'); Store.save(); render(); openShop(shopCat);
 }
 
@@ -1495,6 +1523,8 @@ function drawPet(now, frame, f) {
   } else {
     const small = u === 'sun' || u === 'pool';                               // en la tumbona y la piscina se ve más pequeña
     drawSprite(rows, x, y, { flip, sick: s.sick, scale: small ? 0.6 : 1 });
+    const cos = !small && L.season.active(s);                                 // disfraz de temporada, encima de su forma
+    if (cos) L.season.pixels(cos, rows).forEach(([dx, dy, w, h, c]) => R1(x + (flip ? 24 - dx - w : dx), y + dy, w, h, c));
     if (!small) {
       const ev = L.world.event(), hatId = ev ? ev.id : s.hat;
       if (hatId) L.world.hat(g, hatId, x, y + topRow(rows) + 1);
@@ -1609,7 +1639,8 @@ const LEAVES = seeded(30);
 
 function gardenTick(dt) {
   const G = state.garden, k = (state.owned.includes('can') ? 1.3 : 1) * (1 + gLv() * 0.006);
-  G.plot.forEach(pl => { if (pl && pl.wet > 0) { pl.m += dt * k; pl.wet = Math.max(0, pl.wet - dt); } });
+  const night = !cycleOn() || L.world.phaseAt(clockNow()) === 'night';
+  G.plot.forEach(pl => { if (pl && pl.wet > 0 && (night || !CROPS[pl.k].night)) { pl.m += dt * k; pl.wet = Math.max(0, pl.wet - dt); } });   // la flor lunar solo crece de noche
   const A = G.apple;
   if (A && A.wet > 0) {
     A.wet = Math.max(0, A.wet - dt); A.m += dt * k;
@@ -1660,6 +1691,24 @@ function gPlant(x, y, kind, stage) {
     P(x, y - 6, 1, 6, '#2f7d32'); P(x - 1, y - 5, 1, 1, '#3f9a3c'); P(x + 1, y - 3, 1, 1, '#3f9a3c'); P(x - 1, y - 2, 1, 1, '#3f9a3c');
     if (stage === 3) [[-1, -4], [1, -2], [0, -6]].forEach(([dx, dy]) => { P(x + dx, y + dy, 2, 2, '#e0392f'); P(x + dx, y + dy, 1, 1, '#ff6a5a'); });
     else P(x + 1, y - 3, 1, 1, '#9ccf5a');
+  } else if (kind === 'seta') {
+    P(x, y - 2, 1, 2, '#f4ecd8'); P(x - 1, y - 4, 3, 2, stage === 3 ? '#e0392f' : '#c98f4a'); P(x - 2, y - 3, 5, 1, stage === 3 ? '#e0392f' : '#c98f4a');
+    if (stage === 3) { P(x - 1, y - 3, 1, 1, '#ffffff'); P(x + 1, y - 4, 1, 1, '#ffffff'); }
+  } else if (kind === 'pimiento') {
+    P(x, y - 6, 1, 6, '#2f7d32'); P(x - 1, y - 4, 1, 1, '#3f9a3c'); P(x + 1, y - 5, 1, 1, '#3f9a3c');
+    if (stage === 3) { P(x + 1, y - 3, 1, 3, '#e0392f'); P(x - 1, y - 2, 1, 2, '#ffb300'); } else P(x + 1, y - 3, 1, 2, '#58b84a');
+  } else if (kind === 'uva') {
+    P(x, y - 7, 1, 7, '#6b4a1f'); P(x - 2, y - 7, 5, 1, '#3f9a3c'); P(x - 1, y - 6, 1, 1, '#58b84a');
+    if (stage === 3) { P(x + 1, y - 5, 2, 2, '#7a3fb0'); P(x + 1, y - 3, 1, 1, '#7a3fb0'); P(x - 2, y - 5, 2, 2, '#9a5fd0'); P(x - 2, y - 3, 1, 1, '#7a3fb0'); }
+  } else if (kind === 'calabaza') {
+    P(x - 2, y - 3, 2, 1, '#3f9a3c'); P(x + 1, y - 4, 2, 1, '#58b84a'); P(x, y - 4, 1, 2, '#2f7d32');
+    if (stage === 3) { P(x - 2, y - 2, 5, 3, '#f28c28'); P(x - 1, y - 2, 1, 3, '#ffab4d'); P(x + 1, y - 2, 1, 3, '#d96f12'); P(x, y - 3, 1, 1, '#2f7d32'); } else P(x - 1, y - 1, 2, 2, '#9ccf5a');
+  } else if (kind === 'girasol') {
+    P(x, y - 7, 1, 7, '#2f7d32'); P(x - 1, y - 3, 1, 1, '#3f9a3c'); P(x + 1, y - 4, 1, 1, '#3f9a3c');
+    if (stage === 3) { P(x - 1, y - 10, 3, 3, '#ffd84d'); P(x - 2, y - 9, 5, 1, '#ffd84d'); P(x, y - 11, 1, 5, '#ffd84d'); P(x, y - 9, 1, 1, '#6b4a1f'); } else P(x - 1, y - 8, 3, 2, '#58b84a');
+  } else if (kind === 'florlunar') {
+    P(x, y - 5, 1, 5, '#3f6a8a'); P(x - 1, y - 2, 1, 1, '#5f8ab0');
+    if (stage === 3) { P(x - 1, y - 8, 3, 3, '#dfe9ff'); P(x - 2, y - 7, 5, 1, '#dfe9ff'); P(x, y - 9, 1, 5, '#dfe9ff'); P(x, y - 7, 1, 1, '#ffe98a'); P(x + 2, y - 10, 1, 1, '#ffffff'); } else P(x - 1, y - 6, 3, 1, '#9fb8e0');
   } else if (kind === 'fresa') {
     P(x - 1, y - 3, 3, 3, '#2f7d32'); P(x, y - 4, 1, 1, '#58b84a');
     if (stage === 3) [[-1, -1], [1, -2], [0, 0]].forEach(([dx, dy]) => { P(x + dx, y + dy, 1, 1, '#e0392f'); });
@@ -1788,16 +1837,37 @@ function catchBug() {
   Store.save(); render();
 }
 
+/* ---- venta de la cosecha y de los platos cocinados ---- */
+const platePrice = pl => { const r = L.kitchen.RECIPES.find(x => x.id === pl.r); return r ? Math.max(1, Math.round(Object.keys(r.need).reduce((n, i) => n + sellOf(i) * r.need[i], 0) * 1.4 * pl.m)) : 0; };
+function sellables() {
+  const s = state, out = [];
+  Object.keys(CROPS).concat(Object.keys(SELL_EXTRA)).forEach(id => { if ((s.inv[id] || 0) > 0) out.push({ id, n: s.inv[id], price: sellOf(id) }); });
+  return out;
+}
+function earn(n) { state.lp += n; L.progress.stat('lpEarned', n); L.progress.stat('soldLp', n); Sound.play('coin'); L.progress.check(); }
+function openSell(back) {
+  const s = state, list = sellables(), plates = s.kitchen.plates, nodes = [p('🪙 Vender · la cosecha da 2 unidades por semilla')];
+  const FO = id => FOODS.find(f => f.id === id) || { icon: '', name: id };
+  list.forEach(x => {
+    nodes.push(btn(`${FO(x.id).icon} ${FO(x.id).name} ×${x.n} · vender 1 por ${x.price}🪙`, () => { s.inv[x.id]--; L.kitchen.sync(); earn(x.price); setMsg(`🪙 Vendido por ${x.price}`, 2200); Store.save(); render(); openSell(back); }));
+    if (x.n > 1) nodes.push(btn(`   vender los ${x.n} por ${x.price * x.n}🪙`, () => { s.inv[x.id] = 0; L.kitchen.sync(); earn(x.price * x.n); setMsg(`🪙 Vendido por ${x.price * x.n}`, 2200); Store.save(); render(); openSell(back); }, 'ghost'));
+  });
+  plates.forEach((pl, i) => { const r = L.kitchen.RECIPES.find(x => x.id === pl.r), pr = platePrice(pl); if (r) nodes.push(btn(`${r.icon} ${r.name} ${'⭐'.repeat(pl.st)} · vender por ${pr}🪙`, () => { L.kitchen.eatPlate(i); earn(pr); setMsg(`🪙 Vendido por ${pr}`, 2200); Store.save(); render(); openSell(back); })); });
+  if (!list.length && !plates.length) nodes.push(p('No hay nada que vender: cosecha en el huerto o cocina un plato.'));
+  nodes.push(btn('Atrás', typeof back === 'function' ? back : closePanel, 'ghost'));
+  openPanel(nodes, { full: true });
+}
+
 /* ---- menús del huerto y el manzano ---- */
 function openPlot() {
   const s = state, plots = s.garden.plot;
   const empty = plots.filter(x => !x).length, plants = plots.filter(Boolean), ready = plants.filter(x => x.m >= CROPS[x.k].need);
   const nodes = [p(`🥕 Huerto · ${plants.length}/6 plantas · ${ready.length} listas`)];
   if (ready.length) nodes.push(btn(`Cosechar (${ready.length})`, () => {
-    let extra = 0;
-    plots.forEach((x, i) => { if (x && x.m >= CROPS[x.k].need) { const n = 1 + (Math.random() < gLv() / 200 ? 1 : 0); extra += n - 1; s.inv[x.k] = (s.inv[x.k] || 0) + n; plots[i] = null; L.progress.stat('harvest'); } });
+    let extra = 0, total = 0;
+    plots.forEach((x, i) => { if (x && x.m >= CROPS[x.k].need) { const base = CROPS[x.k].single ? 1 : 2, n = base + (Math.random() < gLv() / 200 ? 1 : 0); extra += n - base; total += n; s.inv[x.k] = (s.inv[x.k] || 0) + n; plots[i] = null; L.progress.stat('harvest'); } });
     L.studio.xp('gardening', 0.7 * ready.length);
-    Sound.play('coin'); setMsg(`🧺 Cosechado: ${ready.length}${extra ? ` (+${extra} extra 🌟)` : ''}. Está en la nevera`); Store.save(); render(); closePanel();
+    Sound.play('coin'); setMsg(`🧺 Cosechado: ${total}${extra ? ` (+${extra} extra 🌟)` : ''}. Está en la nevera`); Store.save(); render(); closePanel();
   }));
   if (plants.some(x => x.m < CROPS[x.k].need)) nodes.push(btn('💧 Regar', () => {
     plants.forEach(x => { x.wet = WET; }); startWater(14, 8); L.studio.xp('gardening', 0.3); Sound.play('happy'); setMsg('💧 Regado'); Store.save(); render(); closePanel();
@@ -1811,6 +1881,7 @@ function openPlot() {
     }));
   });
   if (!plants.length && !Object.keys(CROPS).filter(cropOpen).some(k => s.inv['seed_' + k])) nodes.push(p('Compra semillas en la 🛒 tienda'));
+  if (sellables().length) nodes.push(btn('🪙 Vender cosecha y platos', () => openSell(openPlot)));
   nodes.push(btn('Cerrar', closePanel, 'ghost'));
   openPanel(nodes, { full: true });
 }
@@ -2255,7 +2326,7 @@ function sim(min, fromTs) {
 }
 
 L.drawItem = drawItem;
-L.api = { startWater,
+L.api = { startWater, openSell, openPlot, CROPS,
   ctx: g, W, H, colors: C, S: () => state, setMsg, fx, peek, hud, reward, render, canPlay,
   openPanel, closePanel, p, btn, row, line, clamp, rand, save: Store.save, sound: Sound, drawSprite, petRows,
   tint, isQuiet: () => quiet, startVacation, showered, drawHeart, getSave: () => JSON.stringify(state), replaceState,

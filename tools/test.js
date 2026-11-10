@@ -646,6 +646,62 @@ test('estudio: la sesión se guarda (con aviso) al cambiar de sala, dormir o ens
   noErrors(p);
 });
 
+test('huerto: cosecha doble, cultivos raros por nivel, venta, flor lunar nocturna y plato casero «bien alimentado»', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(async () => {
+    const a = LIMA.api, s = a.S(), out = {}, panel = () => document.getElementById('panel');
+    const click = t => [...panel().querySelectorAll('button')].find(b => b.textContent.includes(t)).click();
+    LIMA.settings.set('cycle', true);
+    s.stage = 'adult'; s.form = 'flor'; s.sleeping = false; s.meta.first.on = false; s.owned.push('plot', 'stove'); s.room.where = 'garden'; s.lp = 500;
+    s.hunger = 50; s.happy = 60; s.energy = 90;
+    // cosecha doble
+    s.garden.plot[0] = { k: 'zanahoria', m: 999, wet: 100 }; a.openPlot(); click('Cosechar'); out.double = s.inv.zanahoria >= 2;
+    // cultivos raros: cerrados con poco nivel, abiertos con mucho; semilla más cara
+    s.talent.extra.gardening.lv = 10; s.inv.seed_seta = 1; a.openPlot(); out.locked = !panel().textContent.includes('seta'); a.closePanel();
+    s.talent.extra.gardening.lv = 99; a.openPlot(); out.open = panel().textContent.includes('Plantar seta'); a.closePanel();
+    out.seedCost = a.CROPS.florlunar.seed === 30 && a.CROPS.seta.seed === 10;
+    // flor lunar: de día no crece, de noche sí
+    s.garden.plot = [{ k: 'florlunar', m: 0, wet: 480 }, { k: 'seta', m: 0, wet: 480 }, null, null, null, null];
+    a.sim(120, T.at(11)); out.day = s.garden.plot[0].m === 0 && s.garden.plot[1].m > 100;
+    s.garden.plot[0].wet = 480; a.sim(120, T.at(1)); out.night = s.garden.plot[0].m > 100;
+    // vender
+    s.sleeping = false; s.inv.zanahoria = 0; s.inv.seta = 2; LIMA.kitchen.sync(); const lp = s.lp; a.openSell(); click('vender los 2'); out.sold = s.lp === lp + 14 && !s.inv.seta; a.closePanel();
+    // plato casero: da «bien alimentado» y el hambre baja más despacio
+    s.kitchen.plates.push({ r: 'r_seta', m: 1, age: 0, st: 2 }); s.hunger = 40; s.sick = false;
+    a.feed(LIMA.kitchen.plateFood(s.kitchen.plates[0], 0)); out.buff = s.wellFed === 240;
+    s.hunger = 80; s.happy = 90; s.energy = 100; a.sim(60, T.at(10)); const withBuff = 80 - s.hunger;
+    s.wellFed = 0; s.hunger = 80; s.happy = 90; s.energy = 100; a.sim(60, T.at(10)); const noBuff = 80 - s.hunger;
+    out.slower = withBuff > 0 && withBuff < noBuff * 0.85; out.rate = withBuff.toFixed(2) + '/' + noBuff.toFixed(2);
+    out.bad = T.broken().concat(T.bars()).join(',') === '';
+    return out;
+  });
+  for (const k of Object.keys(r)) if (k !== 'rate') ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
+test('temporada: 3 platos del evento disfrazan al Limagochi, se apunta en el álbum y acaba con el evento', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(), out = {};
+    s.stage = 'adult'; s.form = 'flor'; s.sleeping = false; s.meta.first.on = false; s.room.where = 'salon'; LIMA.settings.set('cycle', false);
+    LIMA.world.event = () => LIMA.world.EVENTS.find(e => e.id === 'navidad');        // simula que es Navidad
+    const ev = LIMA.world.event(); out.event = !!ev && ev.id === 'navidad';
+    if (!ev) return out;
+    const f = LIMA.world.EVENT_FOODS.find(x => x.event === ev.id && x.cat === 'meal');
+    const count = () => { for (let i = 0; i < 12; i++) a.render(); const d = a.ctx.getImageData(0, 0, 96, 72).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 190 && d[i + 1] < 70 && d[i + 2] < 70) n++; return n; };
+    const before = count();
+    for (let i = 0; i < 2; i++) { s.hunger = 30; s.sick = false; a.feed(f); }
+    out.notYet = !LIMA.season.active(s) && s.season.n === 2;
+    s.hunger = 30; a.feed(f); out.on = LIMA.season.active(s) === 'navidad' && !!s.meta.album.cos_navidad;
+    out.drawn = count() > before + 20;
+    out.album = LIMA.progress.ALBUM.length === 32;
+    s.season.ev = 'verano'; out.ends = !LIMA.season.active(s);
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se pueden desactivar', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

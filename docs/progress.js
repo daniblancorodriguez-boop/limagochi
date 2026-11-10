@@ -11,7 +11,8 @@ const A = () => L.api;
 /* las 15 formas coleccionables: bebé, 2 de niño, 2 de adolescente, 10 adultas */
 const ALBUM = ['baby', 'child_good', 'child_naughty', 'teen_good', 'teen_naughty',
   'estrella', 'flor', 'brote', 'marchita', 'guerrera', 'grunona', 'rebelde', 'piruleta', 'glotona', 'gominola',
-  'teen_estudiosa', 'teen_juguetona', 'teen_mimosa', 'teen_dormilona', 'artista', 'sabia', 'bardo', 'chef', 'atleta', 'jardinera', 'pescadora', 'maestra'];
+  'teen_estudiosa', 'teen_juguetona', 'teen_mimosa', 'teen_dormilona', 'artista', 'sabia', 'bardo', 'chef', 'atleta', 'jardinera', 'pescadora', 'maestra',
+  ...L.season.IDS];                                      // disfraces de temporada (cos_halloween…)
 
 const HINT = {
   baby: 'Eclosiona tu primer huevo.',
@@ -30,8 +31,9 @@ const HINT = {
   glotona: 'Dieta de dulces y cuidado normal (2–5 errores).',
   gominola: 'Dieta de dulces y cuidado flojo (6+ errores).'
 };
+Object.keys(L.season.COS).forEach(k => { HINT['cos_' + k] = L.season.COS[k].hint; });
 
-const ADULTS = ALBUM.slice(5).filter(f => !f.startsWith('teen_'));
+const ADULTS = ALBUM.slice(5).filter(f => !f.startsWith('teen_') && !f.startsWith('cos_'));
 const mastered = s => Object.values(s.skills || {}).filter(v => v >= 100).length;
 const sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
 
@@ -170,13 +172,15 @@ function formCanvas(id, seen) {
   const c = document.createElement('canvas');
   c.width = 24; c.height = 24;
   const g = c.getContext('2d');
-  const set = L.SPR[id];
+  const cos = id.startsWith('cos_') ? id.slice(4) : null;             // disfraz: se enseña sobre la forma «brote»
+  const set = L.SPR[cos ? 'brote' : id];
   const rows = set && (set.happy || set.idle);
   if (rows) rows.forEach((r, y) => [...r].forEach((ch, x) => {
     if (ch === '.') return;
     g.fillStyle = seen ? L.PAL[ch] : 'rgba(29,42,18,.55)';
     g.fillRect(x, y, 1, 1);
   }));
+  if (cos && rows) L.season.pixels(cos, rows).forEach(([x, y, w, h, col]) => { g.fillStyle = seen ? col : 'rgba(29,42,18,.55)'; g.fillRect(x, y, w, h); });
   return c;
 }
 

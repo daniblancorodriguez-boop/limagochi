@@ -139,6 +139,11 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.32.0 · huerto rentable, cultivos raros y disfraces de temporada
+- **Huerto:** cada semilla da 2 unidades; la cosecha y los platos se venden (huerto → «🪙 Vender cosecha y platos», también desde el mercado del estudio); un plato casero deja «bien alimentado» (el hambre baja un 25 % más despacio 4 h, 2 h si es un snack).
+- **Cultivos raros** por nivel de jardinería: 🍄 seta (45), 🌶 pimiento (55), 🍇 uva (65), 🎃 calabaza (75), 🌻 girasol (85) y 🏵 flor lunar (95: solo crece de noche, da 1 y se vende a 55 🪙 o se regala). Semillas de 10 a 30 🪙 y 5 recetas nuevas.
+- **Disfraces de temporada** (`docs/season.js`): comer 3 platos del evento disfraza al Limagochi (bruja, Papá Noel, Cupido, corona de flores, gafas y flotador) hasta que acaba el evento; se apuntan en el álbum (32 formas).
+
 ## v3.31.1 · barra de obesidad fina y silencio en el cole
 Al comer, la obesidad se muestra en la barra fina de arriba (la de las habilidades): vacía = bien, pasada la mitad avisa, llena = obeso; desaparece el recuadro grande sobre la mascota. En el cole o en el trabajo el Limagochi ya no dice palabras.
 
