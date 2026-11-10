@@ -10,6 +10,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs', 'bg
 os.makedirs(OUT, exist_ok=True)
 # franjas (origen 0..765 -> destino 0..72) para alinear suelo y valla con los muebles del juego
 BANDS = {
+    'salon':   [(0, 705, 0, 50), (705, 725, 50, 53), (725, 765, 53, 72)],        # suelo más alto (hasta el 70 % de la pantalla)
     'estudio': [(0, 500, 0, 42), (500, 765, 42, 72)],
     'cocina':  [(0, 570, 0, 45), (570, 612, 45, 49), (612, 765, 49, 72)],
     'jardin':  [(0, 345, 0, 29), (345, 525, 29, 38), (525, 765, 38, 72)],

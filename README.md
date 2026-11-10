@@ -132,3 +132,6 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - 📺 **Tele nueva** (apagada y encendida, `python3 tools/build_tv.py tv_off.png tv_on.png`): encendida, las filas de píxeles de la pantalla se desplazan y una franja de luz la recorre; suena una melodía suave y corta mientras está encendida y la ves en el salón (respeta el botón de sonido).
 - ➖ **Se elimina el modo LCD** (botón 🎨, función y guardado en las copias; las copias antiguas se importan igual). El pixel fino sigue en Ajustes.
 - Pruebas: 25 escenarios (nuevos: fondos y sin modo LCD, playa con gafas, tele animada).
+
+## v3.28.1
+- El suelo del salón empieza más arriba (al 70 % de la pantalla en lugar del 92 %): los muebles quedan apoyados sobre él.
