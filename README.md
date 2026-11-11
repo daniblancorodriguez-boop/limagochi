@@ -139,6 +139,12 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.33.0 · Esquiva nuevo, Bloques e iconos de manos
+- **Esquiva** (`docs/arcade.js`): 6 columnas en lugar de 3, caen piedras (el dibujo de Piedra) y monedas. Como mucho 2 piedras por tanda (siempre hay hueco) y el golpe solo cuenta mientras la piedra solapa el cuerpo; tocar una columna mueve directo a ella.
+- **Bloques** (tipo Arkanoid): la mascota rebota la bola; 5 ladrillos dorados sueltan moneda que hay que recoger.
+- **Límites** de cada juego por separado: 5 monedas por partida y 20 al día (`s.arcade`); al llegar a cualquiera termina con «¡Bravo!». Sin monedas hoy se puede jugar igual, solo que no dan 🪙.
+- Piedra, papel o tijera con iconos nuevos de 12×12 (`L.hands`) y logro «Demoledor».
+
 ## v3.32.2 · el 🍔 también pregunta antes de salir del estudio
 El botón de comer lleva a la cocina sin pasar por el aviso de guardar la sesión: si estaba escribiendo, pintando o tocando, cambiaba de sala con la barra encima. Ahora pregunta igual que el resto de cambios de sala.
 

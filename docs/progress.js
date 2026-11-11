@@ -65,6 +65,7 @@ const ACH = [
   { id: 'golden',  icon: '🌟', name: 'Suerte legendaria', desc: 'Atrapa la mariposa dorada.',              prog: (m) => [(m.bugs || {}).dorada ? 1 : 0, 1] },
   { id: 'jackpot', icon: '🎰', name: 'Premio gordo',      desc: 'Saca tres sietes en la tragaperras.',     prog: (m) => [m.stats.jackpots || 0, 1] },
   { id: 'fish10',  icon: '🎣', name: 'Pescador',          desc: 'Pesca 10 piezas.',                        prog: (m) => [m.stats.fish || 0, 10] },
+  { id: 'brickWin', icon: '🧱', name: 'Demoledor',        desc: 'Limpia el tablero de Bloques.',            prog: (m) => [m.stats.wins.brick || 0, 1] },
   { id: 'rps3',    icon: '✊', name: 'Campeón de manos',  desc: 'Gana 3 partidas de Piedra, papel o tijera.', prog: (m) => [m.stats.wins.rps || 0, 3] },
   { id: 'race3',   icon: '🏃', name: 'Velocista',         desc: 'Gana 3 carreras.',                        prog: (m) => [m.stats.wins.race || 0, 3] },
   { id: 'mem6',     icon: '🧠', name: 'Memoria de elefante', desc: 'Supera 6 rondas de Eco Lima.',             prog: (m) => [m.stats.best.memory || 0, 6] },

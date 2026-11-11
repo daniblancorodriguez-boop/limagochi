@@ -706,6 +706,31 @@ test('temporada: 3 platos del evento disfrazan al Limagochi, se apunta en el ál
   noErrors(p);
 });
 
+test('arcade: Esquiva y Bloques arrancan, respetan el límite diario de monedas y los iconos de manos existen', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(async () => {
+    const a = LIMA.api, s = a.S(), out = {};
+    s.stage = 'adult'; s.sleeping = false; s.energy = 90; s.sick = false; s.meta.first.on = false; LIMA.settings.set('cycle', false);
+    out.hands = LIMA.hands.length === 3 && LIMA.hands.every(h => h.rows.length === 12 && h.rows.every(r => r.length === 12));
+    const hudText = () => document.querySelector('#hud, .hud') ? document.querySelector('#hud, .hud').textContent : '';
+    const day = new Date().toLocaleDateString('sv');
+    s.arcade = { day, dodge: 20, brick: 18 };
+    for (const k of ['dodge', 'brick']) {
+      a.closePanel(); LIMA.mini.start(k); out['active_' + k] = LIMA.mini.active();
+      LIMA.mini.pointer(0.3, 0.5); LIMA.mini.key('right'); LIMA.mini.key('left');
+      await new Promise(r => setTimeout(r, 1500));
+      out['hud_' + k] = hudText();
+      LIMA.mini.stop(false);
+    }
+    out.noCoinsToday = /hoy ya no hay monedas/.test(out.hud_dodge);
+    out.twoLeft = /0\/5|hoy 18\/20/.test(out.hud_brick);
+    s.arcade = { day: '2000-01-01', dodge: 20 }; LIMA.arcade.got('dodge'); out.resets = s.arcade.day === day && !s.arcade.dodge;
+    return out;
+  });
+  for (const k of Object.keys(r)) if (!/^hud_/.test(k)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se pueden desactivar', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

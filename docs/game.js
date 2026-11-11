@@ -1177,6 +1177,7 @@ function startPlay() {
     btn('🐦 Lima Vuela', () => launch('flappy')),
     btn('⚽ Penaltis', () => launch('penalty')),
     btn('☄️ Esquiva', () => launch('dodge')),
+    btn('🧱 Bloques', () => launch('brick')),
     btn('🧠 Eco Lima', () => launch('memory')),
     btn('🎣 Pesca', () => launch('fishing')),
     btn('✊ Piedra, papel o tijera', () => launch('rps')),

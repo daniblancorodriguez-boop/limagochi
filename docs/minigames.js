@@ -1,7 +1,7 @@
 /* ==========================================================================
    LIMAGOCHI · minijuegos de acción (se dibujan en la propia pantalla LCD)
    · Lima Vuela  (tipo Flappy Bird)
-   · Esquiva     (esquivar rocas, recoger estrellas)
+   · Esquiva y Bloques → arcade.js
    · Penaltis    (tanda de 5 penaltis: para la mira y chuta)
    · Eco Lima    (memoria: repite la secuencia de luces y sonidos)
    · Ducha       (frota con el dedo para quitar la suciedad)
@@ -51,7 +51,7 @@ L.mini = {
   active: () => !!cur,
   start(kind, arg) {
     this.stop(false);
-    cur = ({ flappy, dodge, memory, penalty, shower, visit, ...REG })[kind](arg);
+    cur = ({ flappy, memory, penalty, shower, visit, ...REG })[kind](arg);
     last = performance.now();
     loop();
   },
@@ -135,75 +135,6 @@ function flappy() {
       g.fillStyle = C.dark; g.fillRect(0, FLOOR, W, H - FLOOR);
       g.fillStyle = C.ink; g.fillRect(0, FLOOR, W, 0.5);
       a.drawSprite(rows, r5(BX - 6), r5(s.y - 6), { scale: 0.5 });
-    }
-  };
-}
-
-/* ============================== ESQUIVA ================================= */
-function dodge() {
-  const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H;
-  const rows = a.petRows('happy');
-  const LANES = [8, 24, 40], DUR = 30, GROUND = H - 3, PET_TOP = GROUND - 12;
-  const s = { lane: 1, x: 24, t: 0, lives: 3, stars: 0, objs: [], spawn: 0.6, over: false, win: false, flash: 0, overT: 0 };
-  const hud = () => a.hud(`${'♥'.repeat(Math.max(0, s.lives))}  ⭐${s.stars}  ⏱${Math.max(0, Math.ceil(DUR - s.t))}`);
-  hud();
-
-  const move = d => { if (!s.over) { s.lane = Math.max(0, Math.min(2, s.lane + d)); a.sound.play('click'); } };
-
-  return {
-    key(k) { if (k === 'left') move(-1); else if (k === 'right') move(1); },
-    pointer(fx) { move(fx < 0.5 ? -1 : 1); },
-    update(dt) {
-      if (s.over) {
-        s.overT += dt;
-        if (s.overT > 0.8) {
-          const lp = Math.ceil(s.stars * 1.25) + (s.win ? 4 : 0);
-          end('dodge', s.win ? '¡Lo esquivó todo!' : '¡Le han dado!',
-            [`Estrellas: ${s.stars}`, s.win ? 'Sobrevivió los 30 s' : 'No sobrevivió'],
-            { happy: 10 + 3 * s.stars + (s.win ? 12 : 0), energy: -12, hunger: -8, weight: -Math.min(2, 0.4 + 0.1 * s.stars), lp, win: s.win, score: s.stars });
-        }
-        return;
-      }
-      s.t += dt; s.flash = Math.max(0, s.flash - dt);
-      s.x += (LANES[s.lane] - s.x) * Math.min(1, dt * 14);
-      s.spawn -= dt;
-      if (s.spawn <= 0) {
-        s.spawn = Math.max(0.32, 0.8 - s.t * 0.015);
-        const add = l => s.objs.push({ x: LANES[l], y: -6, type: Math.random() < 0.22 ? 'star' : 'rock' });
-        const l1 = Math.floor(Math.random() * 3); add(l1);
-        if (Math.random() < 0.3) add((l1 + 1 + Math.floor(Math.random() * 2)) % 3);
-      }
-      const spd = 20 + s.t * 0.7;
-      for (const o of s.objs) {
-        o.y += spd * dt;
-        if (!o.dead && o.y + 6 > PET_TOP + 2 && o.y < GROUND && Math.abs(o.x - s.x) < 7) {
-          o.dead = true;
-          if (o.type === 'star') { s.stars++; a.sound.play('coin'); }
-          else { s.lives--; s.flash = 0.6; a.sound.play('hit'); a.sound.vibrate(60); }
-          hud();
-        }
-      }
-      s.objs = s.objs.filter(o => !o.dead && o.y < H + 2);
-      if (s.lives <= 0) { s.over = true; s.win = false; }
-      else if (s.t >= DUR) { s.over = true; s.win = true; a.sound.play('win'); }
-      if (!s.over && Math.floor(s.t * 4) !== Math.floor((s.t - dt) * 4)) hud();
-    },
-    draw() {
-      g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
-      g.fillStyle = C.light;
-      LANES.forEach(x => { for (let y = 0; y < H; y += 4) g.fillRect(x - 0.5, y, 1, 2); });
-      g.fillStyle = C.dark; g.fillRect(0, GROUND, W, H - GROUND);
-      g.fillStyle = C.ink; g.fillRect(0, GROUND, W, 0.5);
-      for (const o of s.objs) {
-        if (o.type === 'rock') {
-          box(g, o.x - 3, o.y, 6, 6, C.dark, C.ink);
-          g.fillStyle = C.mid; g.fillRect(o.x - 2, o.y + 1, 2, 1);
-        } else {
-          g.fillStyle = C.ink; g.fillRect(o.x - 1.5, o.y - 0.5, 3, 7); g.fillRect(o.x - 3.5, o.y + 1.5, 7, 3);
-          g.fillStyle = '#ffd84d'; g.fillRect(o.x - 0.5, o.y + 0.5, 1, 5); g.fillRect(o.x - 2.5, o.y + 2.5, 5, 1);
-        }
-      }
-      if (s.flash <= 0 || Math.floor(s.flash * 12) % 2) a.drawSprite(rows, r5(s.x - 6), r5(PET_TOP), { scale: 0.5 });
     }
   };
 }

@@ -289,11 +289,29 @@ function fishing() {
 }
 
 /* ============================ PIEDRA, PAPEL O TIJERA ====================== */
-const HANDS = [
-  { n: 'Piedra', pal: { s: '#9aa5b1', S: '#cfd6de', k: '#2a2433' }, rows: ['..kkkk..', '.kSSssk.', 'kSssssk.'.padEnd(8, '.'), 'ksssssSk', 'ksssssSk', '.kssssk.', '..kkkk..'] },
-  { n: 'Papel', pal: { w: '#fff', k: '#2a2433' }, rows: ['kkkkkkk.', 'kwwwwwk.', 'kkkkkwk.', 'kwwwwwk.', 'kkkkkwk.', 'kwwwwwk.', 'kkkkkkk.'] },
-  { n: 'Tijera', pal: { k: '#2a2433', r: '#e0392f', s: '#cfd6de' }, rows: ['s.....s.', '.s...s..', '..s.s...', '...k....', '..k.k...', '.rr.rr..', 'rrr.rrr.'] }
-];
+const HANDS = (() => {
+  const grid = () => Array.from({ length: 12 }, () => Array(12).fill('.'));
+  const str = G => G.map(r => r.join(''));
+  const rock = [
+    '....kkkk....', '..kkSSSskk..', '.kSSSsssssk.', '.kSSsssssssk', 'kSSssssmsssk', 'kSssmsssssmk',
+    'kssssmsssssk', 'ksssssssssmk', '.kssmsssssk.', '.kmsssssmmk.', '..kkmmmmkk..', '....kkkk....'];
+  const P = grid();                                                 // hoja con la esquina doblada
+  for (let r = 0; r < 12; r++) for (let c = 1; c <= 10; c++) {
+    if (c - r >= 7) continue;
+    P[r][c] = (c === 1 || c === 10 || r === 0 || r === 11 || c - r === 6) ? 'k' : 'w';
+    if (P[r][c] === 'w' && r >= 1 && r <= 4 && c - r >= 4 && c - r <= 5) P[r][c] = 'g';
+    if (P[r][c] === 'w' && c >= 3 && c <= 8 && r >= 5 && r % 2 === 1 && r <= 9) P[r][c] = 'm';
+  }
+  const scis = [
+    'kS........Sk', '.kS......Sk.', '..kS....Sk..', '...kS..Sk...', '....kSSk....', '....kSSk....',
+    '...kS..Sk...', '..kS....Sk..', '.kkkk..kkkk.', '.krrk..krrk.', '.krrk..krrk.', '.kkkk..kkkk.'];
+  return [
+    { n: 'Piedra', pal: { s: '#9aa5b1', S: '#cfd6de', m: '#6f7a88', k: '#2a2433' }, rows: rock },
+    { n: 'Papel', pal: { w: '#ffffff', g: '#cfd6de', m: '#9aa5b1', k: '#2a2433' }, rows: str(P) },
+    { n: 'Tijera', pal: { k: '#2a2433', r: '#e0392f', S: '#dfe6ee' }, rows: scis }
+  ];
+})();
+L.hands = HANDS;
 function rps() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H, rows = a.petRows('happy');
   const s = { me: 0, pet: 0, you: null, her: null, phase: 'pick', t: 0, text: 'Elige' };
@@ -329,7 +347,7 @@ function rps() {
     draw() {
       g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
       const shake = s.phase === 'shake' ? Math.abs(Math.sin(s.t * 14)) * 3 : 0;
-      const sh = (h, x) => { const hand = HANDS[h]; spr(hand.rows, hand.pal, x, 5 + (s.phase === 'shake' ? -shake * 0.6 : 0), 1.5); };
+      const sh = (h, x) => { const hand = HANDS[h]; spr(hand.rows, hand.pal, x, 5 + (s.phase === 'shake' ? -shake * 0.6 : 0), 1); };
       if (s.phase === 'shake' || s.phase === 'pick') { sh(0, 8); sh(0, 28); }
       else { sh(s.you, 8); sh(s.her, 28); }
       for (let y = 2; y < 17; y += 3) rect(23.5, y, 1, 1.5, C.dark);
