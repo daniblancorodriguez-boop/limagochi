@@ -764,7 +764,7 @@ function openStatus() {
   if (left !== null && s.stage !== 'dead') rows.push(['Evoluciona en', `~${fmtDur(left)}`]);
   if (s.stage === 'dead') rows.push(['Causa', s.cause === 'vejez' ? 'Vejez' : 'Descuido']);
   const ev = L.world.event();
-  if (cycleOn()) rows.push(['Momento', { day: '☀️ Día', dusk: '🌅 Atardecer', night: '🌙 Noche' }[L.world.phase()]]);
+  if (cycleOn()) rows.push(['Momento', { day: '☀️ Día', dusk: L.world.isDawn() ? '🌅 Amanecer' : '🌇 Atardecer', night: '🌙 Noche' }[L.world.phase()]]);
   if (ev) rows.push(['Evento', L.world.eventLabel(ev)]);
 
   openPanel([
@@ -1655,7 +1655,7 @@ function drawGardenBack(now) {
   if (ph !== 'night') {                                                     // el cielo del jardín (de noche vale el del juego, con estrellas)
     const dusk = ph === 'dusk';
     P(0, 0, 96, 68, dusk ? '#f6b27a' : '#9fd8ff'); P(0, 40, 96, 16, dusk ? '#f59a7c' : '#bfe6ff'); P(0, 56, 96, 12, dusk ? '#e87f7f' : '#d5efff');
-    gdisc(78, dusk ? 26 : 9, 4, dusk ? '#ffe08a' : '#ffe45c');
+    gdisc(dusk && L.world.isDawn() ? 18 : 78, dusk ? 26 : 9, 4, dusk ? '#ffe08a' : '#ffe45c');
     [[10, 7], [36, 4], [56, 10]].forEach(([x, y], i) => { const cx = Math.floor(x + now / 1500 * (1 + i * 0.3)) % 110 - 14; P(cx, y, 12, 2, '#fff'); P(cx + 2, y - 1, 7, 1, '#fff'); P(cx + 3, y + 2, 7, 1, '#e8f4ff'); });
   }
   for (let x = 0; x < 96; x++) { const h = Math.round(3 + 2 * Math.sin(x / 9) + 1.5 * Math.sin(x / 4.3)); P(x, 32 - h, 1, h + 2, '#7bc06a'); }
@@ -1923,7 +1923,7 @@ function bgOutdoor(name, now) {
   if (!bgOk(name) || !bgOk(name + '_k')) return false;
   const ph = L.world.phase(), dusk = ph === 'dusk';
   if (ph === 'day') g.drawImage(BG[name], 0, 0, W, H);
-  else { if (dusk) { P(0, 0, 96, 68, '#f6b27a'); P(0, 40, 96, 16, '#f59a7c'); P(0, 56, 96, 12, '#e87f7f'); gdisc(78, 26, 4, '#ffe08a'); } g.drawImage(BG[name + '_k'], 0, 0, W, H); }
+  else { if (dusk) { P(0, 0, 96, 68, '#f6b27a'); P(0, 40, 96, 16, '#f59a7c'); P(0, 56, 96, 12, '#e87f7f'); gdisc(L.world.isDawn() ? 18 : 78, 26, 4, '#ffe08a'); } g.drawImage(BG[name + '_k'], 0, 0, W, H); }
   if (ph !== 'night') {
     if (!dusk) gdisc(78, 9, 4, '#ffe45c');
     [[10, 7], [36, 4], [56, 10]].forEach(([x, y], i) => { const cx = Math.floor(x + now / 1500 * (1 + i * 0.3)) % 110 - 14; P(cx, y, 12, 2, '#fff'); P(cx + 2, y - 1, 7, 1, '#fff'); P(cx + 3, y + 2, 7, 1, '#e8f4ff'); });

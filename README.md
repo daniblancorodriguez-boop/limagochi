@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.32.1 · amanecer
+A las 7:00–7:59 el momento del día ponía «Atardecer»; ahora pone «Amanecer» y el sol del jardín sale por la izquierda (la luz naranja es la misma).
+
 ## v3.32.0 · huerto rentable, cultivos raros y disfraces de temporada
 - **Huerto:** cada semilla da 2 unidades; la cosecha y los platos se venden (huerto → «🪙 Vender cosecha y platos», también desde el mercado del estudio); un plato casero deja «bien alimentado» (el hambre baja un 25 % más despacio 4 h, 2 h si es un snack).
 - **Cultivos raros** por nivel de jardinería: 🍄 seta (45), 🌶 pimiento (55), 🍇 uva (65), 🎃 calabaza (75), 🌻 girasol (85) y 🏵 flor lunar (95: solo crece de noche, da 1 y se vende a 55 🪙 o se regala). Semillas de 10 a 30 🪙 y 5 recetas nuevas.

@@ -39,6 +39,8 @@ function phaseAt(ts) {
   return 'day';
 }
 const phase = () => phaseAt(now().getTime());
+/** La franja «dusk» de 07:00 a 07:59 es el amanecer (misma luz naranja, el sol sube por la izquierda). */
+const isDawn = () => phase() === 'dusk' && now().getHours() < 12;
 /** Mañana (07:00–11:59): a esa hora se despierta solo aunque no haya recuperado toda la energía. */
 function isMorningAt(ts) {
   if (!settings.cycle) return false;
@@ -146,7 +148,7 @@ function hat(g, evId, spriteX, bodyTopY) {
 }
 
 L.world = {
-  now, phase, phaseAt, isMorningAt, isNight: () => phase() === 'night', event: eventNow, EVENTS, EVENT_FOODS,
+  now, phase, phaseAt, isMorningAt, isNight: () => phase() === 'night', isDawn, event: eventNow, EVENTS, EVENT_FOODS,
   sky, decor, hat,
   eventLabel(ev) { return ev ? `${ev.icon} ${ev.name}` : ''; }
 };
