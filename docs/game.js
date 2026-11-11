@@ -584,7 +584,7 @@ function refuse(text) { fx('refuse', 1400); Sound.play('refuse'); setMsg(text); 
 function openFeed() {
   if (!canInteract() || !awake()) return;
   if (state.pause) { setMsg('Está de vacaciones'); return; }
-  if (here() !== 'kitchen') setRoom('kitchen');
+  if (here() !== 'kitchen') { guardPractice('ir a la cocina', () => { setRoom('kitchen'); openFridge(); }); return; }     // el 🍔 también cambia de sala
   openFridge();
 }
 function openFridge() {

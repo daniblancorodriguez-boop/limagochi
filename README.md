@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.32.2 · el 🍔 también pregunta antes de salir del estudio
+El botón de comer lleva a la cocina sin pasar por el aviso de guardar la sesión: si estaba escribiendo, pintando o tocando, cambiaba de sala con la barra encima. Ahora pregunta igual que el resto de cambios de sala.
+
 ## v3.32.1 · amanecer
 A las 7:00–7:59 el momento del día ponía «Atardecer»; ahora pone «Amanecer» y el sol del jardín sale por la izquierda (la luz naranja es la misma).
 

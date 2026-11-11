@@ -622,6 +622,10 @@ test('estudio: la sesión se guarda (con aviso) al cambiar de sala, dormir o ens
     clickText('Seguir practicando'); out.keep = !!T().practice && s.room.where === 'studio';
     document.getElementById('chipGo').click(); clickText('Guardar sesión');
     out.saved1 = !T().practice && T().saved.painting && T().saved.painting.min === 10 && T().saved.painting.seed === 123; out.moved = s.room.where !== 'studio';
+    // 1b) el botón de comer (🍔) también lleva a la cocina: avisa igual
+    s.room.where = 'studio'; start(); delete T().saved.painting; a.closePanel(); a.openFeed();
+    out.askFeed = panel().textContent.includes('Guardar sesión') && s.room.where === 'studio' && !!T().practice;
+    clickText('Seguir practicando'); out.feedKeep = s.room.where === 'studio' && !!T().practice;
     // 2) dormir
     s.room.where = 'studio'; start(); delete T().saved.painting;
     document.querySelector('[data-action=light]').click();
