@@ -450,7 +450,7 @@ function tick(dt) {
     }
   } else {
     s.energy = clamp(s.energy - R.energy * L.studio.stress().energy * (rest ? 0.35 : 1) * dt);
-    if (night && s.energy < 70 && clockNow() > (s.stayUp || 0)) {                 // de noche se duerme solo
+    if (night && s.energy < 20 && clockNow() > (s.stayUp || 0)) {                 // de noche se duerme solo
       s.sleeping = true;
       if (!quiet) { setMsg('🌙 Se ha quedado dormido'); Sound.play('lightOff'); }
     }

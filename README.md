@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.33.1 · sueño nocturno
+- De noche (22:00–6:59) se duerme solo únicamente si la energía baja de 20 (antes de 70); si la hay de sobra, sigue despierto hasta entonces.
+
 ## v3.33.0 · Esquiva nuevo, Bloques e iconos de manos
 - **Esquiva** (`docs/arcade.js`): 6 columnas en lugar de 3, caen piedras (el dibujo de Piedra) y monedas. Como mucho 2 piedras por tanda (siempre hay hueco) y el golpe solo cuenta mientras la piedra solapa el cuerpo; tocar una columna mueve directo a ella.
 - **Bloques** (tipo Arkanoid): la mascota rebota la bola; 5 ladrillos dorados sueltan moneda que hay que recoger.
