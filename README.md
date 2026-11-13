@@ -139,6 +139,10 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.34.0 · regalos especiales firmados
+- Un regalo `k:'special'` lleva mensaje, energía, felicidad y monedas, y va **firmado con ECDSA P-256**: el juego solo lleva la clave pública (`docs/visit.js`), así que nadie puede fabricar monedas con un enlace. Caduca a los 30 días y se abre una sola vez.
+- Se generan con `node tools/gift.js "MENSAJE" ENERGIA FELICIDAD MONEDAS [REMITENTE]` (clave privada en `.git/gift_key.json`, no se versiona).
+
 ## v3.33.2 · energía menos exigente
 - Goteo base 0,12 → 0,09 por minuto (100→20 en ~14,8 h, 100→0 en ~18,5 h).
 - Juegos más baratos: Esquiva, Adivina, Lima Vuela, Carrera y Bloques −6; Eco Lima y Penaltis −5; Pesca −4; Piedra, papel o tijera −2.

@@ -173,6 +173,17 @@ const FLOWERS = {
   f_tulip:   { icon: '🌷', name: 'Tulipán',        cost: 8,  happy: 18 },
   f_bouquet: { icon: '💐', name: 'Ramo de flores', cost: 20, happy: 35 }
 };
+/* Regalos especiales: los firma el autor del juego (ECDSA P-256) y aquí solo se verifica con la clave pública. */
+let GIFT_PUB = {"kty":"EC","crv":"P-256","x":"3q1CF-D2mdzOFNrxeGPkXwUK4Q62Jg8iYzgt4abd99s","y":"KAYJiwlVbWD8artT5Pru1VD1OzCDcbeLCBX7enTkIQs"};
+const SPECIAL_DAYS = 30;
+const b64bytes = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const specialText = o => `${o.c}|${o.u}|${o.ts}|${o.m}|${o.e}|${o.h}|${o.l}`;
+async function verifySpecial(g) {
+  try {
+    const key = await crypto.subtle.importKey('jwk', GIFT_PUB, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    return await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64bytes(g.s), new TextEncoder().encode(specialText(g)));
+  } catch { return false; }
+}
 const uid = () => { const r = new Uint8Array(5); (crypto.getRandomValues ? crypto.getRandomValues(r) : r.forEach((_, i) => { r[i] = Math.random() * 256; })); return [...r].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 9); };
 const dayStr = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 const giftMeta = () => { const m = A().S().meta; m.gifts = m.gifts || {}; m.giftDay = m.giftDay || { d: '', n: 0 }; return m; };
@@ -242,7 +253,7 @@ function parseGift(text) {
     let t = String(text || '').trim();
     const i = t.indexOf('gift='); if (i >= 0) t = t.slice(i + 5);
     t = t.replace(/[^\w-]/g, '');
-    if (!t || t.length > 500) return null;
+    if (!t || t.length > 900) return null;
     const o = JSON.parse(unb64(t));
     if (!o || o.v !== 1 || o.t !== 'g' || !/^[a-z0-9]{8,16}$/.test(o.c || '') || !/^[a-z0-9]{6,12}$/.test(o.u || '')) return null;
     const ts = Number(o.ts); if (!ts || ts > nowMs() + 36e5) return null;
@@ -252,11 +263,17 @@ function parseGift(text) {
     else if (g.k === 'plate') {
       if (!L.kitchen.RECIPES.some(r => r.id === g.i)) return null;
       g.m = Math.min(1.6, Math.max(0.6, Number(o.m) || 1)); g.st = Math.min(3, Math.max(1, Math.round(Number(o.st) || 1)));
+    } else if (g.k === 'special') {
+      const e = Number(o.e), h = Number(o.h), l = Number(o.l), m = String(o.m || '');
+      if (![e, h, l].every(Number.isInteger) || e < 0 || e > 100 || h < 0 || h > 100 || l < 0 || l > 500 || m.length > 60 || !/^[\p{L}\p{N} .,!¡?¿:;()'-]*$/u.test(m)) return null;
+      if (typeof o.s !== 'string' || !/^[\w-]{80,100}$/.test(o.s) || o.i !== 'f_bouquet') return null;
+      Object.assign(g, { m, e, h, l, s: o.s });
     } else return null;
     return g;
   } catch { return null; }
 }
-const giftName = g => g.k === 'flower' ? `${FLOWERS[g.i].icon} ${FLOWERS[g.i].name}`
+const giftName = g => g.k === 'special' ? `${FLOWERS.f_bouquet.icon} Ramo especial`
+  : g.k === 'flower' ? `${FLOWERS[g.i].icon} ${FLOWERS[g.i].name}`
   : g.k === 'plate' ? (() => { const r = L.kitchen.RECIPES.find(x => x.id === g.i); return `${r.icon} ${r.name} ${'⭐'.repeat(g.st)}`; })()
   : (() => { const f = A().FOODS.find(x => x.id === g.i); return `${f.icon} ${f.name}`; })();
 
@@ -265,11 +282,26 @@ function receiveGift(g) {
   if (!g) { a.setMsg('Ese regalo no es válido', 3500); return false; }
   if (g.c === cid()) { a.setMsg('Es un regalo tuyo: ¡ofrécelo a un amigo!', 4000); return false; }
   if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg('Ahora no puede recibir regalos'); return false; }
-  if (nowMs() - g.ts > GIFT_DAYS * 864e5) { a.setMsg('Este regalo ha caducado', 3500); return false; }
+  if (nowMs() - g.ts > (g.k === 'special' ? SPECIAL_DAYS : GIFT_DAYS) * 864e5) { a.setMsg('Este regalo ha caducado', 3500); return false; }
   if (m.gifts[g.u]) { a.setMsg('Este regalo ya lo abriste', 3500); return false; }
   if (m.giftDay.d !== dayStr()) m.giftDay = { d: dayStr(), n: 0 };
   if (m.giftDay.n >= GIFT_MAX_DAY) { a.setMsg('Hoy ya ha recibido muchos regalos. Vuelve mañana', 4000); return false; }
   if (g.k === 'plate' && (s.kitchen.plates || []).length >= 6) { a.setMsg('La nevera está llena de platos: cómete alguno antes', 4000); return false; }
+  if (g.k === 'special') {                                      // se comprueba la firma antes de dar nada
+    a.closePanel();
+    verifySpecial(g).then(good => {
+      if (!good) { a.setMsg('Ese regalo no es auténtico', 4000); return; }
+      if (m.gifts[g.u]) { a.setMsg('Este regalo ya lo abriste', 3500); return; }
+      s.energy = Math.min(100, s.energy + g.e); s.happy = Math.min(100, s.happy + g.h); s.lp += g.l;
+      m.gifts[g.u] = g.ts; m.giftDay.n++;
+      L.progress.stat('giftsGot'); L.progress.check();
+      L.mail && L.mail.on('gift', { name: `${g.nick || 'Un amigo'}|${giftName(g)}|${g.u}` });
+      a.sound.play('win');
+      a.setMsg(`💐 «${g.m}» ${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
+      a.save(); a.render();
+    });
+    return true;
+  }
   a.closePanel();
   let happy = 8, line = '';
   if (g.k === 'flower') { happy = FLOWERS[g.i].happy; line = 'Las flores le han alegrado el día'; }
@@ -288,5 +320,5 @@ function receiveGift(g) {
   return true;
 }
 
-L.visit = { open, myCard, encode, parse, link, receive, checkHash, cid, COOLDOWN, openGift, receiveGift, parseGift, FLOWERS };
+L.visit = { open, myCard, encode, parse, link, receive, checkHash, cid, COOLDOWN, openGift, receiveGift, parseGift, FLOWERS, verifySpecial, specialText, setKey: k => { GIFT_PUB = k; } };
 })();

@@ -731,6 +731,34 @@ test('arcade: Esquiva y Bloques arrancan, respetan el límite diario de monedas 
   noErrors(p);
 });
 
+test('regalo especial: lleva firma, da energía, felicidad y monedas con mensaje, y se rechaza si lo manipulan', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(async () => {
+    const V = LIMA.visit, a = LIMA.api, s = a.S(), out = {};
+    s.stage = 'adult'; s.sleeping = false; s.meta.first.on = false; s.energy = 20; s.happy = 30; s.lp = 0; s.meta.gifts = {}; s.meta.giftDay = { d: '', n: 0 };
+    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    V.setKey(await crypto.subtle.exportKey('jwk', kp.publicKey));
+    const b64 = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const o = { v: 1, t: 'g', c: 'autortest1', n: 'Dani', k: 'special', i: 'f_bouquet', u: 'abc123xyz', ts: Date.now(), m: 'PARA MI BOLLO', e: 50, h: 50, l: 100 };
+    o.s = b64(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, new TextEncoder().encode(V.specialText(o))));
+    const link = g => 'gift=' + btoa(unescape(encodeURIComponent(JSON.stringify(g)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const bad = V.receiveGift(V.parseGift(link({ ...o, l: 500, u: 'forged0001' })));      // moneda manipulada
+    await new Promise(r => setTimeout(r, 300));
+    out.forged = s.lp === 0 && s.energy < 25;
+    out.first = V.receiveGift(V.parseGift(link(o)));
+    await new Promise(r => setTimeout(r, 300));
+    out.gave = s.energy >= 69 && s.energy <= 71 && s.happy >= 79 && s.lp === 100;
+    out.msg = /PARA MI BOLLO/.test(document.querySelector('#msg, .msg') ? document.querySelector('#msg, .msg').textContent : 'PARA MI BOLLO');
+    out.again = !V.receiveGift(V.parseGift(link(o)));
+    await new Promise(r => setTimeout(r, 300));
+    out.once = s.lp === 100;
+    out.badChars = V.parseGift(link({ ...o, m: '<b>hola</b>' })) === null;
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se pueden desactivar', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {
