@@ -139,6 +139,11 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.33.2 · energía menos exigente
+- Goteo base 0,12 → 0,09 por minuto (100→20 en ~14,8 h, 100→0 en ~18,5 h).
+- Juegos más baratos: Esquiva, Adivina, Lima Vuela, Carrera y Bloques −6; Eco Lima y Penaltis −5; Pesca −4; Piedra, papel o tijera −2.
+- Practicar en el estudio gasta 0,06 extra por minuto (antes 0,12).
+
 ## v3.33.1 · sueño nocturno
 - De noche (22:00–6:59) se duerme solo únicamente si la energía baja de 20 (antes de 70); si la hay de sobra, sigue despierto hasta entonces.
 

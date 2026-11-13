@@ -21,7 +21,7 @@ const CFG = {
   minWeight: { egg: 3, baby: 3, child: 8, teen: 12, adult: 15 },
   obese: { baby: 10, child: 22, teen: 30, adult: 40 },   // peso a partir del cual está obeso
   /* por minuto (despierto): hambre vacía en ~8 h, felicidad en ~10 h, energía en ~14 h; dormir recupera en ~8 h */
-  rate: { hunger: 0.21, happy: 0.17, energy: 0.12, discipline: 0.008, sleep: 0.21, dirt: 0.06 },   // dirt: sucio del todo en ~28 h despierto
+  rate: { hunger: 0.21, happy: 0.17, energy: 0.09, discipline: 0.008, sleep: 0.21, dirt: 0.06 },   // dirt: sucio del todo en ~28 h despierto
   poopEvery: [90, 180],               // minutos entre caquitas (adulto)
   poopByStage: { baby: [10, 20], child: [60, 120] },   // los pequeños hacen caca mucho más a menudo
   /* los corazones de hambre y felicidad se vacían más deprisa cuanto más pequeño (como el Tamagotchi original) */
@@ -1231,7 +1231,7 @@ function pick(dir) {
     guess.look = 0; guess.locked = false;
     if (guess.round >= 5) {
       const w = guess.wins; guess.active = false; closePanel();
-      reward({ happy: w >= 3 ? 35 : 12, energy: -12, hunger: -8, weight: -0.5, lp: w >= 3 ? 4 : 1, game: 'guess', win: w >= 3, score: w },
+      reward({ happy: w >= 3 ? 35 : 12, energy: -6, hunger: -8, weight: -0.5, lp: w >= 3 ? 4 : 1, game: 'guess', win: w >= 3, score: w },
              w >= 3 ? `¡Ganaste ${w}/5!` : `Perdiste (${w}/5)`);
     } else { guess.text = '¿Hacia dónde mirará?'; renderGuess(); render(); }
   }, 900);

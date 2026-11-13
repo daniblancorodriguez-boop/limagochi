@@ -271,7 +271,7 @@ function tick(dt, quiet) {
   if (reason) { save(reason, quiet); return; }
   const x = t[P.k];
   x.lv = Math.min(99, x.lv + gain(x.lv) * dt * (s.happy < 40 ? 0.7 : 1)); x.mx = Math.max(x.mx, x.lv);
-  s.happy = clamp(s.happy - 0.10 * dt, 0, 100); s.energy = clamp(s.energy - 0.12 * dt, 0, 100); s.discipline = clamp(s.discipline + 0.03 * dt, 0, 100);
+  s.happy = clamp(s.happy - 0.10 * dt, 0, 100); s.energy = clamp(s.energy - 0.06 * dt, 0, 100); s.discipline = clamp(s.discipline + 0.03 * dt, 0, 100);
   P.min += dt;
   if (P.min >= P.total) { finish('done', quiet); return; }
   if (!quiet) { barOn = true; a.skillBar({ icon: TAL[P.k].icon, label: `${TAL[P.k].name} ${Math.floor(x.lv)}`, pct: x.lv, sub: `${Math.max(1, Math.ceil(P.total - P.min))} min` }); }

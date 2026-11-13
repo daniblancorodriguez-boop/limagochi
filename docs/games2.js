@@ -261,7 +261,7 @@ function fishing() {
         s.cast++;
         if (s.cast >= CASTS) {
           L.mini.end('fishing', s.fish >= 3 ? '¡Gran pesca!' : 'Fin de la pesca', [`Peces: ${s.fish}`, s.fish ? 'Los tienes en 🥗 Sanas' : 'Ninguno hoy'],
-            { happy: 8 + 3 * s.fish, energy: -6, hunger: -4, weight: -0.2, lp: s.lp, win: s.fish >= 3, score: s.fish });
+            { happy: 8 + 3 * s.fish, energy: -4, hunger: -4, weight: -0.2, lp: s.lp, win: s.fish >= 3, score: s.fish });
         } else { s.phase = 'idle'; s.t = 0; s.text = ''; hud(); }
       }
     },
@@ -340,7 +340,7 @@ function rps() {
           const win = s.me > s.pet;
           a.closePanel();
           L.mini.end('rps', win ? '¡Has ganado!' : 'Ha ganado Limagochi', [`Resultado: ${s.me} – ${s.pet}`],
-            { happy: win ? 10 : 4, energy: -3, hunger: -2, lp: win ? 4 : 0, win, score: s.me });
+            { happy: win ? 10 : 4, energy: -2, hunger: -2, lp: win ? 4 : 0, win, score: s.me });
         } else { s.phase = 'pick'; s.text = 'Elige'; hud(); ui(); }
       }
     },
@@ -385,7 +385,7 @@ function race() {
         const win = s.x >= s.rx;
         L.studio.xp('sport', win ? 1.8 : 1.2);
         L.mini.end('race', win ? '¡Has ganado la carrera!' : 'Te han adelantado…', [`Tropiezos: ${s.hits}`],
-          { happy: win ? 12 : 4, energy: -10, hunger: -6, weight: -0.4, lp: win ? 5 + Math.floor(SP / 20) : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
+          { happy: win ? 12 : 4, energy: -6, hunger: -6, weight: -0.4, lp: win ? 5 + Math.floor(SP / 20) : 1, win, score: win ? Math.max(1, 6 - s.hits) : 0 });
       }
     },
     draw() {

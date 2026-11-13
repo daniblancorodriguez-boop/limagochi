@@ -89,7 +89,7 @@ function flappy() {
         if (s.overT > 0.9) {
           const sc = s.score;
           end('flappy', sc >= 3 ? '¡Qué vuelo!' : 'Ha caído…', [`Tubos pasados: ${sc}`, `Monedas: ${s.coins}/${COIN_MAX}`],
-            { happy: Math.min(45, 5 + 6 * sc), energy: -10, hunger: -6, weight: -Math.min(2, 0.3 + 0.2 * sc), lp: s.coins, win: sc >= 3, score: sc });
+            { happy: Math.min(45, 5 + 6 * sc), energy: -6, hunger: -6, weight: -Math.min(2, 0.3 + 0.2 * sc), lp: s.coins, win: sc >= 3, score: sc });
         }
         return;
       }
@@ -183,7 +183,7 @@ function memory() {
         if (s.t > 1) {
           const r = s.win ? MAXR : s.round - 1;
           end('memory', s.win ? '¡Memoria de elefante!' : 'Se ha liado…', [`Rondas superadas: ${r}`],
-            { happy: Math.min(45, 6 + 5 * r), energy: -8, hunger: -5, weight: -Math.min(1.5, 0.2 + 0.12 * r), lp: Math.ceil(r * 0.9), win: r >= 4, score: r });
+            { happy: Math.min(45, 6 + 5 * r), energy: -5, hunger: -5, weight: -Math.min(1.5, 0.2 + 0.12 * r), lp: Math.ceil(r * 0.9), win: r >= 4, score: r });
         }
       }
     },
@@ -395,7 +395,7 @@ function penalty() {
           const gl = s.goals, win = gl >= 3;
           end('penalty', gl >= 5 ? '¡Tanda perfecta!' : win ? '¡Gran tanda!' : 'Otra vez será',
             [`Goles: ${gl}/${SHOTS}`],
-            { happy: 6 + 4 * gl, energy: -8, hunger: -5, weight: -0.3 - 0.1 * gl, lp: Math.ceil(gl * 1.25) + (gl >= 5 ? 3 : 0), win, score: gl });
+            { happy: 6 + 4 * gl, energy: -5, hunger: -5, weight: -0.3 - 0.1 * gl, lp: Math.ceil(gl * 1.25) + (gl >= 5 ? 3 : 0), win, score: gl });
         }
       }
     },

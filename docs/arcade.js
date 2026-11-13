@@ -72,7 +72,7 @@ function dodge() {
           const v = verdict('dodge', s.coins, s.win ? '¡Lo esquivó todo!' : '¡Le han dado!');
           addCoins('dodge', s.coins);
           L.mini.end('dodge', v.title, [`Monedas: ${s.coins}`, s.why || (s.win ? 'Sobrevivió los 30 s' : 'No sobrevivió')],
-            { happy: 10 + 3 * s.coins + (s.win ? 12 : 0), energy: -12, hunger: -8, weight: -Math.min(2, 0.4 + 0.1 * s.coins), lp: s.coins, win: s.win, score: s.coins });
+            { happy: 10 + 3 * s.coins + (s.win ? 12 : 0), energy: -6, hunger: -8, weight: -Math.min(2, 0.4 + 0.1 * s.coins), lp: s.coins, win: s.win, score: s.coins });
         }
         return;
       }
@@ -149,7 +149,7 @@ function brick() {
           const v = verdict('brick', s.coins, s.win ? '¡Tablero limpio!' : 'Se acabaron las bolas');
           addCoins('brick', s.coins);
           L.mini.end('brick', v.title, [`Bloques rotos: ${s.broken}/${bricks.length}`, `Monedas: ${s.coins}`],
-            { happy: 8 + 2 * s.coins + (s.win ? 10 : 0), energy: -10, hunger: -6, weight: -Math.min(2, 0.4 + 0.1 * s.coins), lp: s.coins, win: s.win, score: s.broken });
+            { happy: 8 + 2 * s.coins + (s.win ? 10 : 0), energy: -6, hunger: -6, weight: -Math.min(2, 0.4 + 0.1 * s.coins), lp: s.coins, win: s.win, score: s.broken });
         }
         return;
       }
