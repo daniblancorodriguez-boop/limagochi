@@ -969,7 +969,7 @@ function openObject(id) {
   const night = cycleOn() && L.world.phase() === 'night';
   const ask = (title, ...opts) => openPanel([p(title), row(...opts), btn('Cerrar', closePanel, 'ghost')]);
   if (s.pause) { setMsg('Está de vacaciones'); return; }
-  if (id === 'robodog') { L.robodog.poke(); return; }
+  if (id === 'robodog') { if (L.robodog) L.robodog.poke(); return; }
   if (id === 'teddy') {
     if (s.sleeping) { setMsg('Zzz… duerme'); return; }
     ask('🧸 Peluche', btn('Abrazar', () => {
@@ -1055,7 +1055,7 @@ function hitObject(x, y) {
     const b = bugBox(); if (b && x >= b.x - 2 && x < b.x + b.w + 2 && y >= b.y - 2 && y < b.y + b.h + 2) return 'bug';
   }
   const o = { includes: has }, inside = (id, p) => { const z = itemSize(id); return x >= p.x && x < p.x + z.w && y >= p.y && y < p.y + z.h; };
-  if (o.includes('robodog') && L.robodog.inside(x, y)) return 'robodog';
+  if (o.includes('robodog') && L.robodog && L.robodog.inside(x, y)) return 'robodog';
   if (o.includes('plush') && inside('teddy', teddyPos())) return 'teddy';
   if (o.includes('ball') && inside('ball', { x: 2, y: 34 - itemSize('ball').h })) return 'ball';      // la pelota va por delante de la cama
   if (o.includes('plant') && inside('plant', ROOM.plant)) return 'plant';
@@ -1492,10 +1492,12 @@ function drawPet(now, frame, f) {
   else if (u === 'tv' || u === 'fit') { bx = 20; by = 11 - (u === 'fit' ? Math.floor(now / 250) % 2 * 2 : 0); }
   else if (u === 'sun') { bx = 31; by = 19; slot = 'sun'; }
   else if (u === 'pool') { bx = 30; by = 12 - frame; slot = 'pool'; }
-  else if (has('robodog') && L.robodog.playing()) { bx = L.robodog.petX(); by = 11; }              // juega con Lima robot: se queda a la izquierda y tira de la cuerda
+  else if (has('robodog') && L.robodog && L.robodog.playing()) { bx = L.robodog.petX(); by = 11; }              // juega con Lima robot: se queda a la izquierda y tira de la cuerda
   else if (now < hugUntil) { const t = teddyPos(); bx = Math.max(0, t.x - 15); by = 11; }
   else if (now < ballUntil) { bx = 14 + Math.round(Math.sin(now / 260) * 3); by = 11 - (Math.floor(now / 130) % 2); }
   else if (!s.sleeping && !f) { const dog = here() === 'bedroom' && has('robodog'); if (dog) bx = 6; bx += Math.round(Math.sin(now / 1800) * (s.sick ? 2 : dog ? 4 : 8)); by -= frame; }   // pasea (en el cuarto con Lima robot, sin taparlo)
+  if (!isFinite(bx) || !isFinite(by)) { bx = 6; by = 11; }
+  if (!isFinite(pos.x) || !isFinite(pos.y)) pos.ok = false;
   if (!pos.ok) { pos.x = bx; pos.y = by; pos.ok = true; }
   const ddx = bx - pos.x, ddy = by - pos.y;
   pos.x += Math.max(-2, Math.min(2, ddx)); pos.y += Math.max(-2, Math.min(2, ddy));
@@ -1616,7 +1618,7 @@ function drawHouse(now) {
   }
   if (o.includes('plant')) drawItem('plant', ROOM.plant.x, ROOM.plant.y);
   if (o.includes('plush')) { const t = teddyPos(); drawItem('teddy', t.x, t.y); }
-  if (o.includes('robodog')) L.robodog.draw(now);
+  if (o.includes('robodog') && L.robodog) L.robodog.draw(now);
   if (o.includes('ball')) {
     const bh = itemSize('ball').h, bw = itemSize('ball').w;
     if (now < ballUntil) {                                                  // rebota entre la mascota y la esquina
@@ -2008,7 +2010,7 @@ function drawScene(now) {
   if (here() === 'studio') L.studio.drawFx(now);
   if (s.stage !== 'egg') for (let i = 0; i < s.poops; i++) drawPoop([6, 35, 14, 27][i], 29, frame);
   if (!L.school.isAway()) drawPet(now, frame, f);
-  if (has('robodog') && !L.school.isAway()) L.robodog.drawFx(now);
+  if (has('robodog') && L.robodog && !L.school.isAway()) L.robodog.drawFx(now);
   drawWatering(now);
   if (gar) drawBug(now);
   drawGuessArrow();

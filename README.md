@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.35.3 · Lima robot a prueba de fallos
+Si algo fallaba al jugar con Lima robot (o la app tenía archivos mezclados de dos versiones), el cuarto se quedaba vacío. Ahora cualquier error del robot se aísla: el juego se corta y la mascota y el cuarto se siguen pintando. Se protege también la posición de la mascota.
+
 ## v3.35.2 · al abrir el regalo de Lima robot se abre el dormitorio
 - El regalo con objeto `robodog` lleva a la mascota al cuarto, donde vive Lima robot, y el aviso lo dice. Se elimina la copia de prueba `docs/prueba-robot`.
 

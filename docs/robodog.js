@@ -116,7 +116,7 @@ function tick(now) {
   if (!last) last = now;
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (S && !awake()) S = null;                                            // se duerme o enferma: se acaba el juego
-  if (S && !freeze) { let r = dt; while (r > 0 && S) { const k = Math.min(r, 1 / 60); advance(k); r -= k; } }
+  if (S && !freeze) { try { let r = dt; while (r > 0 && S) { const k = Math.min(r, 1 / 60); advance(k); r -= k; } } catch (e) { S = null; next = Date.now() + 20000; } }   // un fallo nunca debe vaciar el cuarto
   else if (!S && awake() && !freeze) {
     if (!next) next = now + 12000 + Math.random() * 10000;
     else if (now >= next) { begin(n++ % 2 ? 'tug' : 'ball'); }
@@ -125,7 +125,7 @@ function tick(now) {
 
 /** El perro tumbado (en reposo) va por detrás de la mascota; jugando se pinta delante (ver drawFx). */
 function draw(now) {
-  tick(now);
+  try { tick(now); } catch (e) { S = null; }
   if (L.school.isAway() || S) return;
   const d = dims(), y = FLOOR - d.h / 2, a = A(), g = a.ctx, f = idleFrame(now);
   blit(f, X, r5(y), false);
@@ -158,18 +158,19 @@ function drawFx(now) {
   }
 }
 
+const safe = fn => (...a) => { try { return fn(...a); } catch (e) { S = null; } };
 L.robodog = {
   has: () => A().S().owned.includes('robodog'),
   name: 'Lima robot',
-  draw, drawFx,
+  draw: safe(draw), drawFx: safe(drawFx),
   playing: () => !!S && awake(),
-  petX: () => (S ? S.petx : 1),
+  petX: () => (S && isFinite(S.petx) ? S.petx : 1),
   inside(x, y) { const d = dims(), px = S ? X + (S.dog.x - X) + S.dog.dx : X; return x >= px && x < px + d.w / 2 && y >= FLOOR - 8 && y < FLOOR; },
-  poke() {
+  poke: safe(function () {
     const s = A().S(); if (!awake()) { A().setMsg(s.sleeping ? 'Zzz… duerme' : 'Ahora no puede jugar'); return; }
     if (!S) { begin(n++ % 2 ? 'tug' : 'ball'); freeze = false; }
     snd('rbark'); setTimeout(() => snd('rbeep'), 160); A().setMsg('🤖 Lima robot: ¡bzzt, guau!', 2500);
-  },
+  }),
   /* ayudas para pruebas y capturas */
   debug(mode, t) { if (!mode) { S = null; freeze = false; return; } begin(mode); freeze = true; while (S && S.t < t) advance(1 / 60); },
   _ff(sec) { let r = sec; while (r > 0 && S) { advance(Math.min(r, 1 / 60)); r -= 1 / 60; } },
