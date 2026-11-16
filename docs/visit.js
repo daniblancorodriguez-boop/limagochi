@@ -296,6 +296,7 @@ function receiveGift(g) {
       if (m.gifts[g.u]) { a.setMsg('Este regalo ya lo abriste', 3500); return; }
       s.energy = Math.min(100, s.energy + g.e); s.happy = Math.min(100, s.happy + g.h); s.lp += g.l;
       if (g.x && !s.owned.includes(g.x)) s.owned.push(g.x);
+      if (g.x === 'robodog') { s.room.where = 'bedroom'; s.room.use = null; }              // abre el dormitorio, donde vive Lima robot
       m.gifts[g.u] = g.ts; m.giftDay.n++;
       L.progress.stat('giftsGot'); L.progress.check();
       L.mail && L.mail.on('gift', { name: `${g.nick || 'Un amigo'}|${giftName(g)}|${g.u}` });

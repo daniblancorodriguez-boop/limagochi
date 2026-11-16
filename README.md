@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.35.2 · al abrir el regalo de Lima robot se abre el dormitorio
+- El regalo con objeto `robodog` lleva a la mascota al cuarto, donde vive Lima robot, y el aviso lo dice. Se elimina la copia de prueba `docs/prueba-robot`.
+
 ## v3.35.1 · Lima robot más fluido
 - El juego se redibuja a 20 fotogramas por segundo mientras Lima robot juega (antes 4–10), las carreras aceleran y frenan con suavidad, con un pequeño rebote al correr y posiciones alineadas a la rejilla de píxeles (sin borrosidad).
 

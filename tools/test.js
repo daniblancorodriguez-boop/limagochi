@@ -764,7 +764,7 @@ test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicid
   const r = await p.evaluate(async () => {
     const V = LIMA.visit, a = LIMA.api, s = a.S(), R = LIMA.robodog, out = {};
     s.stage = 'adult'; s.sleeping = false; s.sick = false; s.energy = 80; s.happy = 50; s.lp = 0; s.meta.first.on = false; s.meta.gifts = {}; s.meta.giftDay = { d: '', n: 0 };
-    LIMA.settings.set('cycle', false); s.room.where = 'bedroom'; out.notYet = !R.has();
+    LIMA.settings.set('cycle', false); s.room.where = 'salon'; out.notYet = !R.has();
     // regalo especial con objeto 'robodog' (firmado con una clave de prueba)
     const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
     V.setKey(await crypto.subtle.exportKey('jwk', kp.publicKey));
@@ -774,7 +774,7 @@ test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicid
     const link = g => 'gift=' + btoa(unescape(encodeURIComponent(JSON.stringify(g)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     out.fakeItem = V.parseGift(link({ ...o, x: 'otracosa' })) === null;
     V.receiveGift(V.parseGift(link(o))); await new Promise(r => setTimeout(r, 300));
-    out.gift = R.has();
+    out.gift = R.has() && s.room.where === 'bedroom';
     // dibujo y juegos
     a.render(); out.hitDog = R.inside(30, 30);
     for (const mode of ['ball', 'tug']) {
