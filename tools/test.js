@@ -759,6 +759,37 @@ test('regalo especial: lleva firma, da energía, felicidad y monedas con mensaje
   noErrors(p);
 });
 
+test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicidad y se para si se duerme', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(async () => {
+    const V = LIMA.visit, a = LIMA.api, s = a.S(), R = LIMA.robodog, out = {};
+    s.stage = 'adult'; s.sleeping = false; s.sick = false; s.energy = 80; s.happy = 50; s.lp = 0; s.meta.first.on = false; s.meta.gifts = {}; s.meta.giftDay = { d: '', n: 0 };
+    LIMA.settings.set('cycle', false); s.room.where = 'bedroom'; out.notYet = !R.has();
+    // regalo especial con objeto 'robodog' (firmado con una clave de prueba)
+    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    V.setKey(await crypto.subtle.exportKey('jwk', kp.publicKey));
+    const b64 = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const o = { v: 1, t: 'g', c: 'autortest2', n: 'Dani', k: 'special', i: 'f_bouquet', u: 'robot0001', ts: Date.now(), m: 'PARA LIMA ROBOT', e: 0, h: 0, l: 0, x: 'robodog' };
+    o.s = b64(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, new TextEncoder().encode(V.specialText(o))));
+    const link = g => 'gift=' + btoa(unescape(encodeURIComponent(JSON.stringify(g)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    out.fakeItem = V.parseGift(link({ ...o, x: 'otracosa' })) === null;
+    V.receiveGift(V.parseGift(link(o))); await new Promise(r => setTimeout(r, 300));
+    out.gift = R.has();
+    // dibujo y juegos
+    a.render(); out.hitDog = R.inside(30, 30);
+    for (const mode of ['ball', 'tug']) {
+      R.debug(null); const h0 = s.happy; R.poke(); out['playing_' + mode] = R.playing();
+      let guard = 0; while (R.state() && guard++ < 40) { R._ff(0.5); a.render(); }
+      out['done_' + mode] = R.state() === null && s.happy >= h0 + 2 - 0.01;
+      R.debug(mode, 0.1); R.debug(null);
+    }
+    R.poke(); s.sleeping = true; a.render(); out.stopsAsleep = !R.playing();
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('iconos propios: los emojis se cambian por iconos, el texto no cambia y se pueden desactivar', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

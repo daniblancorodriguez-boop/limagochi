@@ -57,7 +57,12 @@ const SFX = {
   trick:  () => seq([392, 523, 659], 0.08, { type: 'triangle' }),
   tvNote: (n = 0) => { const m = [523, 659, 784, 659, 587, 698, 880, 698, 0, 0, 0, 0][n % 12]; if (m) tone(m, 0.45, { type: 'sine', vol: 0.025 }); },
   note:   (n = 0) => tone([523, 587, 659, 784, 880][n % 5], 0.18, { type: 'triangle', vol: 0.07 }),
-  learn:  () => seq([523, 659, 784, 1047, 1319], 0.08)
+  learn:  () => seq([523, 659, 784, 1047, 1319], 0.08),
+  /* Lima robot: guau robótico, bzzt, gruñido y pasitos */
+  rbark:  () => { tone(560, 0.1, { type: 'sawtooth', vol: 0.07, slide: -240 }); tone(430, 0.14, { type: 'sawtooth', vol: 0.07, slide: -200, at: 0.12 }); },
+  rbeep:  () => { seq([1175, 880, 1319], 0.05, { type: 'square', vol: 0.04 }); tone(140, 0.12, { type: 'sawtooth', vol: 0.03, slide: 80, at: 0.16 }); },
+  rgrowl: () => { tone(105, 0.45, { type: 'sawtooth', vol: 0.06, slide: -25 }); tone(112, 0.45, { type: 'square', vol: 0.025, slide: -20 }); },
+  rstep:  () => tone(240, 0.035, { type: 'square', vol: 0.025 })
 };
 
 LIMA.sound = {

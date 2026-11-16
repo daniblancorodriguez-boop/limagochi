@@ -177,7 +177,8 @@ const FLOWERS = {
 let GIFT_PUB = {"kty":"EC","crv":"P-256","x":"3q1CF-D2mdzOFNrxeGPkXwUK4Q62Jg8iYzgt4abd99s","y":"KAYJiwlVbWD8artT5Pru1VD1OzCDcbeLCBX7enTkIQs"};
 const SPECIAL_DAYS = 30;
 const b64bytes = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const specialText = o => `${o.c}|${o.u}|${o.ts}|${o.m}|${o.e}|${o.h}|${o.l}`;
+const ITEM_GIFTS = { robodog: '🤖 Lima robot' };                   // objetos exclusivos que puede traer un regalo especial
+const specialText = o => `${o.c}|${o.u}|${o.ts}|${o.m}|${o.e}|${o.h}|${o.l}${o.x ? '|' + o.x : ''}`;
 async function verifySpecial(g) {
   try {
     const key = await crypto.subtle.importKey('jwk', GIFT_PUB, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
@@ -267,12 +268,13 @@ function parseGift(text) {
       const e = Number(o.e), h = Number(o.h), l = Number(o.l), m = String(o.m || '');
       if (![e, h, l].every(Number.isInteger) || e < 0 || e > 100 || h < 0 || h > 100 || l < 0 || l > 500 || m.length > 60 || !/^[\p{L}\p{N} .,!¡?¿:;()'-]*$/u.test(m)) return null;
       if (typeof o.s !== 'string' || !/^[\w-]{80,100}$/.test(o.s) || o.i !== 'f_bouquet') return null;
-      Object.assign(g, { m, e, h, l, s: o.s });
+      if (o.x !== undefined && !ITEM_GIFTS[o.x]) return null;
+      Object.assign(g, { m, e, h, l, s: o.s, x: o.x });
     } else return null;
     return g;
   } catch { return null; }
 }
-const giftName = g => g.k === 'special' ? `${FLOWERS.f_bouquet.icon} Ramo especial`
+const giftName = g => g.k === 'special' ? (g.x ? ITEM_GIFTS[g.x] : `${FLOWERS.f_bouquet.icon} Ramo especial`)
   : g.k === 'flower' ? `${FLOWERS[g.i].icon} ${FLOWERS[g.i].name}`
   : g.k === 'plate' ? (() => { const r = L.kitchen.RECIPES.find(x => x.id === g.i); return `${r.icon} ${r.name} ${'⭐'.repeat(g.st)}`; })()
   : (() => { const f = A().FOODS.find(x => x.id === g.i); return `${f.icon} ${f.name}`; })();
@@ -293,11 +295,12 @@ function receiveGift(g) {
       if (!good) { a.setMsg('Ese regalo no es auténtico', 4000); return; }
       if (m.gifts[g.u]) { a.setMsg('Este regalo ya lo abriste', 3500); return; }
       s.energy = Math.min(100, s.energy + g.e); s.happy = Math.min(100, s.happy + g.h); s.lp += g.l;
+      if (g.x && !s.owned.includes(g.x)) s.owned.push(g.x);
       m.gifts[g.u] = g.ts; m.giftDay.n++;
       L.progress.stat('giftsGot'); L.progress.check();
       L.mail && L.mail.on('gift', { name: `${g.nick || 'Un amigo'}|${giftName(g)}|${g.u}` });
       a.sound.play('win');
-      a.setMsg(`💐 «${g.m}» ${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
+      a.setMsg(`${g.x ? '🤖' : '💐'} «${g.m}» ${g.x ? '· ' + ITEM_GIFTS[g.x] + ' en tu cuarto ' : ''}${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
       a.save(); a.render();
     });
     return true;

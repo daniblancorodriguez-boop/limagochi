@@ -139,6 +139,12 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.35.0 · Lima robot (regalo exclusivo)
+- Objeto `robodog`: galgo marrón de peluche robot en el cuarto (`docs/robodog.js`, fotogramas con `tools/build_robodog.py`). No está en la tienda: llega con un regalo especial firmado (`node tools/gift.js "MENSAJE" ENERGÍA FELICIDAD MONEDAS REMITENTE robodog`).
+- Juega solo cada 18–32 s o al tocarlo: **bola** (la lanza, se levanta, corre tras ella, la recoge y vuelve a tumbarse con ella) y **cuerda** (tira con fuerza y arrastra a la mascota). +2 de felicidad por partida. Sonidos propios (`rbark`, `rbeep`, `rgrowl`, `rstep`). No juega dormido, enfermo, de vacaciones ni en el cole.
+- Con Lima robot, la mascota pasea más a la izquierda en el cuarto para no taparlo.
+- `tools/make_preview.py` crea `docs/prueba-robot/`, una copia jugable con otra partida (`prueba.*`) para probarlo sin tocar la real; se borra con `rm -r docs/prueba-robot`.
+
 ## v3.34.0 · regalos especiales firmados
 - Un regalo `k:'special'` lleva mensaje, energía, felicidad y monedas, y va **firmado con ECDSA P-256**: el juego solo lleva la clave pública (`docs/visit.js`), así que nadie puede fabricar monedas con un enlace. Caduca a los 30 días y se abre una sola vez.
 - Se generan con `node tools/gift.js "MENSAJE" ENERGIA FELICIDAD MONEDAS [REMITENTE]` (clave privada en `.git/gift_key.json`, no se versiona).
