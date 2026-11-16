@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.35.1 · Lima robot más fluido
+- El juego se redibuja a 20 fotogramas por segundo mientras Lima robot juega (antes 4–10), las carreras aceleran y frenan con suavidad, con un pequeño rebote al correr y posiciones alineadas a la rejilla de píxeles (sin borrosidad).
+
 ## v3.35.0 · Lima robot (regalo exclusivo)
 - Objeto `robodog`: galgo marrón de peluche robot en el cuarto (`docs/robodog.js`, fotogramas con `tools/build_robodog.py`). No está en la tienda: llega con un regalo especial firmado (`node tools/gift.js "MENSAJE" ENERGÍA FELICIDAD MONEDAS REMITENTE robodog`).
 - Juega solo cada 18–32 s o al tocarlo: **bola** (la lanza, se levanta, corre tras ella, la recoge y vuelve a tumbarse con ella) y **cuerda** (tira con fuerza y arrastra a la mascota). +2 de felicidad por partida. Sonidos propios (`rbark`, `rbeep`, `rgrowl`, `rstep`). No juega dormido, enfermo, de vacaciones ni en el cole.

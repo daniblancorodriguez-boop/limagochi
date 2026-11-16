@@ -2414,7 +2414,7 @@ function init() {
     watch();
   }, 1000);
   let lastRender = 0;                                   // animación: rápida mientras hay efecto, lenta en reposo
-  setInterval(() => { const n = Date.now(); if (evo || current || watering || moving || n - lastRender >= 250) { lastRender = n; render(); } }, 100);
+  setInterval(() => { const n = Date.now(), dog = L.robodog && L.robodog.playing(); if (dog || ((evo || current || watering || moving) && n - lastRender >= 90) || n - lastRender >= 250) { lastRender = n; render(); } }, 50);     // 20 fps mientras juega Lima robot
   setInterval(Store.save, 5000);                        // autoguardado
   setInterval(() => syncPush(), 60000);                 // renueva los avisos del servidor
   setTimeout(() => syncPush(), 3000);

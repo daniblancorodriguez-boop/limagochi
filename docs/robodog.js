@@ -21,7 +21,7 @@ const awake = () => { const s = A().S(); return !s.sleeping && !s.sick && s.stag
 const snd = name => L.sound && L.sound.play(name);
 
 function begin(mode) {
-  S = { mode, t: 0, ph: 'prep', dog: { x: X, f: F.idle, flip: false, dx: 0, dy: 0 }, ball: null, step: 0, cycle: -1, petx: 1, ev: {}, t2: 0 };
+  S = { mode, t: 0, ph: 'prep', dog: { x: X, f: F.idle, flip: false, dx: 0, dy: 0, v: 0 }, ball: null, step: 0, cycle: -1, petx: 1, ev: {}, t2: 0 };
 }
 function once(k, fn) { if (!S.ev[k]) { S.ev[k] = 1; fn(); } }
 
@@ -53,13 +53,13 @@ function advance(dt) {
       s.t2 += dt; stepBall(s.ball, dt);
       const dir = Math.sign(s.ball.x - mouth(d.f, d.x, d.flip).x) || -1;
       if (s.t2 < 0.18) d.f = F.stand;
-      else { d.flip = dir > 0; d.x += dir * 34 * dt; d.f = Math.floor(s.t2 / 0.11) % 2 ? F.runB : F.runA; once('b2', () => snd('rbark')); s.step -= dt; if (s.step <= 0) { s.step = 0.16; snd('rstep'); } }
+      else { d.flip = dir > 0; d.v += (dir * 34 - d.v) * Math.min(1, dt * 9); d.x += d.v * dt; d.f = Math.floor(s.t2 / 0.09) % 2 ? F.runB : F.runA; d.dy = d.f === F.runA ? -0.5 : 0; once('b2', () => snd('rbark')); s.step -= dt; if (s.step <= 0) { s.step = 0.16; snd('rstep'); } }
       const m = mouth(d.f, d.x, d.flip);
-      if ((Math.abs(m.x - s.ball.x) < 1.6 && s.ball.y > FLOOR - 6 && s.t2 > 0.3) || s.t2 > 6) { s.ph = 'carry'; s.ball.ph = 'held'; d.flip = true; snd('rbark'); }
+      if ((Math.abs(m.x - s.ball.x) < 1.6 && s.ball.y > FLOOR - 6 && s.t2 > 0.3) || s.t2 > 6) { s.ph = 'carry'; s.ball.ph = 'held'; d.flip = true; d.v = 0; snd('rbark'); }
     } else if (s.ph === 'carry') {
-      d.x += 30 * dt; d.f = Math.floor(s.t * 9) % 2 ? F.runB : F.runA; s.step -= dt; if (s.step <= 0) { s.step = 0.16; snd('rstep'); }
+      d.v += (30 - d.v) * Math.min(1, dt * 9); d.x += d.v * dt; d.f = Math.floor(s.t * 11) % 2 ? F.runB : F.runA; d.dy = d.f === F.runA ? -0.5 : 0; s.step -= dt; if (s.step <= 0) { s.step = 0.16; snd('rstep'); }
       const m = mouth(d.f, d.x, true); s.ball.x = m.x; s.ball.y = m.y;
-      if (d.x >= X) { d.x = X; d.flip = false; s.ph = 'home'; s.t2 = 0; s.ball = null; snd('rbeep'); }
+      if (d.x >= X) { d.x = X; d.v = 0; d.dy = 0; d.flip = false; s.ph = 'home'; s.t2 = 0; s.ball = null; snd('rbeep'); }
     } else if (s.ph === 'home') {
       s.t2 += dt; d.f = s.t2 < 0.35 ? F.stand : F.idle;
       if (s.t2 > 0.9) end();
@@ -128,7 +128,7 @@ function draw(now) {
   tick(now);
   if (L.school.isAway() || S) return;
   const d = dims(), y = FLOOR - d.h / 2, a = A(), g = a.ctx, f = idleFrame(now);
-  blit(f, X, y, false);
+  blit(f, X, r5(y), false);
   if (f !== F.sleep) { const m = mouth(F.idle, X, false); ball(m.x + 1, FLOOR - 1.5); }      // su pelota entre las patas
   if (f !== F.sleep) {                                                    // bombilla de la antena
     const bl = D().meta[f].bulb; g.fillStyle = a.tint(Math.floor(now / 700) % 2 ? '#ff5a5a' : '#8a3030');
@@ -138,7 +138,7 @@ function draw(now) {
 
 function drawFx(now) {
   if (L.school.isAway() || !S) return;
-  const d = dims(), a = A(), g = a.ctx, dog = S.dog, y = FLOOR - d.h / 2 + dog.dy, x = X + dog.dx + (dog.x - X);
+  const d = dims(), a = A(), g = a.ctx, dog = S.dog, y = r5(FLOOR - d.h / 2 + dog.dy), x = r5(dog.x + dog.dx);
   const m = mouth(dog.f, x, dog.flip);
   if (S.mode === 'tug' && S.ph !== 'prep' && S.ph !== 'end' || S.mode === 'tug' && S.ph === 'prep' && S.t > 0.1) {
     const pb = a.petBox(), ex = pb.x + 21, ey = pb.y + 17, taut = dog.f === F.pullA, slack = taut ? 0.2 : 2.4, nn = 28;
