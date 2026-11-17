@@ -110,10 +110,6 @@ const cropOpen = k => gLv() >= (CROPS[k].lv || 0);
 const SEED_COST = 5, WET = 480, APPLE = { young: 240, adult: 720, every: 180, max: 3 };
 
 const SHOP_EXTRAS = [
-  { id: 'bg_dots',   type: 'bg',  key: 'dots',   icon: '🔹', name: 'Fondo lunares',   cost: 15 },
-  { id: 'bg_clouds', type: 'bg',  key: 'clouds', icon: '⛅', name: 'Fondo nubes',     cost: 20 },
-  { id: 'bg_stars',  type: 'bg',  key: 'stars',  icon: '🌠', name: 'Fondo estrellas', cost: 25 },
-  { id: 'bg_bricks', type: 'bg',  key: 'bricks', icon: '🧱', name: 'Fondo ladrillos', cost: 20 },
   { id: 'ball',      type: 'toy', icon: '⚽', name: 'Pelota',  cost: 20, desc: 'se aburre un 15% menos', img: 'ball' },
   { id: 'plush',     type: 'toy', icon: '🧸', name: 'Peluche', cost: 35, desc: 'se aburre un 30% menos', img: 'teddy' },
   { id: 'sofa',      type: 'furn', icon: '🛋️', name: 'Sofá',    cost: 40, desc: 'tócalo para sentarse o tumbarse', img: 'sofa' },
@@ -208,6 +204,7 @@ function normalize(d) {
   });
   ['hunger', 'happy', 'energy', 'discipline', 'dirt', 'taste'].forEach(k => { if (!Number.isFinite(s[k])) s[k] = k === 'dirt' ? 20 : 60; });   // repara valores rotos (NaN)
   if (!Number.isFinite(s.weight)) s.weight = 10;
+  s.bg = 'none';                                                    // ya no hay fondos en la tienda
   const V1 = { bueno: 'child_good', travieso: 'child_naughty', normal: 'brote' };   // formas de la versión 1
   if (V1[s.form]) s.form = V1[s.form];
   return s;
@@ -1080,7 +1077,7 @@ function itemThumb(id) {
 
 let shopCat = null;
 const SHOP_CATS = [
-  ['food', '🍣 Comida gourmet'], ['bg', '🖼️ Fondos'], ['furn', '🛋️ Muebles y juguetes'],
+  ['food', '🍣 Comida gourmet'], ['furn', '🛋️ Muebles y juguetes'],
   ['garden', '🌳 Jardín y semillas'], ['kitchen', '🍳 Cocina'], ['studio', '🎨 Estudio (talentos)'], ['gifts', '🎁 Flores para regalar']
 ];
 function shopOwnBtn(i, where) {
@@ -1195,11 +1192,13 @@ function reward({ happy = 0, energy = 0, hunger = 0, weight = 0, lp = 0, game, w
   const ev = L.world.event();
   if (lp > 0 && ev) lp *= 2;                                             // en temporada los premios se duplican
   s.track.play++;
+  const lost = !!game && !win && score <= 0;                              // derrota clara: no suma, resta felicidad (salvo si ya está muy bajo)
+  if (lost) happy = s.happy < 25 ? 0 : -5; else if (game && !win) happy = Math.min(happy, 2);
   s.happy = clamp(s.happy + happy); s.energy = clamp(s.energy + energy); s.hunger = clamp(s.hunger + hunger);
   s.weight = Math.max(minW(), s.weight + weight); s.lp += lp;
-  fx('happy', 1800);
+  if (lost) fx('angry', 20000); else fx('happy', 1800);
   Sound.play(lp > 0 ? 'win' : 'sad');
-  setMsg(`${msg}${lp ? ` +${lp} 🪙${ev ? ' ×2' : ''}` : ''}`, 3500);
+  setMsg(`${msg}${lost && happy < 0 ? ' 😠 -5 😊' : ''}${lp ? ` +${lp} 🪙${ev ? ' ×2' : ''}` : ''}`, 3500);
   if (game) { L.progress.game(game, win, score, lp); L.first && L.first.did('play'); }
   Store.save(); render();
 }
@@ -1473,8 +1472,13 @@ function drawPet(now, frame, f) {
   else if (t === 't_dead') face = 'sleep';
   else if (t === 't_zen') face = 'sleep';
   else if (t === 't_yawn') face = 'eat';
+  else if (t === 'angry') face = 'angry';
+  else if (t === 'shock') face = 'shock';
   else if (t === 'happy' || t.startsWith('t_') || t === 'heal' || s.pause) face = 'happy';
-  else if (s.sick || avg < 30) face = 'sad';
+  else if (s.sick) face = 'sick';
+  else if (s.hunger < 25) face = 'hungry';
+  else if (s.happy < 35) face = 'bored';
+  else if (avg < 30) face = 'sad';
   else if (avg > 78) face = 'happy';
   let rows = set[face] || set.idle;
   if (here() === 'studio' && ['music', 'painting', 'writing'].includes(L.studio.working())) rows = backRows(rows);          // de espaldas a la pantalla
@@ -2241,7 +2245,6 @@ function bindUI() {
   });
 
   meterEls.forEach(m => { $('.hearts', m).innerHTML = '<i>♥</i>'.repeat(5); });
-  $('#speed').addEventListener('change', e => { speed = Number(e.target.value) || 1; });
 
   $('#btnSound').addEventListener('click', () => { Sound.toggle(); setToolIcons(); });
   $('#btnGuide').addEventListener('click', () => { Sound.play('click'); if (L.mini && L.mini.active()) L.mini.stop(false); L.guide.open(closePanel); });
@@ -2343,7 +2346,7 @@ L.api = { petBox: () => ({ x: pos.x, y: pos.y, w: 24, h: 24 }), startWater, open
 };
 
 /* ============================== INIT ==================================== */
-let speed = 1, lastTick = Date.now(), lastKeys = new Set();
+const speed = 1; let lastTick = Date.now(), lastKeys = new Set();
 
 function watch() {
   const reasons = attention();

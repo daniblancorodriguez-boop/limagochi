@@ -300,7 +300,7 @@ function receiveGift(g) {
       m.gifts[g.u] = g.ts; m.giftDay.n++;
       L.progress.stat('giftsGot'); L.progress.check();
       L.mail && L.mail.on('gift', { name: `${g.nick || 'Un amigo'}|${giftName(g)}|${g.u}` });
-      a.sound.play('win');
+      a.sound.play('win'); a.fx('shock', 2500);
       a.setMsg(`${g.x ? '🤖' : '💐'} «${g.m}» ${g.x ? '· ' + ITEM_GIFTS[g.x] + ' en tu cuarto ' : ''}${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
       a.save(); a.render();
     });
@@ -318,7 +318,7 @@ function receiveGift(g) {
   L.progress.stat('giftsGot'); L.progress.check();
   const who = g.nick || 'Un amigo';
   L.mail && L.mail.on('gift', { name: `${who}|${giftName(g)}|${g.u}` });
-  a.sound.play('happy');
+  a.sound.play('happy'); a.fx('shock', 2500);
   a.setMsg(`🎁 ¡${who} te regala ${giftName(g)}! +${happy} 😊 · ${line}`, 5000);
   a.save(); a.render();
   return true;

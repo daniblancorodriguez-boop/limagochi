@@ -395,7 +395,7 @@ test('tienda: se puede comprar en todas las secciones', async () => {
     }
     return { out, n: cats.length, bad: T.broken() };
   });
-  ok(r.n >= 7, 'secciones de la tienda: ' + r.n);
+  ok(r.n >= 6, 'secciones de la tienda: ' + r.n);
   eq(r.out.join(' | '), '', 'compras');
   eq(r.bad.join(','), '', 'valores rotos');
   noErrors(p);
@@ -756,6 +756,23 @@ test('regalo especial: lleva firma, da energía, felicidad y monedas con mensaje
     return out;
   });
   for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
+test('caras nuevas y derrota: todas las formas tienen 5 caras extra y perder sin puntos resta felicidad', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const a = LIMA.api, s = a.S(), out = {};
+    out.bad = Object.keys(LIMA.SPR).filter(i => i !== 'egg').filter(i => LIMA.FACES_X.some(f => !LIMA.SPR[i][f] || LIMA.SPR[i][f].length !== 24 || LIMA.SPR[i][f].join('') === LIMA.SPR[i].idle.join(''))).join(',');
+    s.stage = 'adult'; s.meta.first.on = false; s.happy = 60;
+    a.reward({ happy: 10, game: 'dodge', win: false, score: 0 }, 'x'); out.lose = s.happy;
+    s.happy = 60; a.reward({ happy: 10, game: 'dodge', win: false, score: 2 }, 'x'); out.weak = s.happy;
+    s.happy = 60; a.reward({ happy: 10, game: 'dodge', win: true, score: 5 }, 'x'); out.win = s.happy;
+    s.happy = 20; a.reward({ happy: 10, game: 'dodge', win: false, score: 0 }, 'x'); out.low = s.happy;
+    return out;
+  });
+  eq(r.bad, '', 'formas sin caras extra');
+  eq(r.lose, 55, 'derrota clara resta 5'); eq(r.weak, 62, 'resultado flojo: máximo +2'); eq(r.win, 70, 'victoria sin cambios'); eq(r.low, 20, 'con felicidad muy baja no resta');
   noErrors(p);
 });
 
