@@ -26,6 +26,7 @@ const SKINS = [
   { id: 'dragon_rojo', name: 'Dragón rojo', cost: 400, g: STD },
   { id: 'dragon_violeta', name: 'Dragón violeta', cost: 400, g: STD }
 ];
+const ACCENT = { estrellas_lila: '#a064dc', galaxia: '#4a5fcf', navidad: '#d83a3a', dragon_rojo_verde: '#d4324a', sakura: '#d9b66a', dragon_rojo: '#e0473c', dragon_violeta: '#a56bd6' };
 const img = id => `skins/${id}.webp`;
 const own = id => A().S().owned.includes('skin_' + id);
 const colorOf = k => COLORS.find(c => c[0] === k) || COLORS[0];
@@ -53,6 +54,8 @@ function apply() {
   shell.classList.add('skin'); shell.classList.toggle('oval', !!g.oval);
   st.setProperty('--sk-img', `url(${sk.img})`); st.setProperty('--sk-filter', sk.filter); st.setProperty('aspect-ratio', g.ar);
   document.documentElement.style.setProperty('--page', g.page);
+  const ck = sk.id.startsWith('base') ? colorOf(sk.id.slice(5))[3] : (ACCENT[sk.id] || '#7ed957');
+  document.documentElement.style.setProperty('--accent', ck);
   bezel.style.left = g.bz[0] + '%'; bezel.style.top = g.bz[1] + '%';
   if (g.oval) { bezel.style.width = '300px'; bezel.style.transformOrigin = '0 0'; } else { bezel.style.width = g.bz[2] + '%'; bezel.style.transform = ''; }
   Object.entries(g.keys).forEach(([k, v]) => { const e = document.getElementById(k); if (e) { e.style.left = v[0] + '%'; e.style.top = v[1] + '%'; e.style.width = v[2] + '%'; e.style.height = v[3] + '%'; } });

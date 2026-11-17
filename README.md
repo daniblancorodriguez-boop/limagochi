@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.37.1 · barra inferior
+Sonido, avisos y guía quedan juntos, con el color principal de la carcasa elegida, y las monedas se ven más grandes.
+
 ## v3.37.0 · carcasas de imagen y tienda de carcasas
 - La carcasa básica es ahora una imagen (docs/skins/base.webp) con la pantalla y los botones reales encima. Sus 5 colores de siempre (verde, rosa, azul, amarillo, lila) salen de girar el tono, y se cambian en ⚙️ Ajustes → Cambio de carcasa. Se quitan las muestras de color de la barra inferior. Quien tenía un color elegido lo conserva.
 - Tienda → 🐚 Carcasas: Estrellas lila (200), Galaxia (250), Navidad (300), Dragón rojo y verde (300), Sakura ovalada (300; la pantalla se reduce), Dragón rojo (400) y Dragón violeta (400). Lo comprado se guarda en la partida.

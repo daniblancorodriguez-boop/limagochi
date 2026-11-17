@@ -225,9 +225,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .tools {
   margin-top: 6px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 14px;
   padding: 0 6px;
   font-size: 12px;
@@ -367,3 +367,9 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 .key:active, .key-menu:active { background: rgba(0, 0, 0, .22); transform: none; box-shadow: none; }
 .skinrow { display: flex; align-items: center; gap: 10px; text-align: left; }
 .skin-th { width: 44px; height: 64px; flex: none; object-fit: cover; object-position: top; border-radius: 6px; }
+
+/* barra inferior: botones del color de la carcasa y monedas más grandes */
+.tbtn { background: var(--accent, #7ed957); border: 0; color: #1d2a12; min-width: 44px; min-height: 44px; border-radius: 12px; box-shadow: 0 3px 0 rgba(0, 0, 0, .35); }
+.tbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
+.lp { font-size: 20px; margin-left: 8px; display: flex; align-items: center; gap: 4px; }
+.lp .ic, .lp img { width: 1.3em; height: 1.3em; }
