@@ -209,6 +209,7 @@ function openSettings(back) {
   const push = L.push;
   const nodes = [
     a.p('⚙️ Ajustes'),
+    a.btn(`🌗 Fondo dinámico: ${L.fondos.on() ? 'SÍ' : 'NO'}`, () => { L.fondos.toggle(); openSettings(back); }),
     a.btn('🐚 Cambio de carcasa ›', () => L.skins.openPicker(() => openSettings(back))),
     a.btn(`🌙 Ciclo día/noche: ${onoff(L.settings.get('cycle'))}`, () => { L.settings.set('cycle', !L.settings.get('cycle')); a.render(); openSettings(back); }),
     a.btn(`🖤 Iconos negros: ${onoff(L.settings.get('mono'))}`, () => { L.settings.set('mono', !L.settings.get('mono')); a.paintIcons(); openSettings(back); }),

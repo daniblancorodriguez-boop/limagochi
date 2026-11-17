@@ -139,6 +139,11 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.0 · fondo dinámico, tema Navidad y Sakura más grande
+- **Fondo dinámico** (⚙️ Ajustes → «🌗 Fondo dinámico»): el fondo de la página cambia con la sala y con el día/noche; las carcasas van recortadas (transparentes) para integrarse.
+- **Tema Navidad** con la carcasa Navidad (`docs/navidad.js`): pantalla gris claro, iconos rojos, corazones rojos/verdes con acebo, fondos navideños de todas las salas (`docs/bg/nav_*.png`, generados con `tools/make_navidad_bgs.py`), cama con colcha roja y lámpara con guirnalda. Al cambiar de carcasa todo vuelve.
+- **Sakura** alargada (`tools/stretch_sakura.py`): pantalla más grande y botones más abajo.
+
 ## v3.37.1 · barra inferior
 Sonido, avisos y guía quedan juntos, con el color principal de la carcasa elegida, y las monedas se ven más grandes.
 

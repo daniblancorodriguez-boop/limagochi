@@ -9,7 +9,7 @@ const L = window.LIMA, A = () => L.api;
 
 /* geometría en % de la imagen: pantalla (l, t, w) y botones [izq, arriba, ancho, alto] */
 const STD = { ar: '800 / 1150', bz: [10, 13.2, 80.2], page: '#1a1e2a', keys: { keyA: [26.5, 77.3, 11.5, 8], keyB: [44.3, 79.3, 11.5, 8], keyC: [62, 77.3, 11.5, 8], keyM: [38.5, 88.5, 23, 6] } };
-const OVAL = { ar: '800 / 1130', bz: [25.6, 21.7, 48.75], oval: true, page: '#1c1c1c', keys: { keyA: [18.3, 62.2, 13, 9.2], keyB: [43.5, 64, 13, 9.2], keyC: [62.5, 62.2, 13, 9.2], keyM: [36, 75.9, 28, 6.6] } };
+const OVAL = { ar: '800 / 1210', bz: [22.5, 18, 55], oval: true, page: '#1c1c1c', keys: { keyA: [18.3, 64.7, 13, 8.6], keyB: [43.5, 66.4, 13, 8.6], keyC: [62.5, 64.7, 13, 8.6], keyM: [36, 77.5, 28, 6.2] } };
 
 /* los 5 colores de siempre: giran el tono de la carcasa verde */
 const COLORS = [

@@ -1,9 +1,0 @@
-/* ---- tema Navidad (body.xmas): pantalla gris claro, iconos rojos, corazones rojos/verdes y acebo ---- */
-body.xmas{--lcd:#e6e8e4;--lcd-2:#cfd4ce;--lcd-3:#98a299;--ink:#7f1d22}
-body.xmas .icons .ic,body.xmas .meter .lbl .ic{filter:invert(17%) sepia(95%) saturate(3500%) hue-rotate(345deg) brightness(.92)}
-body.xmas .meter .lbl{color:#b82a2f}
-body.xmas .hearts i.on{color:#d8312a}
-body.xmas .hearts i.on:nth-child(even){color:#2f7d32}
-body.xmas .meter{position:relative}
-body.xmas .meter+.meter::before{content:'';position:absolute;left:-15px;top:3px;width:24px;height:16px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 16'><path d='M12 9C9 2 3 2 1 5c2 5 7 6 11 4z' fill='%232f7d32'/><path d='M12 9c3-7 9-7 11-4-2 5-7 6-11 4z' fill='%233f9a3c'/><circle cx='9' cy='11' r='2.6' fill='%23d8312a'/><circle cx='14.5' cy='11' r='2.6' fill='%23b82a2f'/><circle cx='12' cy='13.5' r='2.4' fill='%23d8312a'/></svg>") no-repeat center/contain}
-body.xmas .icons button.sel{outline-color:#b82a2f}

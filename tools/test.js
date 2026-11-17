@@ -800,6 +800,22 @@ test('carcasas: la básica con 5 colores, compra en la tienda y cambio desde Aju
   noErrors(p);
 });
 
+test('Navidad: la carcasa cambia fondos, pantalla y muebles, y al quitarla todo vuelve; fondo dinámico se activa y desactiva', async () => {
+  const p = await fresh();
+  await p.evaluate(() => { const s = LIMA.api.S(); s.stage = 'adult'; s.meta.first.on = false; s.owned.push('skin_navidad'); LIMA.api.closePanel(); });
+  const r = await p.evaluate(async () => {
+    const out = {}, w = ms => new Promise(r => setTimeout(r, ms)), bed0 = JSON.stringify(LIMA.ITEMS.bed.hd);
+    LIMA.skins.set('navidad'); await w(700);
+    out.xmas = document.body.classList.contains('xmas') && /nav_cuarto/.test(LIMA.BG.cuarto.src) && JSON.stringify(LIMA.ITEMS.bed.hd) !== bed0;
+    LIMA.skins.set('base'); await w(700);
+    out.back = !document.body.classList.contains('xmas') && !/nav_/.test(LIMA.BG.cuarto.src) && JSON.stringify(LIMA.ITEMS.bed.hd) === bed0;
+    const on = LIMA.fondos.on(); LIMA.fondos.toggle(); out.toggle = LIMA.fondos.on() !== on; LIMA.fondos.toggle();
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicidad y se para si se duerme', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {
