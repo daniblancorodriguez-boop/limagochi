@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.2 · regalo de carcasa
+- Un regalo especial puede traer una carcasa (`skin_naruto`): `node tools/gift.js "MSG" 0 0 0 Dani skin_naruto`.
+
 ## v3.38.1 · carcasa Naruto y fondo dinámico desactivado por defecto
 - Nueva carcasa **Naruto** (400 🪙, tienda → Carcasas). El fondo dinámico ahora viene desactivado; se activa en ⚙️ Ajustes.
 

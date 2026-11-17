@@ -177,7 +177,7 @@ const FLOWERS = {
 let GIFT_PUB = {"kty":"EC","crv":"P-256","x":"3q1CF-D2mdzOFNrxeGPkXwUK4Q62Jg8iYzgt4abd99s","y":"KAYJiwlVbWD8artT5Pru1VD1OzCDcbeLCBX7enTkIQs"};
 const SPECIAL_DAYS = 30;
 const b64bytes = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const ITEM_GIFTS = { robodog: '🤖 Lima robot' };                   // objetos exclusivos que puede traer un regalo especial
+const ITEM_GIFTS = { robodog: '🤖 Lima robot', skin_naruto: '🍥 Carcasa Naruto' };                   // objetos exclusivos que puede traer un regalo especial
 const specialText = o => `${o.c}|${o.u}|${o.ts}|${o.m}|${o.e}|${o.h}|${o.l}${o.x ? '|' + o.x : ''}`;
 async function verifySpecial(g) {
   try {
@@ -301,7 +301,7 @@ function receiveGift(g) {
       L.progress.stat('giftsGot'); L.progress.check();
       L.mail && L.mail.on('gift', { name: `${g.nick || 'Un amigo'}|${giftName(g)}|${g.u}` });
       a.sound.play('win'); a.fx('shock', 2500);
-      a.setMsg(`${g.x ? '🤖' : '💐'} «${g.m}» ${g.x ? '· ' + ITEM_GIFTS[g.x] + ' en tu cuarto ' : ''}${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
+      a.setMsg(`${g.x ? ITEM_GIFTS[g.x].slice(0, 2) : '💐'} «${g.m}» ${g.x ? '· ' + ITEM_GIFTS[g.x] + (g.x === 'robodog' ? ' en tu cuarto ' : ' desbloqueada: ⚙️ Ajustes → Cambio de carcasa ') : ''}${g.e ? '· +' + g.e + ' ⚡ ' : ''}${g.h ? '· +' + g.h + ' 😊 ' : ''}${g.l ? '· +' + g.l + ' 🪙' : ''}`, 9000);
       a.save(); a.render();
     });
     return true;
