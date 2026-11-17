@@ -73,9 +73,6 @@ function importText(text) {
   if (typeof d.save.stage !== 'string') return { ok: false, msg: 'La partida está dañada' };
   if (!A().replaceState(d.save)) return { ok: false, msg: 'No se pudo cargar la partida' };
   if (d.settings) L.settings.replace(d.settings);
-  try {
-    if (typeof d.shell === 'string' && /^#[0-9a-f]{6}$/i.test(d.shell)) { localStorage.setItem('limagochi.shell', d.shell); document.documentElement.style.setProperty('--shell', d.shell); }
-  } catch { /* */ }
   return { ok: true, msg: '✅ Partida importada' };
 }
 
@@ -212,6 +209,7 @@ function openSettings(back) {
   const push = L.push;
   const nodes = [
     a.p('⚙️ Ajustes'),
+    a.btn('🐚 Cambio de carcasa ›', () => L.skins.openPicker(() => openSettings(back))),
     a.btn(`🌙 Ciclo día/noche: ${onoff(L.settings.get('cycle'))}`, () => { L.settings.set('cycle', !L.settings.get('cycle')); a.render(); openSettings(back); }),
     a.btn(`🖤 Iconos negros: ${onoff(L.settings.get('mono'))}`, () => { L.settings.set('mono', !L.settings.get('mono')); a.paintIcons(); openSettings(back); }),
     a.btn(`▦ Rejilla de píxeles: ${onoff(L.grid && L.grid.on())}`, () => { L.grid && L.grid.toggle(); openSettings(back); }),

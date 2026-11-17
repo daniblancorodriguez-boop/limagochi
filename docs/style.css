@@ -16,7 +16,7 @@ body {
   display: grid;
   place-items: center;
   padding: 12px;
-  background: radial-gradient(circle at 50% 0%, #2a3042, #12141c 70%);
+  background: var(--page, #1a1e2a);
   font-family: ui-monospace, "Courier New", monospace;
   color: #e8ecf4;
   -webkit-user-select: none;
@@ -30,26 +30,19 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 
 .device { width: min(100%, 380px); }
 
-/* ---------- Carcasa ---------- */
+/* ---------- Carcasa (imagen; ver skins.js) ---------- */
 .shell {
-  padding: 26px 24px 34px;
-  border-radius: 38% 38% 40% 40% / 20% 20% 32% 32%;
-  background: radial-gradient(120% 90% at 30% 10%, var(--shell-hi), var(--shell) 50%, var(--shell-lo));
-  box-shadow:
-    inset 0 -10px 20px rgba(0, 0, 0, .25),
-    inset 0 8px 14px rgba(255, 255, 255, .35),
-    0 20px 40px rgba(0, 0, 0, .55);
+  position: relative; width: 100%; aspect-ratio: 800 / 1150; padding: 0;
+  background: none; box-shadow: none; border-radius: 0;
 }
-
-.brand {
-  margin: 0 0 10px;
-  text-align: center;
-  font-size: 15px;
-  letter-spacing: .35em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, .45);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .4);
+.shell::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: var(--sk-img) 0 0 / 100% 100% no-repeat; filter: var(--sk-filter, none);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent), linear-gradient(to bottom, #000 96%, transparent);
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent), linear-gradient(to bottom, #000 96%, transparent);
 }
+.brand { display: none; }
 
 .bezel {
   background: #2b2f35;
@@ -230,6 +223,7 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 
 /* ---------- Herramientas de desarrollo ---------- */
 .tools {
+  margin-top: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -359,3 +353,17 @@ button { font: inherit; cursor: pointer; touch-action: manipulation; }
 /* iconos propios en los textos (glyphs.js): máscara del icono tintada con el color del texto */
 .gi { display: inline-block; width: 1.45em; height: 1.45em; vertical-align: middle; background-color: currentColor; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 .gi > i { font-size: 0; }
+
+/* ---------- pantalla y botones reales sobre la imagen de la carcasa ---------- */
+.bezel { position: absolute; z-index: 1; box-sizing: border-box; padding: 0; background: #1d2127; border-radius: 14px; box-shadow: none; }
+.keys, .keymenu { display: block; margin: 0; padding: 0; position: static; }
+.key, .key-menu {
+  position: absolute; z-index: 2; margin: 0; padding: 0; border: 0; box-shadow: none;
+  background: transparent; color: transparent; font-size: 0; -webkit-tap-highlight-color: transparent;
+}
+.key { border-radius: 50%; }
+.key-menu { border-radius: 14px; }
+.key *, .key-menu * { display: none; }
+.key:active, .key-menu:active { background: rgba(0, 0, 0, .22); transform: none; box-shadow: none; }
+.skinrow { display: flex; align-items: center; gap: 10px; text-align: left; }
+.skin-th { width: 44px; height: 64px; flex: none; object-fit: cover; object-position: top; border-radius: 6px; }

@@ -776,6 +776,30 @@ test('caras nuevas y derrota: todas las formas tienen 5 caras extra y perder sin
   noErrors(p);
 });
 
+test('carcasas: la básica con 5 colores, compra en la tienda y cambio desde Ajustes', async () => {
+  const p = await fresh();
+  const r = await p.evaluate(() => {
+    const K = LIMA.skins, s = LIMA.api.S(), out = {};
+    s.stage = 'adult'; s.meta.first.on = false; LIMA.api.closePanel();
+    out.start = K.current();
+    K.set('base:pink'); out.pink = K.current();
+    K.set('galaxia'); out.noBuy = K.current();                       // sin comprar vuelve a la básica
+    s.lp = 1000; const sk = K.list.find(x => x.id === 'sakura');
+    document.querySelector('[data-action=shop]').click();
+    [...document.querySelectorAll('#panel button')].find(x => /Carcasas/.test(x.textContent)).click();
+    [...document.querySelectorAll('#panel button')].find(x => /Sakura/.test(x.textContent)).click();
+    out.bought = s.owned.includes('skin_sakura') && s.lp === 1000 - sk.cost; out.now = K.current();
+    out.oval = document.querySelector('.shell').classList.contains('oval') && /scale/.test(document.querySelector('.bezel').style.transform);
+    K.set('base'); out.back = !document.querySelector('.shell').classList.contains('oval');
+    out.gridGone = !document.querySelector('#btnGrid');
+    out.faces = K.list.length;
+    return out;
+  });
+  eq(r.start, 'base', 'carcasa inicial'); eq(r.pink, 'base:pink', 'color rosa'); eq(r.noBuy, 'base', 'carcasa sin comprar');
+  ok(r.bought, 'compra la carcasa'); eq(r.now, 'sakura', 'la compra la pone'); ok(r.oval, 'la ovalada reduce la pantalla'); ok(r.back, 'vuelve a la forma normal'); ok(r.gridGone, 'sin botón de rejilla');
+  noErrors(p);
+});
+
 test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicidad y se para si se duerme', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

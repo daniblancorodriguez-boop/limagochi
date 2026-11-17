@@ -1,0 +1,109 @@
+/* ==========================================================================
+   LIMAGOCHI · Carcasas: la básica (con 5 colores) y las de la tienda.
+   La carcasa es una imagen; la pantalla y los botones reales se colocan encima.
+   La elegida se guarda en la partida (state.skin): 'base', 'base:pink', 'galaxia'…
+   ========================================================================== */
+(() => {
+'use strict';
+const L = window.LIMA, A = () => L.api;
+
+/* geometría en % de la imagen: pantalla (l, t, w) y botones [izq, arriba, ancho, alto] */
+const STD = { ar: '800 / 1150', bz: [10, 13.2, 80.2], page: '#1a1e2a', keys: { keyA: [26.5, 77.3, 11.5, 8], keyB: [44.3, 79.3, 11.5, 8], keyC: [62, 77.3, 11.5, 8], keyM: [38.5, 88.5, 23, 6] } };
+const OVAL = { ar: '800 / 1130', bz: [25.6, 21.7, 48.75], oval: true, page: '#1c1c1c', keys: { keyA: [18.3, 62.2, 13, 9.2], keyB: [43.5, 64, 13, 9.2], keyC: [62.5, 62.2, 13, 9.2], keyM: [36, 75.9, 28, 6.6] } };
+
+/* los 5 colores de siempre: giran el tono de la carcasa verde */
+const COLORS = [
+  ['green', 'Verde', 'none', '#7ed957'], ['pink', 'Rosa', 'hue-rotate(240deg) saturate(1.05)', '#ff8fb1'],
+  ['blue', 'Azul', 'hue-rotate(115deg)', '#6ec6ff'], ['yellow', 'Amarillo', 'hue-rotate(-42deg) saturate(1.15)', '#ffd84d'],
+  ['lila', 'Lila', 'hue-rotate(170deg)', '#b99cff']
+];
+const SKINS = [
+  { id: 'estrellas_lila', name: 'Estrellas lila', cost: 200, g: STD },
+  { id: 'galaxia', name: 'Galaxia', cost: 250, g: STD },
+  { id: 'navidad', name: 'Navidad', cost: 300, g: STD },
+  { id: 'dragon_rojo_verde', name: 'Dragón rojo y verde', cost: 300, g: STD },
+  { id: 'sakura', name: 'Sakura (ovalada)', cost: 300, g: OVAL },
+  { id: 'dragon_rojo', name: 'Dragón rojo', cost: 400, g: STD },
+  { id: 'dragon_violeta', name: 'Dragón violeta', cost: 400, g: STD }
+];
+const img = id => `skins/${id}.webp`;
+const own = id => A().S().owned.includes('skin_' + id);
+const colorOf = k => COLORS.find(c => c[0] === k) || COLORS[0];
+
+let shell, bezel, ro = null;
+
+/** Carcasa elegida → { img, filter, g }; si no es válida o no se ha comprado, la básica. */
+function resolve(id) {
+  const base = String(id || 'base');
+  if (base === 'base' || base.startsWith('base:')) return { id: base === 'base' ? 'base' : 'base:' + colorOf(base.slice(5))[0], img: img('base'), filter: colorOf(base.slice(5))[2], g: STD };
+  const sk = SKINS.find(s => s.id === base);
+  if (sk && own(sk.id)) return { id: sk.id, img: img(sk.id), filter: 'none', g: sk.g };
+  return { id: 'base', img: img('base'), filter: 'none', g: STD };
+}
+
+function fitOval() {
+  if (!shell || !bezel || !shell.classList.contains('oval')) { if (bezel) bezel.style.transform = ''; return; }
+  bezel.style.transform = `scale(${(shell.clientWidth * OVAL.bz[2] / 100) / 300})`;
+}
+
+function apply() {
+  shell = shell || document.querySelector('.shell'); bezel = bezel || document.querySelector('.bezel');
+  if (!shell) return;
+  const sk = resolve(A().S().skin), g = sk.g, st = shell.style;
+  shell.classList.add('skin'); shell.classList.toggle('oval', !!g.oval);
+  st.setProperty('--sk-img', `url(${sk.img})`); st.setProperty('--sk-filter', sk.filter); st.setProperty('aspect-ratio', g.ar);
+  document.documentElement.style.setProperty('--page', g.page);
+  bezel.style.left = g.bz[0] + '%'; bezel.style.top = g.bz[1] + '%';
+  if (g.oval) { bezel.style.width = '300px'; bezel.style.transformOrigin = '0 0'; } else { bezel.style.width = g.bz[2] + '%'; bezel.style.transform = ''; }
+  Object.entries(g.keys).forEach(([k, v]) => { const e = document.getElementById(k); if (e) { e.style.left = v[0] + '%'; e.style.top = v[1] + '%'; e.style.width = v[2] + '%'; e.style.height = v[3] + '%'; } });
+  fitOval();
+  if (!ro && window.ResizeObserver) { ro = new ResizeObserver(fitOval); ro.observe(shell); }
+}
+
+function set(id) { const s = A().S(); s.skin = resolve(id).id; A().save(); apply(); }
+
+/** Partidas anteriores: el color que tenían elegido pasa a ser la variante equivalente de la básica. */
+function migrate() {
+  const s = A().S();
+  if (typeof s.skin === 'string') return;
+  let c = null; try { c = localStorage.getItem('limagochi.shell'); } catch { /* */ }
+  const k = COLORS.find(x => x[3].toLowerCase() === String(c || '').toLowerCase());
+  s.skin = k && k[0] !== 'green' ? 'base:' + k[0] : 'base';
+}
+
+/* ---- interfaz: botones con miniatura ---- */
+function thumbBtn(label, imgId, filter, on, sel) {
+  const a = A(), b = a.btn(label, on, sel ? 'sel' : '');
+  b.classList.add('skinrow');
+  const i = document.createElement('img'); i.src = img(imgId); i.alt = ''; i.className = 'skin-th'; i.style.filter = filter || 'none';
+  b.prepend(i); return b;
+}
+
+/** Ajustes → Cambio de carcasa: los 5 colores y las compradas. */
+function openPicker(back) {
+  const a = A(), cur = resolve(a.S().skin).id;
+  const nodes = [a.p('🐚 Cambio de carcasa'), a.p('Colores básicos')];
+  COLORS.forEach(([k, name, f]) => { const id = k === 'green' ? 'base' : 'base:' + k; nodes.push(thumbBtn(`${name}${cur === id ? ' ✓' : ''}`, 'base', f, () => { set(id); openPicker(back); }, cur === id)); });
+  const mine = SKINS.filter(s => own(s.id));
+  nodes.push(a.p(mine.length ? 'Compradas' : 'Más carcasas en la tienda (🛒 → 🐚 Carcasas)'));
+  mine.forEach(s => nodes.push(thumbBtn(`${s.name}${cur === s.id ? ' ✓' : ''}`, s.id, 'none', () => { set(s.id); openPicker(back); }, cur === s.id)));
+  nodes.push(a.btn('Atrás', back || a.closePanel, 'ghost'));
+  a.openPanel(nodes, { full: true });
+}
+
+/** Tienda → Carcasas. `again` vuelve a abrir la sección. */
+function shopNodes(again) {
+  const a = A(), s = a.S(), nodes = [a.p('Cada carcasa es una imagen distinta. Se cambia en ⚙️ Ajustes → Cambio de carcasa.')];
+  SKINS.forEach(k => {
+    if (own(k.id)) nodes.push(thumbBtn(`${k.name} ✓ tuya`, k.id, 'none', () => { set(k.id); a.setMsg(`Carcasa: ${k.name}`); again(); }, false));
+    else nodes.push(thumbBtn(`${k.name} · ${k.cost}🪙`, k.id, 'none', () => {
+      if (s.lp < k.cost) { a.setMsg('Te faltan Lima Points'); return; }
+      s.lp -= k.cost; s.owned.push('skin_' + k.id); s.skin = k.id; a.sound.play('coin'); a.setMsg(`Comprado: ${k.name}`);
+      L.first && L.first.did('buy'); a.save(); apply(); a.render(); again();
+    }));
+  });
+  return nodes;
+}
+
+L.skins = { apply, set, migrate, openPicker, shopNodes, list: SKINS, colors: COLORS, current: () => resolve(A().S().skin).id };
+})();

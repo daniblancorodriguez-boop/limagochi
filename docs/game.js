@@ -141,7 +141,6 @@ const teddyPos = () => { const h = itemSize('teddy').h; return state.owned.inclu
 /* rama por dieta dominante × cuidado (0-1 · 2-5 · 6+ errores) */
 const FORMS = { veg: ['flor', 'brote', 'marchita'], meat: ['guerrera', 'grunona', 'rebelde'], candy: ['piruleta', 'glotona', 'gominola'] };
 const STAGE_NAMES = { egg: 'Huevo', baby: 'Bebé', child: 'Niño', teen: 'Adolescente', adult: 'Adulto', dead: 'Fallecido' };
-const SHELLS = ['#7ed957', '#ff8fb1', '#6ec6ff', '#ffd84d', '#b99cff'];
 
 /* ============================== UTILIDADES ============================== */
 const $  = (s, r = document) => r.querySelector(s);
@@ -175,7 +174,7 @@ function newState() {
     mistakes: 0, neglect: 0, sweetLoad: 0,
     flags: { hunger: false, poop: false, energy: false },
     food: { veg: 0, meat: 0, candy: 0 },
-    lp: 0, inv: {}, owned: [], bg: 'none',
+    lp: 0, inv: {}, owned: [], bg: 'none', skin: null,
     casino: { day: '', lost: 0, spins: 0, free: '' },                       // límites del casino por día
     garden: { plot: [null, null, null, null, null, null], apple: null },   // huerto (6 huecos) y manzano
     skills: {}, words: {}, cause: '', track: { play: 0, hug: 0, sleep: 0 },       // lo que hace de niño (decide la forma de adolescente)
@@ -885,7 +884,7 @@ function endVacation() {
 function newEgg(mode = 'keep') {
   closePanel();
   logLife(state.stage === 'dead' ? state.cause : 'huevo');
-  const keep = mode === 'zero' ? { meta: state.meta } : { lp: state.lp, owned: state.owned.slice(), bg: state.bg, hat: state.hat, meta: state.meta };
+  const keep = mode === 'zero' ? { meta: state.meta } : { lp: state.lp, owned: state.owned.slice(), bg: state.bg, skin: state.skin, hat: state.hat, meta: state.meta };
   state = newState();
   Object.assign(state, keep);
   state.lpAt = (state.meta.stats && state.meta.stats.lpEarned) || 0;
@@ -1077,7 +1076,7 @@ function itemThumb(id) {
 
 let shopCat = null;
 const SHOP_CATS = [
-  ['food', '🍣 Comida gourmet'], ['furn', '🛋️ Muebles y juguetes'],
+  ['food', '🍣 Comida gourmet'], ['skins', '🐚 Carcasas'], ['furn', '🛋️ Muebles y juguetes'],
   ['garden', '🌳 Jardín y semillas'], ['kitchen', '🍳 Cocina'], ['studio', '🎨 Estudio (talentos)'], ['gifts', '🎁 Flores para regalar']
 ];
 function shopOwnBtn(i, where) {
@@ -1090,6 +1089,8 @@ function shopNodes(cat) {
     nodes.push(p('Sin nevera mejorada, la comida gourmet se estropea en 1 día'));
     FOODS.filter(f => f.gourmet).forEach(f =>
       nodes.push(btn(`${f.icon} ${f.name} · ${f.cost}🪙 (tienes ${s.inv[f.id] || 0})`, () => buy(f), '', s.lp < f.cost)));
+  } else if (cat === 'skins') {
+    nodes.push(...L.skins.shopNodes(() => openShop('skins')));
   } else if (cat === 'bg') {
     SHOP_EXTRAS.filter(i => i.type === 'bg').forEach(i => {
       if (s.owned.includes(i.id)) nodes.push(btn(`${i.icon} ${i.name} · ${s.bg === i.key ? 'quitar' : 'usar'}`, () => { s.bg = s.bg === i.key ? 'none' : i.key; Store.save(); render(); openShop(cat); }));
@@ -2262,14 +2263,6 @@ function bindUI() {
     setToolIcons();
   });
 
-  const sw = $('#swatches');
-  SHELLS.forEach(c => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.style.background = c; b.setAttribute('aria-label', `Carcasa ${c}`);
-    b.addEventListener('click', () => { document.documentElement.style.setProperty('--shell', c); try { localStorage.setItem(CFG.shellKey, c); } catch { /* */ } });
-    sw.append(b);
-  });
-  try { const c = localStorage.getItem(CFG.shellKey); if (c) document.documentElement.style.setProperty('--shell', c); } catch { /* */ }
   setToolIcons();
 }
 
@@ -2291,6 +2284,7 @@ function replaceState(raw) {
   state = s; diedNow = false; lastTick = Date.now();
   recordCurrent();
   lastKeys = new Set(attention().map(r => r.key));
+  L.skins.migrate(); L.skins.apply();
   closePanel(); Store.save(); render();
   return true;
 }
@@ -2409,6 +2403,7 @@ function init() {
     try { seen = localStorage.getItem('limagochi.guide') === '1'; localStorage.setItem('limagochi.guide', '1'); } catch { /* */ }
     if (!seen) L.guide.open(closePanel);
   }                                       // formas ya conseguidas por una partida anterior
+  L.skins.migrate(); L.skins.apply();
   render();
   setTimeout(() => L.visit && L.visit.checkHash(), 600);
 
