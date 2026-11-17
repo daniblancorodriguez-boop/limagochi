@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12141c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Limagochi">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>🧪 PRUEBA carcasas y fondos</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="device">
+    <div class="shell">
+      <h1 class="brand">Limagochi</h1>
+
+      <div class="bezel">
+        <div class="screen" id="screen">
+          <nav class="icons" id="icons" aria-label="Acciones">
+            <button type="button" data-action="feed"   title="Alimentar"   aria-label="Alimentar" data-ico="feed">🍔</button>
+            <button type="button" data-action="play"   title="Jugar"       aria-label="Jugar" data-ico="play">🎮</button>
+            <button type="button" data-action="heal"   title="Curar"       aria-label="Curar" data-ico="heal">💊</button>
+            <button type="button" data-action="clean"  title="Limpiar caca" aria-label="Limpiar caca" data-ico="clean">🧹</button>
+            <button type="button" data-action="shower" title="Ducha"       aria-label="Ducha" data-ico="shower">🚿</button>
+            <button type="button" data-action="light"  title="Luz / Dormir" aria-label="Luz y dormir" data-ico="light">💡</button>
+            <button type="button" data-action="scold"  title="Disciplina"  aria-label="Regañar" data-ico="scold">📢</button>
+            <button type="button" data-action="teach"  title="Hablarle (micro)" aria-label="Hablarle: enseñar trucos y palabras" data-ico="teach">🎤</button>
+            <button type="button" data-action="shop"   title="Tienda"      aria-label="Tienda" data-ico="shop">🛒</button>
+            <button type="button" data-action="status" title="Estado"      aria-label="Estado" data-ico="status">📊</button>
+          </nav>
+
+          <div class="stage">
+            <canvas id="lcd" width="96" height="72" aria-label="Pantalla de Limagochi"></canvas>
+            <div class="skillbar" id="skillbar" hidden><span class="sk-l"></span><span class="sk-t"><i class="sk-f"></i></span><span class="sk-s"></span></div>
+            <div class="hud" id="hud" hidden></div>
+            <div class="msg" id="msg" role="status" aria-live="polite"></div>
+            <div class="hint" id="hint" hidden></div>
+            <button class="alert" id="alert" type="button" hidden aria-label="Necesita atención">❗</button>
+            <button type="button" class="bus" id="busBtn" hidden></button>
+            <div class="chips" id="chips" hidden>
+              <button type="button" class="chip chip-name" id="chipName" aria-haspopup="true" aria-expanded="false">🛋️ Salón</button>
+              <div class="roompick" id="roomPick" role="menu" hidden></div>
+              <button type="button" class="chip chip-go" id="chipGo">→ 🛏️</button>
+            </div>
+            <div class="panel" id="panel" hidden></div>
+          </div>
+
+          <div class="meters" id="meters">
+            <div class="meter" data-stat="hunger"><span class="lbl" data-ico="hunger" title="Hambre (corazones llenos = saciado)">🍴</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="happy"><span class="lbl" data-ico="happy" title="Felicidad">😊</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="energy"><span class="lbl" data-ico="energy" title="Energía">⚡</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="clean"><span class="lbl" data-ico="clean2" title="Higiene (corazones llenos = limpio)">🛁</span><span class="hearts"></span></div>
+            <div class="meter" data-stat="discipline"><span class="lbl" data-ico="disc" title="Disciplina">🎓</span><span class="hearts"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="keys">
+        <button type="button" class="key" id="keyA" aria-label="Botón A: siguiente / izquierda"></button>
+        <button type="button" class="key key-b" id="keyB" aria-label="Botón B: aceptar / derecha"></button>
+        <button type="button" class="key" id="keyC" aria-label="Botón C: volver atrás"></button>
+      </div>
+      <div class="keymenu"><button type="button" class="key-menu" id="keyM" aria-label="Menú"><span class="km-i">☰</span> MENÚ</button></div>
+    </div>
+
+    <footer class="tools">
+      <button type="button" class="tbtn" id="btnSound"  aria-label="Sonido">🔊</button>
+      <button type="button" class="tbtn" id="btnNotify" aria-label="Notificaciones">🔕</button>
+      <button type="button" class="tbtn" id="btnGuide"  aria-label="Guía básica">❓</button>
+      <span class="lp" id="lp" title="Lima Points">🪙 0</span>
+    </footer>
+  </main>
+
+  <script src="sprites.js"></script>
+  <script src="items.js"></script>
+  <script src="audio.js"></script>
+  <script src="world.js"></script>
+  <script src="config.js"></script>
+  <script src="notify.js"></script>
+  <script src="bugs.js"></script>
+  <script src="forms2.js"></script>
+  <script src="faces.js"></script>
+  <script src="skins.js"></script>
+  <script src="season.js"></script>
+  <script src="progress.js"></script>
+  <script src="guide.js"></script>
+  <script src="backup.js"></script>
+  <script src="lib/qrcode.js"></script>
+  <script src="mail.js"></script>
+  <script src="visit.js"></script>
+  <script src="minigames.js"></script>
+  <script src="games2.js"></script>
+  <script src="arcade.js"></script>
+  <script src="robodog_frames.js"></script>
+  <script src="robodog.js"></script>
+  <script src="studio.js"></script>
+  <script src="kitchen.js"></script>
+  <script src="school.js"></script>
+  <script src="voice.js"></script>
+  <script src="first.js"></script>
+  <script src="glyphs_map.js"></script>
+  <script src="glyphs.js"></script>
+  <script src="fondos.js"></script>
+  <script src="game.js"></script>
+  <script src="prueba.js"></script>
+</body>
+</html>
