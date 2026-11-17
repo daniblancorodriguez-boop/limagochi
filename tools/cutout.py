@@ -21,7 +21,7 @@ def cut(im, mxmax=78, sat=32):
     al = Image.fromarray((keep * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.1))
     out = im.convert('RGB'); out.putalpha(al)
     return out, keep.mean()
-PARAMS = {'sakura.webp': (50, 9)}      # la ovalada es azul marino oscuro: el fondo es gris puro
+PARAMS = {'sakura.webp': (50, 9), 'naruto.webp': (66, 30)}      # la ovalada es azul marino oscuro: el fondo es gris puro
 for f in sorted(os.listdir(src)):
     if not f.endswith('.webp'): continue
     out, frac = cut(Image.open(os.path.join(src, f)), *PARAMS.get(f, (78, 32)))

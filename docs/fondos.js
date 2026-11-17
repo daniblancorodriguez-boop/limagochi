@@ -3,7 +3,7 @@
 'use strict';
 const L = window.LIMA;
 const KEY = 'limagochi.dynbg';
-let enabled = true; try { enabled = localStorage.getItem(KEY) !== '0'; } catch { /* */ }
+let enabled = false; try { enabled = localStorage.getItem(KEY) === '1'; } catch { /* */ }
 let force = 'auto';                                   // solo para probar: 'auto' | 'day' | 'night'
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
 const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)' };
