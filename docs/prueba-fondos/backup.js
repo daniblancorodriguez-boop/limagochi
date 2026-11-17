@@ -33,7 +33,7 @@ function buildBackup() {
     app: 'limagochi', format: 1, exported: new Date().toISOString(),
     save: JSON.parse(A().getSave()),
     settings: L.settings.all(),
-    shell: rd('prueba.shell') || null
+    shell: rd('pfondos.shell') || null
   };
 }
 
@@ -103,8 +103,8 @@ const showCode = c => String(c || '').toUpperCase().replace(/(.{4})(?=.)/g, '$1-
 const cleanCode = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const validCode = c => /^[a-hjkmnp-z2-9]{12}$/.test(c);
 function devId() {
-  let d = rd('prueba.dev');
-  if (!/^[\w-]{6,40}$/.test(d || '')) { const r = new Uint8Array(9); crypto.getRandomValues(r); d = [...r].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 16); try { localStorage.setItem('prueba.dev', d); } catch { /* */ } }
+  let d = rd('pfondos.dev');
+  if (!/^[\w-]{6,40}$/.test(d || '')) { const r = new Uint8Array(9); crypto.getRandomValues(r); d = [...r].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 16); try { localStorage.setItem('pfondos.dev', d); } catch { /* */ } }
   return d;
 }
 async function cloudCall(path, body) {

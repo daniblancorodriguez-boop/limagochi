@@ -69,7 +69,7 @@ function set(id) { const s = A().S(); s.skin = resolve(id).id; A().save(); apply
 function migrate() {
   const s = A().S();
   if (typeof s.skin === 'string') return;
-  let c = null; try { c = localStorage.getItem('prueba.shell'); } catch { /* */ }
+  let c = null; try { c = localStorage.getItem('pfondos.shell'); } catch { /* */ }
   const k = COLORS.find(x => x[3].toLowerCase() === String(c || '').toLowerCase());
   s.skin = k && k[0] !== 'green' ? 'base:' + k[0] : 'base';
 }

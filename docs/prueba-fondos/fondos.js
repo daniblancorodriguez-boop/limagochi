@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const L = window.LIMA;
-const KEY = 'prueba.dynbg';
+const KEY = 'pfondos.dynbg';
 let enabled = true; try { enabled = localStorage.getItem(KEY) !== '0'; } catch { /* */ }
 let force = 'auto';                                   // solo para probar: 'auto' | 'day' | 'night'
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };

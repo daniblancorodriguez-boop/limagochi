@@ -9,7 +9,7 @@ const L = LIMA;
 const params = new URLSearchParams(location.search);
 
 /* ------------------------------ ajustes -------------------------------- */
-const SKEY = 'prueba.settings';
+const SKEY = 'pfondos.settings';
 const settings = { cycle: true, events: true, rest: true, restFrom: 0, restTo: 6, fine: true, mono: true, school: true, jobFrom: 9, schoolAuto: false, cloud: false, cloudCode: '', cloudAt: 0, cloudTake: false, nick: '', cid: '' };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SKEY) || '{}')); } catch { /* */ }
 const persist = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch { /* */ } };

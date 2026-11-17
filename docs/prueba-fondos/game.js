@@ -12,8 +12,8 @@ const Sound = L.sound;
 
 /* ============================== CONFIG ================================== */
 const CFG = {
-  saveKey: 'prueba.v1',
-  shellKey: 'prueba.shell',
+  saveKey: 'pfondos.v1',
+  shellKey: 'pfondos.shell',
   maxOfflineMin: 14 * 1440,           // máximo que se simula al volver (14 días)
   dayMin: 1440,                       // 1 día de vida = 24 h reales
   /* tiempos como el Tamagotchi original: bebé 65 min · niño hasta el día 3 · adolescente hasta el día 6 · adulto 16 días (más que el original) */
@@ -2252,10 +2252,10 @@ function bindUI() {
   chipGo.addEventListener('click', () => { closeRoomPick(); if (canInteract()) guardPractice('cambiar de habitación', () => setRoom(NEXTROOM[here()])); });
   chipName.addEventListener('click', e => { e.stopPropagation(); if (roomPickEl.hidden) { if (!canInteract()) return; drawRoomPick(); roomPickEl.hidden = false; chipName.setAttribute('aria-expanded', 'true'); } else closeRoomPick(); });
   document.addEventListener('click', e => { if (!roomPickEl.hidden && !roomPickEl.contains(e.target)) closeRoomPick(); });
-  let gridOn = true; try { gridOn = localStorage.getItem('prueba.grid') !== '0'; } catch { /* */ }
+  let gridOn = true; try { gridOn = localStorage.getItem('pfondos.grid') !== '0'; } catch { /* */ }
   const applyGrid = () => stageEl.classList.toggle('grid', gridOn);
   applyGrid();
-  L.grid = { on: () => gridOn, toggle() { gridOn = !gridOn; try { localStorage.setItem('prueba.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); } };
+  L.grid = { on: () => gridOn, toggle() { gridOn = !gridOn; try { localStorage.setItem('pfondos.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); } };
   $('#btnNotify').addEventListener('click', async () => {
     if (!L.notify) return;
     const r = await L.notify.toggle();
@@ -2400,7 +2400,7 @@ function init() {
   if (!saved && L.first) L.first.welcome();              // partida nueva: regalo de bienvenida y primeros pasos
   if (!saved) {                                          // primera vez: abre la guía
     let seen = false;
-    try { seen = localStorage.getItem('prueba.guide') === '1'; localStorage.setItem('prueba.guide', '1'); } catch { /* */ }
+    try { seen = localStorage.getItem('pfondos.guide') === '1'; localStorage.setItem('pfondos.guide', '1'); } catch { /* */ }
     if (!seen) L.guide.open(closePanel);
   }                                       // formas ya conseguidas por una partida anterior
   L.skins.migrate(); L.skins.apply();

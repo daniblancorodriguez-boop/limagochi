@@ -5,7 +5,7 @@
 'use strict';
 window.LIMA = window.LIMA || {};
 
-const KEY = 'prueba.sound';
+const KEY = 'pfondos.sound';
 let ctx = null;
 let on = true;
 try { on = localStorage.getItem(KEY) !== '0'; } catch { /* sin storage */ }

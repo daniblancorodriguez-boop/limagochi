@@ -8,7 +8,7 @@
 'use strict';
 window.LIMA = window.LIMA || {};
 
-const KEY = 'prueba.notify';
+const KEY = 'pfondos.notify';
 const COOLDOWN_MS = 10 * 60 * 1000;
 const supported = 'Notification' in window;
 let enabled = false;
@@ -63,7 +63,7 @@ LIMA.notify = {
 };
 
 /* ============================== WEB PUSH ================================ */
-const PID = 'prueba.pushid', PON = 'prueba.push';
+const PID = 'pfondos.pushid', PON = 'pfondos.push';
 let pushOn = false;
 try { pushOn = localStorage.getItem(PON) === '1'; } catch { /* */ }
 
