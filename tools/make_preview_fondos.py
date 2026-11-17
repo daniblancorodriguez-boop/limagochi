@@ -2,7 +2,7 @@
 # Guarda en claves 'pfondos.*', no registra service worker ni avisos y desbloquea todas las carcasas.
 # Antes: python3 tools/cutout.py docs/skins /tmp/cut   (carcasas con transparencia)
 # Uso: python3 tools/make_preview_fondos.py /tmp/cut   (borrar luego: rm -r docs/prueba-fondos)
-import os, re, shutil, sys
+import os, re, shutil, subprocess, sys
 CUT = sys.argv[1]
 SRC, DST = 'docs', 'docs/prueba-fondos'
 shutil.rmtree(DST, ignore_errors=True)
@@ -19,8 +19,13 @@ for f in os.listdir(DST):
         open(p, 'w').write(s)
 shutil.copy('tools/fondos/fondos.js', os.path.join(DST, 'fondos.js'))
 open(os.path.join(DST, 'fondos.js'), 'w').write(open('tools/fondos/fondos.js').read().replace("'limagochi.", "'pfondos."))
-css = open(os.path.join(DST, 'style.css')).read() + '\n' + open('tools/fondos/fondos.css').read()
+css = open(os.path.join(DST, 'style.css')).read() + '\n' + open('tools/fondos/fondos.css').read() + '\n' + open('tools/fondos/navidad.css').read()
 open(os.path.join(DST, 'style.css'), 'w').write(css)
+shutil.copy('tools/fondos/navidad.js', os.path.join(DST, 'navidad.js'))
+subprocess.run(['python3', 'tools/make_navidad_bgs.py', os.path.join(DST, 'bg')], check=True)
+g = open(os.path.join(DST, 'game.js')).read()
+g = g.replace("const bgOk = n =>", "LIMA.BG = BG;\nconst bgOk = n =>", 1)
+open(os.path.join(DST, 'game.js'), 'w').write(g)
 open(os.path.join(DST, 'prueba.js'), 'w').write("""/* Solo para la copia de prueba: desbloquea carcasas y añade una barra para forzar día/noche. */
 (() => {
   const go = () => {
@@ -42,7 +47,7 @@ open(os.path.join(DST, 'prueba.js'), 'w').write("""/* Solo para la copia de prue
 })();
 """)
 h = open(os.path.join(DST, 'index.html')).read()
-h = h.replace('<script src="game.js"></script>', '<script src="fondos.js"></script>\n  <script src="game.js"></script>\n  <script src="prueba.js"></script>')
+h = h.replace('<script src="game.js"></script>', '<script src="fondos.js"></script>\n  <script src="game.js"></script>\n  <script src="prueba.js"></script>\n  <script src="navidad.js"></script>')
 h = re.sub(r'<title>.*?</title>', '<title>🧪 PRUEBA carcasas y fondos</title>', h)
 open(os.path.join(DST, 'index.html'), 'w').write(h)
 print('copia de prueba lista en', DST)

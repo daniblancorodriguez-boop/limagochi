@@ -1918,6 +1918,7 @@ const BG = {};
 ['salon', 'cuarto', 'estudio', 'cocina', 'jardin', 'jardin_k', 'playa', 'playa_k'].forEach(n => {
   const im = new Image(); im.onload = () => { try { render(); } catch { /* aún sin partida */ } }; im.src = 'bg/' + n + '.png'; BG[n] = im;
 });
+LIMA.BG = BG;
 const bgOk = n => !!(BG[n] && BG[n].complete && BG[n].naturalWidth);
 /** Interior: la imagen (con el papel de la tienda por encima en salón y cuarto) y el tinte de atardecer/noche. */
 function bgIndoor(name, wall) {

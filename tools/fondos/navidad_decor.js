@@ -1,0 +1,26 @@
+/* Decorado navideño de las salas, dibujado en 96x72 con la paleta del juego (estático). Lo usa tools/make_navidad_bgs.js */
+window.__decor = function (room, g) {
+  let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const P = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), w, h); };
+  const flakes = Array.from({ length: 30 }, (_, i) => ({ x: rnd(), y: rnd(), v: .04 + rnd() * .07, s: i % 5 ? 1 : 2 }));
+  function pane(x, y, w, h) { P(x, y, w, h, '#1d3a52'); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); flakes.slice(0, 7).forEach(f => P(x + f.x * (w - 1), y + ((f.y + f.v * 0 / 2500) % 1) * (h - 3), 1, 1, '#fff')); g.restore(); P(x, y + h - 2, w, 2, '#f7fbe6'); P(x + 1, y + h - 3, 3, 1, '#f7fbe6'); }
+  function win(x, y) { pane(x, y, 10, 9); pane(x + 12, y, 10, 9); pane(x, y + 11, 10, 9); pane(x + 12, y + 11, 10, 9); }
+  function stocking(x, y) { P(x, y, 6, 2, '#f7fbe6'); P(x, y + 2, 5, 6, '#d8312a'); P(x - 1, y + 7, 4, 3, '#d8312a'); P(x - 1, y + 9, 4, 1, '#f7fbe6'); P(x + 2, y + 4, 1, 1, '#f7fbe6'); P(x + 1, y + 5, 3, 1, '#f7fbe6'); P(x + 2, y + 6, 1, 1, '#f7fbe6'); }
+  function hat0(x, y) { P(x, y + 4, 9, 2, '#f7fbe6'); P(x + 1, y + 1, 7, 3, '#d8312a'); P(x + 3, y, 4, 1, '#d8312a'); P(x + 7, y - 1, 3, 3, '#f7fbe6'); }
+  function picture() { P(12, 5, 19, 12, '#cfe4f2'); P(12, 13, 19, 4, '#f7fbe6'); P(13, 12, 5, 1, '#f7fbe6'); for (let j = 0; j < 5; j++) P(20 - j, 7 + j * 2, 1 + j * 2, 2, j % 2 ? '#2f7d32' : '#3f9a3c'); P(21, 7, 1, 1, '#f7e08a'); P(20, 6, 3, 1, '#f7e08a'); P(21, 5, 1, 3, '#f7e08a'); P(15, 9, 1, 3, '#2f7d32'); P(14, 11, 3, 2, '#2f7d32'); P(26, 8, 1, 1, '#fff'); P(24, 6, 1, 1, '#fff'); P(28, 10, 1, 1, '#fff'); }
+  function tree(x, y) { P(x + 4, y + 22, 3, 3, '#6b4a1f'); const rows = [[5, 1], [4, 3], [4, 3], [3, 5], [3, 5], [2, 7], [2, 7], [1, 9], [1, 9], [0, 11], [0, 11]]; rows.forEach(([dx, w], j) => P(x + dx, y + 3 + j * 2, w, 2, j % 2 ? '#2f7d32' : '#3f9a3c')); P(x + 4, y, 3, 3, '#f7e08a'); P(x + 5, y - 1, 1, 5, '#f7e08a'); const t = 0; [[3, 9], [7, 11], [4, 15], [8, 18], [2, 20], [6, 22]].forEach(([dx, dy], i) => P(x + dx, y + dy, 1, 1, (Math.floor(t / 400) + i) % 3 === 0 ? '#ffe27a' : (i % 2 ? '#ff5a5a' : '#6ec6ff'))); }
+  function present(x, y, col) { P(x, y, 6, 5, col); P(x + 2, y, 2, 5, '#f7e08a'); P(x, y + 2, 6, 1, '#f7e08a'); }
+  function garland(x0, x1, y0, sag) { const t = 0; for (let x = x0; x <= x1; x++) { const u = (x - x0) / (x1 - x0), y = Math.round(y0 + Math.sin(u * Math.PI) * sag); P(x, y, 1, 2, x % 2 ? '#2f7d32' : '#3f9a3c'); if ((x - x0) % 6 === 3) P(x, y + 2, 1, 1, ['#ff5a5a', '#ffe27a', '#6ec6ff'][(((x - x0) / 6 | 0) + Math.floor(t / 450)) % 3]); } }
+  function wreath(x, y) { const pts = [[2,0],[3,0],[4,0],[5,0],[1,1],[6,1],[0,2],[7,2],[0,3],[7,3],[0,4],[7,4],[1,5],[6,5],[2,6],[3,6],[4,6],[5,6]]; pts.forEach(([i, j], k) => P(x + i, y + j, 1, 1, k % 2 ? '#2f7d32' : '#3f9a3c')); P(x + 2, y + 6, 4, 2, '#d8312a'); P(x + 3, y + 5, 2, 1, '#d8312a'); P(x + 1, y + 1, 1, 1, '#d8312a'); P(x + 6, y + 4, 1, 1, '#d8312a'); }
+  function snowman(x, y) { P(x + 2, y + 8, 8, 7, '#f7fbe6'); P(x + 3, y + 3, 6, 6, '#f7fbe6'); P(x + 4, y + 5, 1, 1, '#222'); P(x + 7, y + 5, 1, 1, '#222'); P(x + 5, y + 6, 4, 1, '#e8742a'); P(x + 3, y, 6, 3, '#333'); P(x + 2, y + 3, 8, 1, '#333'); P(x + 3, y + 9, 6, 1, '#d8312a'); P(x + 5, y + 10, 1, 1, '#222'); P(x + 5, y + 12, 1, 1, '#222'); P(x + 1, y + 9, 1, 3, '#6b4a1f'); P(x + 10, y + 9, 1, 3, '#6b4a1f'); }
+  function pine(x, y, h) { P(x + 3, y + h, 2, 3, '#6b4a1f'); for (let j = 0; j < h / 2; j++) { const w = 3 + j * 2; P(x + 4 - (w >> 1), y + j * 2, w, 2, j % 2 ? '#2f7d32' : '#3f9a3c'); P(x + 4 - (w >> 1) + 1, y + j * 2, Math.max(1, w - 4), 1, '#f7fbe6'); } const t = Math.floor(0 / 400); [[4, 4], [2, 8], [6, 10], [3, 13]].forEach(([dx, dy], i) => dy < h && P(x + dx, y + dy, 1, 1, (t + i) % 3 === 0 ? '#ffe27a' : (i % 2 ? '#ff5a5a' : '#6ec6ff'))); }
+  function mugs(x, y) { P(x, y, 4, 4, '#d8312a'); P(x + 4, y + 1, 1, 2, '#d8312a'); P(x, y, 4, 1, '#f7fbe6'); P(x + 6, y, 4, 4, '#f7fbe6'); P(x + 10, y + 1, 1, 2, '#f7fbe6'); P(x + 6, y + 1, 4, 1, '#d8312a'); }
+  function cookies(x, y) { P(x, y + 3, 14, 2, '#8a5a2b'); [[1,0],[6,0],[11,0]].forEach(([dx]) => { P(x + dx, y, 3, 3, '#c98a4a'); P(x + dx + 1, y + 1, 1, 1, '#f7fbe6'); }); }
+  function pinesnow() { const t = 0 / 1000; flakes.forEach((f, i) => P(((f.x * 96) + Math.sin(t + i) * 2 + 96) % 96, ((f.y + f.v * 0 / 700) % 1) * 72, 1, 1, '#fff')); }
+
+  if (room === 'cuarto') { win(62, 5); picture(); stocking(51, 21); }
+  else if (room === 'salon') { win(58, 5); stocking(40, 3); stocking(47, 4); tree(1, 35); present(13, 56, '#d8312a'); present(16, 59, '#4aa8e0'); present(5, 62, '#a064dc'); }
+  else if (room === 'cocina') { garland(2, 93, 2, 5); wreath(44, 12); stocking(70, 14); stocking(77, 15); mugs(60, 36); cookies(76, 34); present(86, 60, '#d8312a'); }
+  else if (room === 'estudio') { garland(2, 93, 2, 5); wreath(40, 12); stocking(15, 16); stocking(22, 17); tree(80, 18); present(78, 40, '#4aa8e0'); present(88, 43, '#d8312a'); }
+  else if (room === 'jardin') { pine(4, 14, 22); pine(86, 18, 18); snowman(66, 40); present(14, 56, '#d8312a'); present(20, 60, '#a064dc'); [[10,6],[30,12],[55,4],[75,10],[90,3],[40,30],[20,40],[80,50],[60,60],[8,66]].forEach(([x,y]) => P(x, y, 1, 1, '#fff')); }
+};
