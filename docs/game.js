@@ -2252,9 +2252,9 @@ function bindUI() {
   chipName.addEventListener('click', e => { e.stopPropagation(); if (roomPickEl.hidden) { if (!canInteract()) return; drawRoomPick(); roomPickEl.hidden = false; chipName.setAttribute('aria-expanded', 'true'); } else closeRoomPick(); });
   document.addEventListener('click', e => { if (!roomPickEl.hidden && !roomPickEl.contains(e.target)) closeRoomPick(); });
   let gridOn = true; try { gridOn = localStorage.getItem('limagochi.grid') !== '0'; } catch { /* */ }
-  const applyGrid = () => { stageEl.classList.toggle('grid', gridOn); $('#btnGrid').textContent = gridOn ? '▦' : '▢'; };
+  const applyGrid = () => stageEl.classList.toggle('grid', gridOn);
   applyGrid();
-  $('#btnGrid').addEventListener('click', () => { gridOn = !gridOn; try { localStorage.setItem('limagochi.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); });
+  L.grid = { on: () => gridOn, toggle() { gridOn = !gridOn; try { localStorage.setItem('limagochi.grid', gridOn ? '1' : '0'); } catch { /* */ } applyGrid(); } };
   $('#btnNotify').addEventListener('click', async () => {
     if (!L.notify) return;
     const r = await L.notify.toggle();

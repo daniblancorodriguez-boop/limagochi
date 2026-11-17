@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.36.1 · la rejilla de píxeles pasa a Ajustes
+Se quita el botón ▦ de la barra inferior; ahora se activa en ⚙️ Ajustes → «Rejilla de píxeles».
+
 ## v3.36.0 · caras nuevas, derrotas que restan y sin fondos ni velocidad
 - 5 caras nuevas para las 27 formas (enfadado, enfermo, sorprendido, aburrido, con hambre), generadas en `faces.js`. Se usan al estar enfermo, con hambre < 25, felicidad < 35, tras perder un juego y al recibir un regalo.
 - Perder un juego sin puntos resta 5 de felicidad (0 si ya está por debajo de 25) y deja 20 s de cara enfadada. Un resultado flojo da como mucho +2.
