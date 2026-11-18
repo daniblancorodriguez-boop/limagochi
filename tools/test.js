@@ -789,7 +789,7 @@ test('carcasas: la básica con 5 colores, compra en la tienda y cambio desde Aju
     [...document.querySelectorAll('#panel button')].find(x => /Carcasas/.test(x.textContent)).click();
     [...document.querySelectorAll('#panel button')].find(x => /Sakura/.test(x.textContent)).click();
     out.bought = s.owned.includes('skin_sakura') && s.lp === 1000 - sk.cost; out.now = K.current();
-    out.ar = document.querySelector('.shell').style.aspectRatio.replace(/\s/g, '') === '665/975';
+    out.ar = document.querySelector('.shell').style.aspectRatio.replace(/\s/g, '') === '662/969';
     K.set('base'); out.back = document.querySelector('.shell').style.aspectRatio.replace(/\s/g, '') === '800/1150';
     out.gridGone = !document.querySelector('#btnGrid');
     out.faces = K.list.length;

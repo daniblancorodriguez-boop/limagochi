@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.5 · Sakura recortada limpia
+- Nueva imagen Sakura sobre fondo blanco (recorte limpio, con el asa de la pestaña hueca) para el fondo dinámico.
+
 ## v3.38.4 · Sakura rediseñada
 - La carcasa Sakura pasa a la forma con pestañas y pantalla grande (nueva imagen 665×975); desaparece la versión ovalada.
 
