@@ -19,11 +19,34 @@ function aura() {
   } catch { /* */ }
 }
 
+/* Carcasa Sakura: fondos japoneses (docs/bg/sakura/<sala>_<d|n>.webp, 768×1376 o 572×1024) y luces que destellan de noche.
+   Cada destello: [x, y (fracción de la imagen), tipo, tamaño (fracción del ancho)] */
+const SK = { bedroom: 'habitacion', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
+const SKSIZE = { cocina: [768, 1376], jardin: [768, 1376], habitacion: [572, 1024], estudio: [572, 1024], salon: [572, 1024] };
+const SKG = {
+  cocina: [[.512, .12, 'lamp', .3], [.60, .69, 'fire', .13], [.90, .925, 'fire', .2]],
+  jardin: [[.797, .07, 'moon', .34], [.3125, .287, 'lamp', .2], [.96, .41, 'lamp', .16]],
+  habitacion: [[.74, .112, 'lamp', .42]],
+  estudio: [[.717, .156, 'lamp', .34], [.73, .84, 'lamp', .26]],
+  salon: [[.712, .088, 'lamp', .44]]
+};
+let skScene = null;
+function placeSk() {
+  if (!skScene) return;
+  const [W, H] = SKSIZE[skScene], vw = innerWidth, vh = innerHeight, k = Math.max(vw / W, vh / H), ox = (W * k - vw) / 2, oy = (H * k - vh) / 2;
+  document.querySelectorAll('.sk-g').forEach(e => {
+    const sz = +e.dataset.s * W * k;
+    e.style.left = (+e.dataset.x * W * k - ox) + 'px'; e.style.top = (+e.dataset.y * H * k - oy) + 'px'; e.style.width = e.style.height = sz + 'px';
+  });
+}
+addEventListener('resize', placeSk);
+
 function want() {
   const s = L.api.S(); if (!s) return null;
   if (L.skins.current() === 'dragonball') return { room: 'dbz', night: false };      // esa carcasa trae su propio fondo
-  const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
+  if (L.skins.current() === 'sakura' && !s.pause) return { room: 'sk-' + (SK[L.api.isHere()] || 'salon'), night };   // Sakura: fondos japoneses
+  const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');
   return { room, night };
 }
 /* Fondo Dragon Ball: la imagen (662×463) se coloca debajo de la carcasa para que se vean Goku (cara en 250,145) y la bola de energía (555,265) */
@@ -49,14 +72,17 @@ function update() {
   over(w.room === 'dbz'); if (w.room === 'dbz') place();
   const key = w.room + (w.night ? '-n' : '-d');
   b.classList.add('dyn'); b.classList.toggle('f-night', w.night); b.classList.toggle('f-day', !w.night);
-  b.style.setProperty('--glow', GLOW[w.room]);
+  b.style.setProperty('--glow', GLOW[w.room] || 'rgba(255,190,120,.45)');
   if (key === cur) return;
   cur = key;
   if (w.room === 'dbz' && armed) aura();
   const next = layers[idx ^ 1], old = layers[idx];
   next.className = `fx f-${w.room} f-${w.night ? 'night' : 'day'}`;
-  next.innerHTML = w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : '';
+  const sk = w.room.startsWith('sk-') ? w.room.slice(3) : null; skScene = sk;
+  if (sk) next.classList.add('f-sk');
+  next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : '';
   if (w.room === 'dbz') place();
+  if (sk) placeSk();
   requestAnimationFrame(() => { next.classList.add('on'); old.classList.remove('on'); });
   idx ^= 1;
 }

@@ -437,3 +437,19 @@ body.xmas .icons button.sel{outline-color:#b82a2f}
 @keyframes dbzover{0%,100%{opacity:.2}50%{opacity:.85}}
 @media (prefers-reduced-motion:reduce){#dbzOver{animation:none;opacity:.4}}
 body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
+
+/* fondos japoneses de la carcasa Sakura */
+.fx.f-sk{background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#101420}
+.fx.f-sk-cocina.f-day{background-image:url(bg/sakura/cocina_d.webp)}.fx.f-sk-cocina.f-night{background-image:url(bg/sakura/cocina_n.webp)}
+.fx.f-sk-jardin.f-day{background-image:url(bg/sakura/jardin_d.webp)}.fx.f-sk-jardin.f-night{background-image:url(bg/sakura/jardin_n.webp)}
+.fx.f-sk-habitacion.f-day{background-image:url(bg/sakura/habitacion_d.webp)}.fx.f-sk-habitacion.f-night{background-image:url(bg/sakura/habitacion_n.webp)}
+.fx.f-sk-estudio.f-day{background-image:url(bg/sakura/estudio_d.webp)}.fx.f-sk-estudio.f-night{background-image:url(bg/sakura/estudio_n.webp)}
+.fx.f-sk-salon.f-day{background-image:url(bg/sakura/salon_d.webp)}.fx.f-sk-salon.f-night{background-image:url(bg/sakura/salon_n.webp)}
+.fx .sk-g{position:fixed;transform:translate(-50%,-50%);border-radius:50%;mix-blend-mode:screen;pointer-events:none}
+.fx .sk-lamp{background:radial-gradient(circle,rgba(255,225,150,.85),rgba(255,170,70,.35) 38%,transparent 70%);animation:skflick 2.8s ease-in-out infinite alternate}
+.fx .sk-fire{background:radial-gradient(circle,rgba(255,200,110,.9),rgba(255,110,30,.35) 40%,transparent 70%);animation:skfire 1.1s ease-in-out infinite alternate}
+.fx .sk-moon{background:radial-gradient(circle,rgba(240,248,255,.9),rgba(170,205,255,.35) 38%,transparent 70%);animation:skmoon 4.2s ease-in-out infinite alternate}
+@keyframes skflick{0%{opacity:.35;transform:translate(-50%,-50%) scale(.9)}100%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}}
+@keyframes skfire{0%{opacity:.45;transform:translate(-50%,-50%) scale(.85)}50%{opacity:1}100%{opacity:.6;transform:translate(-50%,-50%) scale(1.15)}}
+@keyframes skmoon{0%{opacity:.4;transform:translate(-50%,-50%) scale(.92)}100%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+@media (prefers-reduced-motion:reduce){.fx .sk-g{animation:none;opacity:.7}}

@@ -832,6 +832,27 @@ test('Dragon Ball: al activar el fondo dinámico suena el aura una vez; sin soni
   noErrors(p);
 });
 
+test('Sakura: con el fondo dinámico cada sala tiene su fondo japonés y de noche destellan las luces', async () => {
+  const p = await fresh();
+  await p.evaluate(() => { const s = LIMA.api.S(); s.stage = 'adult'; s.meta.first.on = false; s.owned.push('skin_sakura'); LIMA.api.closePanel(); });
+  const r = await p.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms)), out = {};
+    await w(600); if (!LIMA.fondos.on()) LIMA.fondos.toggle(); LIMA.skins.set('sakura');
+    const lay = () => [...document.querySelectorAll('.fx')].find(e => e.classList.contains('on'));
+    for (const [room, nm] of [['garden', 'jardin'], ['kitchen', 'cocina'], ['studio', 'estudio'], ['bedroom', 'habitacion'], ['salon', 'salon']]) {
+      LIMA.api.S().room.where = room; LIMA.fondos.force('day'); await w(900);
+      out[nm + '_d'] = !!lay() && lay().classList.contains('f-sk-' + nm) && !lay().querySelector('.sk-g');
+      LIMA.fondos.force('night'); await w(900);
+      out[nm + '_n'] = !!lay() && lay().classList.contains('f-sk-' + nm) && lay().querySelectorAll('.sk-g').length >= 1;
+    }
+    LIMA.skins.set('base'); LIMA.fondos.force('day'); await w(900);
+    out.back = !lay().classList.contains('f-sk');
+    return out;
+  });
+  for (const k of Object.keys(r)) ok(r[k], k + ' ' + JSON.stringify(r));
+  noErrors(p);
+});
+
 test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicidad y se para si se duerme', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {

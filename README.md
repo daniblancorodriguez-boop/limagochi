@@ -142,6 +142,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.40.0 · fondos japoneses de la carcasa Sakura
+- Con la carcasa Sakura y el fondo dinámico activado, cada sala (habitación, salón, cocina, estudio, jardín) tiene su fondo japonés de día y de noche (`docs/bg/sakura/`). De noche las luces y la luna destellan.
+
 ## v3.39.2 · aura Super Saiyan
 - Al activar el fondo dinámico con la carcasa Dragon Ball suena 5 s el audio `snd/superaiyan.mp3` (si el sonido está activado; no suena al abrir el juego).
 
