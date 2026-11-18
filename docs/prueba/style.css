@@ -485,3 +485,12 @@ body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
 
 /* marco negro difuminado alrededor de la carcasa (Pokémon) para que la consola se lea sobre el fondo */
 body.blk.dyn .shell::before{filter:var(--sk-filter,none) drop-shadow(0 0 10px #000) drop-shadow(0 0 22px rgba(0,0,0,.95)) drop-shadow(0 0 44px rgba(0,0,0,.9)) drop-shadow(0 0 70px rgba(0,0,0,.8))!important}
+
+/* Pokémon: marco negro más marcado y botones en verde */
+body.blk.dyn .shell{box-shadow:0 -8px 26px 12px rgba(0,0,0,.82),0 -10px 60px 26px rgba(0,0,0,.4);border-radius:13% / 9%}
+.shell[data-skin=pokemon] #keyA,.shell[data-skin=pokemon] #keyB,.shell[data-skin=pokemon] #keyC{border-radius:50%}
+.shell[data-skin=pokemon] #keyM{border-radius:14px}
+.shell[data-skin=pokemon] #keyA{-webkit-backdrop-filter:hue-rotate(75deg) saturate(1.3);backdrop-filter:hue-rotate(75deg) saturate(1.3)}
+.shell[data-skin=pokemon] #keyB{-webkit-backdrop-filter:hue-rotate(-75deg) saturate(1.3);backdrop-filter:hue-rotate(-75deg) saturate(1.3)}
+.shell[data-skin=pokemon] #keyC{-webkit-backdrop-filter:hue-rotate(115deg) saturate(1.3);backdrop-filter:hue-rotate(115deg) saturate(1.3)}
+.shell[data-skin=pokemon] #keyM{-webkit-backdrop-filter:hue-rotate(75deg) saturate(1.3);backdrop-filter:hue-rotate(75deg) saturate(1.3)}

@@ -34,7 +34,7 @@ const SKINS = [
   { id: 'pokemon', name: 'Pokémon', cost: 400, g: POKE },
   { id: 'pesadilla', name: 'Pesadilla antes de Navidad', cost: 400, g: PESA }
 ];
-const ACCENT = { estrellas_lila: '#a064dc', galaxia: '#4a5fcf', navidad: '#d83a3a', dragon_rojo_verde: '#d4324a', sakura: '#d9b66a', dragon_rojo: '#e0473c', dragon_violeta: '#a56bd6', naruto: '#f07a1a', dragonball: '#f5a21a', pokemon: '#f5c518', pesadilla: '#e8873a' };
+const ACCENT = { estrellas_lila: '#a064dc', galaxia: '#4a5fcf', navidad: '#d83a3a', dragon_rojo_verde: '#d4324a', sakura: '#d9b66a', dragon_rojo: '#e0473c', dragon_violeta: '#a56bd6', naruto: '#f07a1a', dragonball: '#f5a21a', pokemon: '#5fd35a', pesadilla: '#e8873a' };
 const img = id => `skins/${id}.webp`;
 const own = id => A().S().owned.includes('skin_' + id);
 const colorOf = k => COLORS.find(c => c[0] === k) || COLORS[0];
@@ -54,7 +54,7 @@ function apply() {
   shell = shell || document.querySelector('.shell'); bezel = bezel || document.querySelector('.bezel');
   if (!shell) return;
   const sk = resolve(A().S().skin), g = sk.g, st = shell.style;
-  shell.classList.add('skin');
+  shell.classList.add('skin'); shell.dataset.skin = sk.id;
   st.setProperty('--sk-img', `url(${sk.img})`); st.setProperty('--sk-filter', sk.filter); st.setProperty('aspect-ratio', g.ar);
   document.documentElement.style.setProperty('--page', g.page);
   const ck = sk.id.startsWith('base') ? colorOf(sk.id.slice(5))[3] : (ACCENT[sk.id] || '#7ed957');
