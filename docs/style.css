@@ -427,7 +427,7 @@ body.xmas .icons button.sel{outline-color:#b82a2f}
 
 /* fondo de la carcasa Dragon Ball: imagen + destello pulsante en la bola de energía */
 .fx.f-dbz{background:#05091c}
-.fx.f-dbz .dbz-img{position:absolute;inset:0;background:url(bg/dragonball_fondo.webp) 82% 50% / cover no-repeat}
+.fx.f-dbz .dbz-img{position:absolute;left:var(--ix,0);top:var(--iy,0);width:var(--iw,100%);height:var(--ih,100%);background:url(bg/dragonball_fondo.webp) 0 0 / 100% 100% no-repeat;-webkit-mask-image:linear-gradient(transparent,#000 14%);mask-image:linear-gradient(transparent,#000 14%)}
 .fx.f-dbz .dbz-glow{position:fixed;left:var(--bx,80%);top:var(--by,55%);width:var(--br,200px);height:var(--br,200px);transform:translate(-50%,-50%);border-radius:50%;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,255,255,.98) 0 14%,rgba(150,210,255,.75) 32%,rgba(60,130,255,.25) 56%,transparent 72%);animation:dbzpulse 2.2s ease-in-out infinite}
 .fx.f-dbz .dbz-flash{position:fixed;inset:0;mix-blend-mode:screen;background:radial-gradient(circle at var(--bx,80%) var(--by,55%),rgba(170,220,255,.55),rgba(60,120,255,.18) 38%,transparent 70%);animation:dbzflash 2.2s ease-in-out infinite}
 @keyframes dbzpulse{0%,100%{transform:translate(-50%,-50%) scale(.8);opacity:.75}50%{transform:translate(-50%,-50%) scale(1.45);opacity:1}}
@@ -436,3 +436,4 @@ body.xmas .icons button.sel{outline-color:#b82a2f}
 #dbzOver{position:fixed;inset:0;z-index:6;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle at var(--bx,80%) var(--by,55%),rgba(190,230,255,.55),rgba(90,160,255,.16) 36%,transparent 62%);animation:dbzover 2.2s ease-in-out infinite}
 @keyframes dbzover{0%,100%{opacity:.2}50%{opacity:.85}}
 @media (prefers-reduced-motion:reduce){#dbzOver{animation:none;opacity:.4}}
+body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}

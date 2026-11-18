@@ -17,11 +17,15 @@ function want() {
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
   return { room, night };
 }
-/* Fondo Dragon Ball: la imagen cubre la pantalla y el destello se coloca sobre la bola de energía (555,265 de 662×463) */
+/* Fondo Dragon Ball: la imagen (662×463) se coloca debajo de la carcasa para que se vean Goku (cara en 250,145) y la bola de energía (555,265) */
 function place() {
-  const vw = innerWidth, vh = innerHeight, k = Math.max(vw / 662, vh / 463), ox = (662 * k - vw) * 0.82, oy = (463 * k - vh) * 0.5;
-  const st = document.documentElement.style;
-  st.setProperty('--bx', (555 * k - ox) + 'px'); st.setProperty('--by', (265 * k - oy) + 'px'); st.setProperty('--br', (150 * k) + 'px');
+  const vw = innerWidth, vh = innerHeight, k = vw / 400, st = document.documentElement.style;
+  const sh = document.querySelector('.shell'), bot = sh ? sh.getBoundingClientRect().bottom : vh * 0.8;
+  const ox = 250 * k - 0.12 * vw;                                   // la cara queda a la izquierda y la bola a la derecha
+  let top = bot + 40 - 145 * k;                                      // la cara asoma justo bajo la carcasa
+  if (top + 265 * k > vh - 70) top = vh - 70 - 265 * k;              // la bola no se sale por abajo
+  st.setProperty('--ix', -ox + 'px'); st.setProperty('--iy', top + 'px'); st.setProperty('--iw', 662 * k + 'px'); st.setProperty('--ih', 463 * k + 'px');
+  st.setProperty('--bx', (555 * k - ox) + 'px'); st.setProperty('--by', (top + 265 * k) + 'px'); st.setProperty('--br', (170 * k) + 'px');
 }
 addEventListener('resize', place);
 function over(on) {                                   // destello por encima de la carcasa (la luz de la bola se derrama sobre ella)
@@ -33,7 +37,7 @@ function update() {
   const b = document.body;
   if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night'); layers.forEach(l => l.classList.remove('on')); over(false); cur = ''; return; }
   const w = want(); if (!w) return;
-  over(w.room === 'dbz');
+  over(w.room === 'dbz'); if (w.room === 'dbz') place();
   const key = w.room + (w.night ? '-n' : '-d');
   b.classList.add('dyn'); b.classList.toggle('f-night', w.night); b.classList.toggle('f-day', !w.night);
   b.style.setProperty('--glow', GLOW[w.room]);
