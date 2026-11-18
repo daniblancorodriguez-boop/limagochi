@@ -6,7 +6,7 @@ const KEY = 'pprueba.dynbg';
 let enabled = false; try { enabled = localStorage.getItem(KEY) === '1'; } catch { /* */ }
 let force = 'auto';                                   // solo para probar: 'auto' | 'day' | 'night'
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
-const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)', 'pk': 'rgba(255,215,60,.6)' };
+const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)', 'pk': 'rgba(255,215,60,.6)', 'pe': 'rgba(150,190,255,.55)' };
 const layers = [0, 1].map(() => { const d = document.createElement('div'); d.className = 'fx'; document.body.prepend(d); return d; });
 let idx = 0, cur = '', snd = null, armed = false;                  // armed: no suena al abrir el juego, solo al activarlo
 
@@ -24,7 +24,8 @@ const aura = () => sfx('snd/superaiyan.mp3', 0.8);
 /* Naruto: dibujo 571×800 a pantalla completa; el fuego (mano) y los ojos destellan. [x, y, tipo, tamaño: fracción del ancho] */
 const INTRO = {
   nar: { w: 571, h: 800, snd: 'snd/naruto_transicion.mp3', vol: 0.9, g: [[.50, .64, 'fire', .95], [.70, .53, 'fire', .5], [.30, .47, 'fire', .42], [.376, .34, 'eye', .13], [.613, .335, 'eye', .13]] },
-  pk: { w: 391, h: 783, snd: 'snd/pokemon_trueno.mp3', vol: 0.9, g: [[.43, .63, 'fire', .55], [.16, .21, 'zap', .3], [.80, .30, 'zap', .26], [.12, .85, 'zap', .3], [.72, .50, 'zap', .22]] }
+  pk: { w: 381, h: 762, snd: 'snd/pokemon_trueno.mp3', vol: 0.9, g: [[.49, .72, 'zap', .8], [.30, .56, 'zap', .24], [.67, .56, 'zap', .24], [.39, .52, 'eye', .1], [.62, .52, 'eye', .1], [.15, .20, 'zap', .3], [.85, .27, 'zap', .3]] },
+  pe: { w: 500, h: 750, snd: 'snd/pesadilla_jingle.mp3', vol: 0.9, g: [[.46, .30, 'moon', 1.0], [.20, .08, 'bolt', .35], [.85, .14, 'bolt', .3], [.76, .12, 'eye', .08]] }
 };
 const narGlints = r => INTRO[r].g.map((g, i) => `<i class="nr-g nr-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(i * 0.37).toFixed(2)}s"></i>`).join('');
 function placeNar() {
@@ -72,6 +73,7 @@ function want() {
   if (L.skins.current() === 'dragonball') return { room: 'dbz', night: false };      // esa carcasa trae su propio fondo
   if (L.skins.current() === 'naruto') return { room: 'nar', night: false };
   if (L.skins.current() === 'pokemon') return { room: 'pk', night: false };
+  if (L.skins.current() === 'pesadilla') return { room: 'pe', night: false };
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
   if (L.skins.current() === 'sakura' && !s.pause) return { room: 'sk-' + (SK[L.api.isHere()] || 'salon'), night };   // Sakura: fondos japoneses
   const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');

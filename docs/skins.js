@@ -12,6 +12,7 @@ const STD = { ar: '800 / 1150', bz: [10, 13.2, 80.2], page: '#1a1e2a', keys: { k
 const SAKURA = { ar: '662 / 969', bz: [10, 12.1, 80.2], page: '#161a2c', keys: { keyA: [24.8, 76.7, 12.7, 8.7], keyB: [43.4, 78.9, 12.7, 8.7], keyC: [62.2, 76.7, 12.7, 8.7], keyM: [37.6, 89.3, 24.8, 5.2] } };
 const NARU = { ar: '760 / 1110', bz: [7.2, 9.9, 85.5], page: '#161a2c', keys: { keyA: [25.1, 76.4, 12.4, 8.5], keyB: [43.8, 78.6, 12.4, 8.5], keyC: [62.2, 76.4, 12.4, 8.5], keyM: [37.9, 88.7, 24.2, 5] } };
 const POKE = { ar: '774 / 1136', bz: [10.3, 12.5, 79.4], page: '#1a1a24', keys: { keyA: [25.2, 76.4, 12.5, 8.8], keyB: [43.9, 79.5, 12.5, 8.6], keyC: [62.9, 76.4, 12.5, 8.8], keyM: [37.9, 89.1, 24.8, 5.1] } };
+const PESA = { ar: '772 / 1130', bz: [10.1, 11.9, 79.9], page: '#15121c', keys: { keyA: [25, 76.8, 12.6, 8.8], keyB: [43.8, 79, 12.3, 8.6], keyC: [62.7, 76.8, 12.4, 8.6], keyM: [37.8, 89.4, 24.4, 4.9] } };
 const DBALL = { ar: '663 / 970', bz: [10, 12.1, 80.2], page: '#1b1230', keys: { keyA: [24.8, 76.7, 12.7, 8.7], keyB: [43.4, 78.9, 12.7, 8.7], keyC: [62.2, 76.7, 12.7, 8.7], keyM: [37.6, 89.3, 24.8, 5.2] } };
 
 /* los 5 colores de siempre: giran el tono de la carcasa verde */
@@ -30,9 +31,10 @@ const SKINS = [
   { id: 'dragon_violeta', name: 'Dragón violeta', cost: 400, g: STD },
   { id: 'naruto', name: 'Naruto', cost: 400, g: NARU },
   { id: 'dragonball', name: 'Dragon Ball', cost: 400, g: DBALL },
-  { id: 'pokemon', name: 'Pokémon', cost: 400, g: POKE }
+  { id: 'pokemon', name: 'Pokémon', cost: 400, g: POKE },
+  { id: 'pesadilla', name: 'Pesadilla antes de Navidad', cost: 400, g: PESA }
 ];
-const ACCENT = { estrellas_lila: '#a064dc', galaxia: '#4a5fcf', navidad: '#d83a3a', dragon_rojo_verde: '#d4324a', sakura: '#d9b66a', dragon_rojo: '#e0473c', dragon_violeta: '#a56bd6', naruto: '#f07a1a', dragonball: '#f5a21a', pokemon: '#f5c518' };
+const ACCENT = { estrellas_lila: '#a064dc', galaxia: '#4a5fcf', navidad: '#d83a3a', dragon_rojo_verde: '#d4324a', sakura: '#d9b66a', dragon_rojo: '#e0473c', dragon_violeta: '#a56bd6', naruto: '#f07a1a', dragonball: '#f5a21a', pokemon: '#f5c518', pesadilla: '#e8873a' };
 const img = id => `skins/${id}.webp`;
 const own = id => A().S().owned.includes('skin_' + id);
 const colorOf = k => COLORS.find(c => c[0] === k) || COLORS[0];

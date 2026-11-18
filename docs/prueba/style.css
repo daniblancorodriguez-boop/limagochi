@@ -473,3 +473,12 @@ body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
 .nr-zap{background:radial-gradient(circle,rgba(255,255,230,.95),rgba(255,230,60,.55) 30%,rgba(255,200,0,.15) 55%,transparent 72%);animation:nrzap 1.3s steps(1,end) infinite}
 @keyframes nrzap{0%{opacity:0}6%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}12%{opacity:.15}18%{opacity:.9;transform:translate(-50%,-50%) scale(.9)}26%{opacity:0}62%{opacity:0}66%{opacity:.8}70%{opacity:0}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.nr-zap{animation:none;opacity:.4}}
+
+/* fondo de la carcasa Pesadilla antes de Navidad: luna que pulsa y relámpagos fríos */
+.f-pe .nr-img,#narIntro.pe .nr-img{background-image:url(bg/pesadilla_fondo.webp)}
+.f-pe,#narIntro.pe{background:#0b1220}
+.nr-moon{background:radial-gradient(circle,rgba(235,247,255,.7),rgba(160,200,255,.36) 45%,transparent 70%);animation:nrmoon 2.4s ease-in-out infinite alternate,nrmoonfl 1.7s steps(1,end) infinite}
+@keyframes nrmoonfl{0%{filter:brightness(1)}12%{filter:brightness(1.7)}18%{filter:brightness(.8)}30%{filter:brightness(1.4)}34%{filter:brightness(1)}70%{filter:brightness(1.1)}76%{filter:brightness(1.9)}82%{filter:brightness(.9)}}
+@keyframes nrmoon{0%{opacity:.25;transform:translate(-50%,-50%) scale(.92)}100%{opacity:.9;transform:translate(-50%,-50%) scale(1.06)}}
+.nr-bolt{background:radial-gradient(circle,rgba(235,245,255,.9),rgba(140,180,255,.4) 35%,transparent 70%);animation:nrzap 2.6s steps(1,end) infinite}
+@media (prefers-reduced-motion:reduce){.nr-moon,.nr-bolt{animation:none;opacity:.35}}
