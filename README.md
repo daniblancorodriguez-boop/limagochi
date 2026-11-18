@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.7 · regalos de carcasa
+- Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
+
 ## v3.38.6 · Sakura: pantalla dentro del marco negro
 - La pantalla de juego de Sakura se ajusta al marco negro de la imagen (ya no lo tapa ni deja línea oscura).
 
