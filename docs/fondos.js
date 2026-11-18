@@ -6,7 +6,7 @@ const KEY = 'limagochi.dynbg';
 let enabled = false; try { enabled = localStorage.getItem(KEY) === '1'; } catch { /* */ }
 let force = 'auto';                                   // solo para probar: 'auto' | 'day' | 'night'
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
-const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)' };
+const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)', 'pk': 'rgba(255,215,60,.6)' };
 const layers = [0, 1].map(() => { const d = document.createElement('div'); d.className = 'fx'; document.body.prepend(d); return d; });
 let idx = 0, cur = '', snd = null, armed = false;                  // armed: no suena al abrir el juego, solo al activarlo
 
@@ -22,21 +22,26 @@ function sfx(src, vol) {
 const aura = () => sfx('snd/superaiyan.mp3', 0.8);
 
 /* Naruto: dibujo 571×800 a pantalla completa; el fuego (mano) y los ojos destellan. [x, y, tipo, tamaño: fracción del ancho] */
-const NAR = [[.50, .64, 'fire', .95], [.70, .53, 'fire', .5], [.30, .47, 'fire', .42], [.376, .34, 'eye', .13], [.613, .335, 'eye', .13]];
-const narGlints = () => NAR.map((g, i) => `<i class="nr-g nr-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(i * 0.37).toFixed(2)}s"></i>`).join('');
+const INTRO = {
+  nar: { w: 571, h: 800, snd: 'snd/naruto_transicion.mp3', vol: 0.9, g: [[.50, .64, 'fire', .95], [.70, .53, 'fire', .5], [.30, .47, 'fire', .42], [.376, .34, 'eye', .13], [.613, .335, 'eye', .13]] },
+  pk: { w: 391, h: 783, snd: 'snd/pokemon_trueno.mp3', vol: 0.9, g: [[.43, .63, 'fire', .55], [.16, .21, 'zap', .3], [.80, .30, 'zap', .26], [.12, .85, 'zap', .3], [.72, .50, 'zap', .22]] }
+};
+const narGlints = r => INTRO[r].g.map((g, i) => `<i class="nr-g nr-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(i * 0.37).toFixed(2)}s"></i>`).join('');
 function placeNar() {
-  const vw = innerWidth, vh = innerHeight, k = Math.max(vw / 571, vh / 800), ox = (571 * k - vw) / 2, oy = (800 * k - vh) / 2;
-  document.querySelectorAll('.nr-g').forEach(e => {
-    const sz = +e.dataset.s * 571 * k;
-    e.style.left = (+e.dataset.x * 571 * k - ox) + 'px'; e.style.top = (+e.dataset.y * 800 * k - oy) + 'px'; e.style.width = e.style.height = sz + 'px';
+  document.querySelectorAll('[data-room]').forEach(root => {
+    const c = INTRO[root.dataset.room], vw = innerWidth, vh = innerHeight, k = Math.max(vw / c.w, vh / c.h), ox = (c.w * k - vw) / 2, oy = (c.h * k - vh) / 2;
+    root.querySelectorAll('.nr-g').forEach(e => {
+      const sz = +e.dataset.s * c.w * k;
+      e.style.left = (+e.dataset.x * c.w * k - ox) + 'px'; e.style.top = (+e.dataset.y * c.h * k - oy) + 'px'; e.style.width = e.style.height = sz + 'px';
+    });
   });
 }
 addEventListener('resize', placeNar);
 /* Al activar la carcasa: el dibujo tapa todo, suena la transición y se desvanece dejando el fondo animado */
-function narIntro() {
+function narIntro(r) {
   const old = document.getElementById('narIntro'); if (old) old.remove();
-  const e = document.createElement('div'); e.id = 'narIntro'; e.innerHTML = '<i class="nr-img"></i>' + narGlints();
-  document.body.append(e); placeNar(); sfx('snd/naruto_transicion.mp3', 0.9);
+  const e = document.createElement('div'); e.id = 'narIntro'; e.className = r; e.dataset.room = r; e.innerHTML = '<i class="nr-img"></i>' + narGlints(r);
+  document.body.append(e); placeNar(); sfx(INTRO[r].snd, INTRO[r].vol);
   setTimeout(() => e.remove(), 4000);
 }
 
@@ -66,6 +71,7 @@ function want() {
   const s = L.api.S(); if (!s) return null;
   if (L.skins.current() === 'dragonball') return { room: 'dbz', night: false };      // esa carcasa trae su propio fondo
   if (L.skins.current() === 'naruto') return { room: 'nar', night: false };
+  if (L.skins.current() === 'pokemon') return { room: 'pk', night: false };
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
   if (L.skins.current() === 'sakura' && !s.pause) return { room: 'sk-' + (SK[L.api.isHere()] || 'salon'), night };   // Sakura: fondos japoneses
   const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');
@@ -98,15 +104,15 @@ function update() {
   if (key === cur) return;
   cur = key;
   if (w.room === 'dbz' && armed) aura();
-  if (w.room === 'nar' && armed) narIntro();
+  if (INTRO[w.room] && armed) narIntro(w.room);
   const next = layers[idx ^ 1], old = layers[idx];
   next.className = `fx f-${w.room} f-${w.night ? 'night' : 'day'}`;
   const sk = w.room.startsWith('sk-') ? w.room.slice(3) : null; skScene = sk;
   if (sk) next.classList.add('f-sk');
-  next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : w.room === 'nar' ? '<i class="nr-img"></i>' + narGlints() : '';
+  next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : INTRO[w.room] ? '<i class="nr-img"></i>' + narGlints(w.room) : '';
   if (w.room === 'dbz') place();
   if (sk) placeSk();
-  if (w.room === 'nar') placeNar();
+  if (INTRO[w.room]) { next.dataset.room = w.room; placeNar(); }
   requestAnimationFrame(() => { next.classList.add('on'); old.classList.remove('on'); });
   idx ^= 1;
 }

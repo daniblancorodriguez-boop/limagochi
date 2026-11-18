@@ -466,3 +466,10 @@ body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
 #narIntro{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden;background:#120a14;animation:nrintro 3.6s ease-in forwards}
 @keyframes nrintro{0%,55%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.nr-img,.nr-fire,.nr-eye{animation:none}}
+
+/* fondo de la carcasa Pokémon: misma intro que Naruto con otra imagen, chispas eléctricas y fuego */
+.f-pk .nr-img,#narIntro.pk .nr-img{background-image:url(bg/pokemon_fondo.webp)}
+.f-pk,#narIntro.pk{background:#1a1a24}
+.nr-zap{background:radial-gradient(circle,rgba(255,255,230,.95),rgba(255,230,60,.55) 30%,rgba(255,200,0,.15) 55%,transparent 72%);animation:nrzap 1.3s steps(1,end) infinite}
+@keyframes nrzap{0%{opacity:0}6%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}12%{opacity:.15}18%{opacity:.9;transform:translate(-50%,-50%) scale(.9)}26%{opacity:0}62%{opacity:0}66%{opacity:.8}70%{opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.nr-zap{animation:none;opacity:.4}}

@@ -142,6 +142,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.42.0 · carcasa Pokémon
+- Nueva carcasa Pokémon (400 monedas) con fondo propio: intro a pantalla completa con sonido de trueno, fundido, y de fondo chispas eléctricas de Pikachu y fuego de Charmander destellando.
+
 ## v3.41.0 · fondo animado de Naruto
 - Con la carcasa Naruto (y el fondo dinámico activado) aparece el dibujo a pantalla completa tapándolo todo con el sonido de transición, se desvanece y queda de fondo con el fuego destellando.
 
