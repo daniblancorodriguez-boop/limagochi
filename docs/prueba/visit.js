@@ -177,7 +177,7 @@ const FLOWERS = {
 let GIFT_PUB = {"kty":"EC","crv":"P-256","x":"3q1CF-D2mdzOFNrxeGPkXwUK4Q62Jg8iYzgt4abd99s","y":"KAYJiwlVbWD8artT5Pru1VD1OzCDcbeLCBX7enTkIQs"};
 const SPECIAL_DAYS = 30;
 const b64bytes = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const ITEM_GIFTS = { robodog: '🤖 Lima robot', skin_naruto: '🍥 Carcasa Naruto', skin_sakura: '🌸 Carcasa Sakura', skin_navidad: '🎄 Carcasa Navidad' };                   // objetos exclusivos que puede traer un regalo especial
+const ITEM_GIFTS = { robodog: '🤖 Lima robot', skin_naruto: '🍥 Carcasa Naruto', skin_sakura: '🌸 Carcasa Sakura', skin_navidad: '🎄 Carcasa Navidad', skin_pesadilla: '🎃 Carcasa Pesadilla' };                   // objetos exclusivos que puede traer un regalo especial
 const specialText = o => `${o.c}|${o.u}|${o.ts}|${o.m}|${o.e}|${o.h}|${o.l}${o.x ? '|' + o.x : ''}`;
 async function verifySpecial(g) {
   try {

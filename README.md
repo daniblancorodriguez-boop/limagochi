@@ -142,6 +142,8 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.43.4 · regalo de la carcasa Pesadilla (skin_pesadilla)
+
 ## v3.43.3 · Pokémon: vuelve el marco anterior (sombra negra difuminada); botones verdes se mantienen
 
 ## v3.43.2 · Pokémon: marco más marcado y botones verdes
