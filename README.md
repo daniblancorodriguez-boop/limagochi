@@ -142,6 +142,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.41.0 · fondo animado de Naruto
+- Con la carcasa Naruto (y el fondo dinámico activado) aparece el dibujo a pantalla completa tapándolo todo con el sonido de transición, se desvanece y queda de fondo con el fuego destellando.
+
 ## v3.40.0 · fondos japoneses de la carcasa Sakura
 - Con la carcasa Sakura y el fondo dinámico activado, cada sala (habitación, salón, cocina, estudio, jardín) tiene su fondo japonés de día y de noche (`docs/bg/sakura/`). De noche las luces y la luna destellan.
 

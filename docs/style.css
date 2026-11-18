@@ -453,3 +453,16 @@ body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
 @keyframes skfire{0%{opacity:.45;transform:translate(-50%,-50%) scale(.85)}50%{opacity:1}100%{opacity:.6;transform:translate(-50%,-50%) scale(1.15)}}
 @keyframes skmoon{0%{opacity:.4;transform:translate(-50%,-50%) scale(.92)}100%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 @media (prefers-reduced-motion:reduce){.fx .sk-g{animation:none;opacity:.7}}
+
+/* fondo de la carcasa Naruto: dibujo a pantalla completa con fuego que destella; al activarla aparece tapándolo todo y se desvanece */
+.fx.f-nar{background:#120a14}
+.nr-img{position:absolute;inset:0;background:url(bg/naruto_fondo.webp) center / cover no-repeat;animation:nrbright 2.4s ease-in-out infinite alternate}
+.fx .nr-g,#narIntro .nr-g{position:fixed;transform:translate(-50%,-50%);border-radius:50%;mix-blend-mode:screen;pointer-events:none}
+.nr-fire{background:radial-gradient(circle,rgba(255,240,170,.85),rgba(255,140,40,.5) 32%,rgba(255,60,10,.18) 55%,transparent 72%);animation:nrfire .9s ease-in-out infinite alternate}
+.nr-eye{background:radial-gradient(circle,rgba(255,220,120,.9),rgba(255,80,20,.4) 40%,transparent 70%);animation:nreye 2.1s ease-in-out infinite alternate}
+@keyframes nrfire{0%{opacity:.35;transform:translate(-50%,-50%) scale(.82)}40%{opacity:1}100%{opacity:.65;transform:translate(-50%,-50%) scale(1.18)}}
+@keyframes nreye{0%{opacity:.2}100%{opacity:1}}
+@keyframes nrbright{0%{filter:brightness(.92) saturate(1)}100%{filter:brightness(1.12) saturate(1.12)}}
+#narIntro{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden;background:#120a14;animation:nrintro 3.6s ease-in forwards}
+@keyframes nrintro{0%,55%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.nr-img,.nr-fire,.nr-eye{animation:none}}

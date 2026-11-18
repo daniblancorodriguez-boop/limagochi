@@ -6,17 +6,38 @@ const KEY = 'pprueba.dynbg';
 let enabled = false; try { enabled = localStorage.getItem(KEY) === '1'; } catch { /* */ }
 let force = 'auto';                                   // solo para probar: 'auto' | 'day' | 'night'
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
-const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)' };
+const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)' };
 const layers = [0, 1].map(() => { const d = document.createElement('div'); d.className = 'fx'; document.body.prepend(d); return d; });
 let idx = 0, cur = '', snd = null, armed = false;                  // armed: no suena al abrir el juego, solo al activarlo
 
-/* Al activar el modo Dragon Ball suena 5 s el aura (un solo audio; respeta el sonido del juego) */
-function aura() {
+/* Sonido de activación de las carcasas con fondo propio (respeta el sonido del juego) */
+const snds = {};
+function sfx(src, vol) {
   try {
     if (!(L.sound && L.sound.enabled())) return;
-    if (!snd) { snd = new Audio('snd/superaiyan.mp3'); snd.volume = 0.8; }
-    snd.currentTime = 0; const p = snd.play(); if (p && p.catch) p.catch(() => { /* el navegador exige un toque previo */ });
+    const a = snds[src] || (snds[src] = new Audio(src)); a.volume = vol; a.currentTime = 0;
+    const p = a.play(); if (p && p.catch) p.catch(() => { /* el navegador exige un toque previo */ });
   } catch { /* */ }
+}
+const aura = () => sfx('snd/superaiyan.mp3', 0.8);
+
+/* Naruto: dibujo 571×800 a pantalla completa; el fuego (mano) y los ojos destellan. [x, y, tipo, tamaño: fracción del ancho] */
+const NAR = [[.50, .64, 'fire', .95], [.70, .53, 'fire', .5], [.30, .47, 'fire', .42], [.376, .34, 'eye', .13], [.613, .335, 'eye', .13]];
+const narGlints = () => NAR.map((g, i) => `<i class="nr-g nr-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(i * 0.37).toFixed(2)}s"></i>`).join('');
+function placeNar() {
+  const vw = innerWidth, vh = innerHeight, k = Math.max(vw / 571, vh / 800), ox = (571 * k - vw) / 2, oy = (800 * k - vh) / 2;
+  document.querySelectorAll('.nr-g').forEach(e => {
+    const sz = +e.dataset.s * 571 * k;
+    e.style.left = (+e.dataset.x * 571 * k - ox) + 'px'; e.style.top = (+e.dataset.y * 800 * k - oy) + 'px'; e.style.width = e.style.height = sz + 'px';
+  });
+}
+addEventListener('resize', placeNar);
+/* Al activar la carcasa: el dibujo tapa todo, suena la transición y se desvanece dejando el fondo animado */
+function narIntro() {
+  const old = document.getElementById('narIntro'); if (old) old.remove();
+  const e = document.createElement('div'); e.id = 'narIntro'; e.innerHTML = '<i class="nr-img"></i>' + narGlints();
+  document.body.append(e); placeNar(); sfx('snd/naruto_transicion.mp3', 0.9);
+  setTimeout(() => e.remove(), 4000);
 }
 
 /* Carcasa Sakura: fondos japoneses (docs/bg/sakura/<sala>_<d|n>.webp, 768×1376 o 572×1024) y luces que destellan de noche.
@@ -44,6 +65,7 @@ addEventListener('resize', placeSk);
 function want() {
   const s = L.api.S(); if (!s) return null;
   if (L.skins.current() === 'dragonball') return { room: 'dbz', night: false };      // esa carcasa trae su propio fondo
+  if (L.skins.current() === 'naruto') return { room: 'nar', night: false };
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
   if (L.skins.current() === 'sakura' && !s.pause) return { room: 'sk-' + (SK[L.api.isHere()] || 'salon'), night };   // Sakura: fondos japoneses
   const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');
@@ -67,7 +89,7 @@ function over(on) {                                   // destello por encima de 
 }
 function update() {
   const b = document.body;
-  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night'); layers.forEach(l => l.classList.remove('on')); over(false); cur = ''; return; }
+  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night'); layers.forEach(l => l.classList.remove('on')); over(false); const ni = document.getElementById('narIntro'); if (ni) ni.remove(); cur = ''; return; }
   const w = want(); if (!w) return;
   over(w.room === 'dbz'); if (w.room === 'dbz') place();
   const key = w.room + (w.night ? '-n' : '-d');
@@ -76,13 +98,15 @@ function update() {
   if (key === cur) return;
   cur = key;
   if (w.room === 'dbz' && armed) aura();
+  if (w.room === 'nar' && armed) narIntro();
   const next = layers[idx ^ 1], old = layers[idx];
   next.className = `fx f-${w.room} f-${w.night ? 'night' : 'day'}`;
   const sk = w.room.startsWith('sk-') ? w.room.slice(3) : null; skScene = sk;
   if (sk) next.classList.add('f-sk');
-  next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : '';
+  next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : w.room === 'nar' ? '<i class="nr-img"></i>' + narGlints() : '';
   if (w.room === 'dbz') place();
   if (sk) placeSk();
+  if (w.room === 'nar') placeNar();
   requestAnimationFrame(() => { next.classList.add('on'); old.classList.remove('on'); });
   idx ^= 1;
 }
