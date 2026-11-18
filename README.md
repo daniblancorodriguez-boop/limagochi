@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.3 · Sakura con pantalla más grande
+- Carcasa Sakura más alta (800×1320): pantalla de juego del 62 % del ancho, con marco dorado, y botones más abajo.
+
 ## v3.38.2 · regalo de carcasa
 - Un regalo especial puede traer una carcasa (`skin_naruto`): `node tools/gift.js "MSG" 0 0 0 Dani skin_naruto`.
 

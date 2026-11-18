@@ -9,7 +9,7 @@ const L = window.LIMA, A = () => L.api;
 
 /* geometría en % de la imagen: pantalla (l, t, w) y botones [izq, arriba, ancho, alto] */
 const STD = { ar: '800 / 1150', bz: [10, 13.2, 80.2], page: '#1a1e2a', keys: { keyA: [26.5, 77.3, 11.5, 8], keyB: [44.3, 79.3, 11.5, 8], keyC: [62, 77.3, 11.5, 8], keyM: [38.5, 88.5, 23, 6] } };
-const OVAL = { ar: '800 / 1210', bz: [22.5, 18, 55], oval: true, page: '#1c1c1c', keys: { keyA: [18.3, 64.7, 13, 8.6], keyB: [43.5, 66.4, 13, 8.6], keyC: [62.5, 64.7, 13, 8.6], keyM: [36, 77.5, 28, 6.2] } };
+const OVAL = { ar: '800 / 1320', bz: [19, 21.2, 62], oval: true, page: '#1c1c1c', keys: { keyA: [18.3, 67.7, 13, 7.9], keyB: [43.5, 69.2, 13, 7.9], keyC: [62.5, 67.7, 13, 7.9], keyM: [36, 79.4, 28, 5.7] } };
 const NARU = { ar: '760 / 1110', bz: [7.2, 9.9, 85.5], page: '#161a2c', keys: { keyA: [25.1, 76.4, 12.4, 8.5], keyB: [43.8, 78.6, 12.4, 8.5], keyC: [62.2, 76.4, 12.4, 8.5], keyM: [37.9, 88.7, 24.2, 5] } };
 
 /* los 5 colores de siempre: giran el tono de la carcasa verde */
