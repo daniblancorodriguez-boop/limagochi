@@ -789,14 +789,14 @@ test('carcasas: la básica con 5 colores, compra en la tienda y cambio desde Aju
     [...document.querySelectorAll('#panel button')].find(x => /Carcasas/.test(x.textContent)).click();
     [...document.querySelectorAll('#panel button')].find(x => /Sakura/.test(x.textContent)).click();
     out.bought = s.owned.includes('skin_sakura') && s.lp === 1000 - sk.cost; out.now = K.current();
-    out.oval = document.querySelector('.shell').classList.contains('oval') && /scale/.test(document.querySelector('.bezel').style.transform);
-    K.set('base'); out.back = !document.querySelector('.shell').classList.contains('oval');
+    out.ar = document.querySelector('.shell').style.aspectRatio.replace(/\s/g, '') === '665/975';
+    K.set('base'); out.back = document.querySelector('.shell').style.aspectRatio.replace(/\s/g, '') === '800/1150';
     out.gridGone = !document.querySelector('#btnGrid');
     out.faces = K.list.length;
     return out;
   });
   eq(r.start, 'base', 'carcasa inicial'); eq(r.pink, 'base:pink', 'color rosa'); eq(r.noBuy, 'base', 'carcasa sin comprar');
-  ok(r.bought, 'compra la carcasa'); eq(r.now, 'sakura', 'la compra la pone'); ok(r.oval, 'la ovalada reduce la pantalla'); ok(r.back, 'vuelve a la forma normal'); ok(r.gridGone, 'sin botón de rejilla');
+  ok(r.bought, 'compra la carcasa'); eq(r.now, 'sakura', 'la compra la pone'); ok(r.ar, 'Sakura tiene su forma'); ok(r.back, 'vuelve a la forma normal'); ok(r.gridGone, 'sin botón de rejilla');
   noErrors(p);
 });
 

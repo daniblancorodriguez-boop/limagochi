@@ -424,4 +424,3 @@ body.xmas .meter{position:relative}
 body.xmas .meter+.meter::before{content:'';position:absolute;left:-15px;top:3px;width:24px;height:16px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 16'><path d='M12 9C9 2 3 2 1 5c2 5 7 6 11 4z' fill='%232f7d32'/><path d='M12 9c3-7 9-7 11-4-2 5-7 6-11 4z' fill='%233f9a3c'/><circle cx='9' cy='11' r='2.6' fill='%23d8312a'/><circle cx='14.5' cy='11' r='2.6' fill='%23b82a2f'/><circle cx='12' cy='13.5' r='2.4' fill='%23d8312a'/></svg>") no-repeat center/contain}
 body.xmas .icons button.sel{outline-color:#b82a2f}
 
-.shell.oval .bezel{border-radius:16px;box-shadow:0 0 0 6px #0e1736,0 0 0 8px #b99a55,0 8px 16px rgba(0,0,0,.55)}

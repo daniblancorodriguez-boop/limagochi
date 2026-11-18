@@ -139,6 +139,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.2
 - El suelo del cuarto también empieza al 70 % de la pantalla.
 
+## v3.38.4 · Sakura rediseñada
+- La carcasa Sakura pasa a la forma con pestañas y pantalla grande (nueva imagen 665×975); desaparece la versión ovalada.
+
 ## v3.38.3 · Sakura con pantalla más grande
 - Carcasa Sakura más alta (800×1320): pantalla de juego del 62 % del ancho, con marco dorado, y botones más abajo.
 
