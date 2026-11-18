@@ -424,3 +424,15 @@ body.xmas .meter{position:relative}
 body.xmas .meter+.meter::before{content:'';position:absolute;left:-15px;top:3px;width:24px;height:16px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 16'><path d='M12 9C9 2 3 2 1 5c2 5 7 6 11 4z' fill='%232f7d32'/><path d='M12 9c3-7 9-7 11-4-2 5-7 6-11 4z' fill='%233f9a3c'/><circle cx='9' cy='11' r='2.6' fill='%23d8312a'/><circle cx='14.5' cy='11' r='2.6' fill='%23b82a2f'/><circle cx='12' cy='13.5' r='2.4' fill='%23d8312a'/></svg>") no-repeat center/contain}
 body.xmas .icons button.sel{outline-color:#b82a2f}
 
+
+/* fondo de la carcasa Dragon Ball: imagen + destello pulsante en la bola de energía */
+.fx.f-dbz{background:#05091c}
+.fx.f-dbz .dbz-img{position:absolute;inset:0;background:url(bg/dragonball_fondo.webp) 82% 50% / cover no-repeat}
+.fx.f-dbz .dbz-glow{position:fixed;left:var(--bx,80%);top:var(--by,55%);width:var(--br,200px);height:var(--br,200px);transform:translate(-50%,-50%);border-radius:50%;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,255,255,.98) 0 14%,rgba(150,210,255,.75) 32%,rgba(60,130,255,.25) 56%,transparent 72%);animation:dbzpulse 2.2s ease-in-out infinite}
+.fx.f-dbz .dbz-flash{position:fixed;inset:0;mix-blend-mode:screen;background:radial-gradient(circle at var(--bx,80%) var(--by,55%),rgba(170,220,255,.55),rgba(60,120,255,.18) 38%,transparent 70%);animation:dbzflash 2.2s ease-in-out infinite}
+@keyframes dbzpulse{0%,100%{transform:translate(-50%,-50%) scale(.8);opacity:.75}50%{transform:translate(-50%,-50%) scale(1.45);opacity:1}}
+@keyframes dbzflash{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.fx.f-dbz .dbz-glow,.fx.f-dbz .dbz-flash{animation:none}}
+#dbzOver{position:fixed;inset:0;z-index:6;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle at var(--bx,80%) var(--by,55%),rgba(190,230,255,.55),rgba(90,160,255,.16) 36%,transparent 62%);animation:dbzover 2.2s ease-in-out infinite}
+@keyframes dbzover{0%,100%{opacity:.2}50%{opacity:.85}}
+@media (prefers-reduced-motion:reduce){#dbzOver{animation:none;opacity:.4}}
