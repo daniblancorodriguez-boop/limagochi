@@ -8,7 +8,16 @@ let force = 'auto';                                   // solo para probar: 'auto
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
 const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)' };
 const layers = [0, 1].map(() => { const d = document.createElement('div'); d.className = 'fx'; document.body.prepend(d); return d; });
-let idx = 0, cur = '';
+let idx = 0, cur = '', snd = null, armed = false;                  // armed: no suena al abrir el juego, solo al activarlo
+
+/* Al activar el modo Dragon Ball suena 5 s el aura (un solo audio; respeta el sonido del juego) */
+function aura() {
+  try {
+    if (!(L.sound && L.sound.enabled())) return;
+    if (!snd) { snd = new Audio('snd/superaiyan.mp3'); snd.volume = 0.8; }
+    snd.currentTime = 0; const p = snd.play(); if (p && p.catch) p.catch(() => { /* el navegador exige un toque previo */ });
+  } catch { /* */ }
+}
 
 function want() {
   const s = L.api.S(); if (!s) return null;
@@ -43,6 +52,7 @@ function update() {
   b.style.setProperty('--glow', GLOW[w.room]);
   if (key === cur) return;
   cur = key;
+  if (w.room === 'dbz' && armed) aura();
   const next = layers[idx ^ 1], old = layers[idx];
   next.className = `fx f-${w.room} f-${w.night ? 'night' : 'day'}`;
   next.innerHTML = w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : '';
@@ -57,5 +67,5 @@ L.fondos = {
   update
 };
 setInterval(update, 400);
-setTimeout(update, 300);
+setTimeout(() => { update(); armed = true; }, 300);
 })();

@@ -4,12 +4,12 @@
    · Web Push: muestra el aviso salvo que la app esté a la vista.
    · Al tocar un aviso enfoca (o abre) la app.
    ========================================================================== */
-const VERSION = 'limagochi-v3.39.1';
+const VERSION = 'limagochi-v3.39.2';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.json',
   'sprites.js', 'items.js', 'config.js', 'audio.js', 'world.js', 'notify.js', 'bugs.js', 'forms2.js', 'faces.js', 'skins.js', 'fondos.js', 'navidad.js', 'season.js', 'progress.js', 'guide.js', 'backup.js', 'lib/qrcode.js', 'mail.js', 'visit.js', 'minigames.js', 'games2.js', 'arcade.js', 'robodog_frames.js', 'robodog.js', 'studio.js', 'kitchen.js', 'school.js', 'voice.js', 'first.js', 'glyphs_map.js', 'glyphs.js', 'game.js',
   'bg/salon.png', 'bg/cuarto.png', 'bg/estudio.png', 'bg/cocina.png', 'bg/jardin.png', 'bg/jardin_k.png', 'bg/playa.png', 'bg/playa_k.png', 'bg/nav_cuarto.png', 'bg/nav_salon.png', 'bg/nav_cocina.png', 'bg/nav_estudio.png', 'bg/nav_jardin.png', 'bg/nav_jardin_k.png',
-  'skins/base.webp', 'skins/galaxia.webp', 'skins/dragon_rojo_verde.webp', 'skins/dragon_rojo.webp', 'skins/dragon_violeta.webp', 'skins/estrellas_lila.webp', 'skins/sakura.webp', 'skins/navidad.webp', 'skins/naruto.webp', 'skins/dragonball.webp', 'bg/dragonball_fondo.webp',
+  'skins/base.webp', 'skins/galaxia.webp', 'skins/dragon_rojo_verde.webp', 'skins/dragon_rojo.webp', 'skins/dragon_violeta.webp', 'skins/estrellas_lila.webp', 'skins/sakura.webp', 'skins/navidad.webp', 'skins/naruto.webp', 'snd/superaiyan.mp3', 'skins/dragonball.webp', 'bg/dragonball_fondo.webp',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
   'ico/g1.png', 'ico/g2.png', 'ico/g3.png', 'ico/g4.png', 'ico/g5.png', 'ico/g6.png', 'ico/g7.png', 'ico/g8.png', 'ico/g9.png', 'ico/g10.png', 'ico/album.png', 'ico/bugs.png', 'ico/clean.png', 'ico/clean2.png', 'ico/disc.png', 'ico/egg.png', 'ico/energy.png', 'ico/feed.png', 'ico/guide.png', 'ico/happy.png', 'ico/heal.png', 'ico/history.png', 'ico/work.png', 'ico/school.png', 'ico/hunger.png', 'ico/light.png', 'ico/logros.png', 'ico/mail.png', 'ico/play.png', 'ico/scold.png', 'ico/settings.png', 'ico/shop.png', 'ico/shower.png', 'ico/status.png', 'ico/teach.png', 'ico/visit.png', 'ico/voice.png'
 ];

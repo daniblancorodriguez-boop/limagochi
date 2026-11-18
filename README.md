@@ -142,6 +142,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.39.2 · aura Super Saiyan
+- Al activar el fondo dinámico con la carcasa Dragon Ball suena 5 s el audio `snd/superaiyan.mp3` (si el sonido está activado; no suena al abrir el juego).
+
 ## v3.39.1 · fondo Dragon Ball más abajo
 - El fondo se coloca bajo la carcasa para que se vean Goku y la onda vital; el destello sigue a la bola.
 

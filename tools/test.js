@@ -816,6 +816,22 @@ test('Navidad: la carcasa cambia fondos, pantalla y muebles, y al quitarla todo 
   noErrors(p);
 });
 
+test('Dragon Ball: al activar el fondo dinámico suena el aura una vez; sin sonido no suena', async () => {
+  const p = await fresh();
+  await p.evaluate(() => { const s = LIMA.api.S(); s.stage = 'adult'; s.meta.first.on = false; s.owned.push('skin_dragonball'); LIMA.api.closePanel(); window.__plays = 0; HTMLMediaElement.prototype.play = function () { window.__plays++; return Promise.resolve(); }; });
+  const r = await p.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms)), out = {};
+    await w(600); if (LIMA.fondos.on()) LIMA.fondos.toggle();
+    LIMA.skins.set('dragonball'); LIMA.fondos.toggle(); await w(700);
+    out.plays = window.__plays;
+    LIMA.fondos.toggle(); await w(500); if (LIMA.sound.enabled()) LIMA.sound.toggle(); LIMA.fondos.toggle(); await w(700);
+    out.silent = window.__plays;
+    return out;
+  });
+  eq(r.plays, 1, 'suena al activarlo'); eq(r.silent, 1, 'sin sonido no suena');
+  noErrors(p);
+});
+
 test('Lima robot: el regalo lo trae, juega a la bola y a la cuerda, suma felicidad y se para si se duerme', async () => {
   const p = await fresh();
   const r = await p.evaluate(async () => {
