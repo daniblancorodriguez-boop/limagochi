@@ -482,3 +482,6 @@ body.dyn .lp{text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}
 @keyframes nrmoon{0%{opacity:.25;transform:translate(-50%,-50%) scale(.92)}100%{opacity:.9;transform:translate(-50%,-50%) scale(1.06)}}
 .nr-bolt{background:radial-gradient(circle,rgba(235,245,255,.9),rgba(140,180,255,.4) 35%,transparent 70%);animation:nrzap 2.6s steps(1,end) infinite}
 @media (prefers-reduced-motion:reduce){.nr-moon,.nr-bolt{animation:none;opacity:.35}}
+
+/* marco negro difuminado alrededor de la carcasa (Pokémon) para que la consola se lea sobre el fondo */
+body.blk.dyn .shell::before{filter:var(--sk-filter,none) drop-shadow(0 0 10px #000) drop-shadow(0 0 22px rgba(0,0,0,.95)) drop-shadow(0 0 44px rgba(0,0,0,.9)) drop-shadow(0 0 70px rgba(0,0,0,.8))!important}

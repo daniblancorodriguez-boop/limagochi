@@ -24,7 +24,7 @@ const aura = () => sfx('snd/superaiyan.mp3', 0.8);
 /* Naruto: dibujo 571×800 a pantalla completa; el fuego (mano) y los ojos destellan. [x, y, tipo, tamaño: fracción del ancho] */
 const INTRO = {
   nar: { w: 571, h: 800, snd: 'snd/naruto_transicion.mp3', vol: 0.9, g: [[.50, .64, 'fire', .95], [.70, .53, 'fire', .5], [.30, .47, 'fire', .42], [.376, .34, 'eye', .13], [.613, .335, 'eye', .13]] },
-  pk: { w: 381, h: 762, snd: 'snd/pokemon_trueno.mp3', vol: 0.9, g: [[.49, .72, 'zap', .8], [.30, .56, 'zap', .24], [.67, .56, 'zap', .24], [.39, .52, 'eye', .1], [.62, .52, 'eye', .1], [.15, .20, 'zap', .3], [.85, .27, 'zap', .3]] },
+  pk: { w: 409, h: 749, snd: 'snd/pokemon_trueno.mp3', vol: 0.9, g: [[.50, .79, 'zap', .7], [.33, .62, 'zap', .24], [.62, .62, 'zap', .24], [.38, .57, 'eye', .09], [.60, .57, 'eye', .09], [.12, .52, 'zap', .3], [.90, .52, 'zap', .3], [.50, .42, 'zap', .5]] },
   pe: { w: 500, h: 750, snd: 'snd/pesadilla_jingle.mp3', vol: 0.9, g: [[.46, .30, 'moon', 1.0], [.20, .08, 'bolt', .35], [.85, .14, 'bolt', .3], [.76, .12, 'eye', .08]] }
 };
 const narGlints = r => INTRO[r].g.map((g, i) => `<i class="nr-g nr-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(i * 0.37).toFixed(2)}s"></i>`).join('');
@@ -97,11 +97,11 @@ function over(on) {                                   // destello por encima de 
 }
 function update() {
   const b = document.body;
-  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night'); layers.forEach(l => l.classList.remove('on')); over(false); const ni = document.getElementById('narIntro'); if (ni) ni.remove(); cur = ''; return; }
+  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night', 'blk'); layers.forEach(l => l.classList.remove('on')); over(false); const ni = document.getElementById('narIntro'); if (ni) ni.remove(); cur = ''; return; }
   const w = want(); if (!w) return;
   over(w.room === 'dbz'); if (w.room === 'dbz') place();
   const key = w.room + (w.night ? '-n' : '-d');
-  b.classList.add('dyn'); b.classList.toggle('f-night', w.night); b.classList.toggle('f-day', !w.night);
+  b.classList.add('dyn'); b.classList.toggle('blk', w.room === 'pk'); b.classList.toggle('f-night', w.night); b.classList.toggle('f-day', !w.night);
   b.style.setProperty('--glow', GLOW[w.room] || 'rgba(255,190,120,.45)');
   if (key === cur) return;
   cur = key;

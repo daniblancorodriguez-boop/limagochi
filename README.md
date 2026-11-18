@@ -142,6 +142,9 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
+## v3.43.1 · fondo Pokémon nuevo
+- Nuevo fondo de Pikachu y marco negro difuminado alrededor de la carcasa para que la consola se vea bien.
+
 ## v3.43.0 · carcasa Pesadilla antes de Navidad
 - Nueva carcasa (400 monedas) con fondo propio (Jack y Sally en la luna), intro con jingle, luna que pulsa y relámpagos. El fondo de Pokémon pasa a ser el Pikachu eléctrico.
 
