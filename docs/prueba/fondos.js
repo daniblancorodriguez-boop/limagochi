@@ -8,7 +8,7 @@ let force = 'auto';                                   // solo para probar: 'auto
 const ROOMS = { bedroom: 'cuarto', salon: 'salon', garden: 'jardin', studio: 'estudio', kitchen: 'cocina' };
 const GLOW = { 'salon': 'rgba(120,160,255,.45)', 'jardin': 'rgba(150,190,255,.35)', 'playa': 'rgba(150,190,255,.35)', 'estudio': 'rgba(255,200,120,.5)', 'cocina': 'rgba(235,150,90,.4)', 'cuarto': 'rgba(255,170,90,.5)', 'dbz': 'rgba(90,170,255,.65)', 'nar': 'rgba(255,120,40,.6)', 'pk': 'rgba(255,215,60,.6)', 'pe': 'rgba(150,190,255,.55)' };
 const layers = [0, 1].map(() => { const d = document.createElement('div'); d.className = 'fx'; document.body.prepend(d); return d; });
-let idx = 0, cur = '', snd = null, armed = false;                  // armed: no suena al abrir el juego, solo al activarlo
+let idx = 0, cur = '', snd = null, armed = false, xmOn = false;                  // armed: no suena al abrir el juego, solo al activarlo
 
 /* Sonido de activación de las carcasas con fondo propio (respeta el sonido del juego) */
 const snds = {};
@@ -57,6 +57,15 @@ const SKG = {
   estudio: [[.717, .156, 'lamp', .34], [.73, .84, 'lamp', .26]],
   salon: [[.712, .088, 'lamp', .44]]
 };
+/* Carcasa Navidad: fondos navideños (docs/bg/navidad/) con las luces y el fuego destellando de noche. Todas las de noche miden 756×1344 */
+for (const r of ['habitacion', 'salon', 'jardin', 'estudio', 'cocina']) SKSIZE['xm-' + r] = [756, 1344];
+Object.assign(SKG, {
+  'xm-habitacion': [[.53, .33, 'lamp', .4], [.38, .48, 'lamp', .3], [.93, .5, 'lamp', .3], [.05, .49, 'fire', .12]],
+  'xm-salon': [[.20, .655, 'fire', .24], [.85, .52, 'lamp', .5], [.26, .455, 'lamp', .32], [.185, .28, 'lamp', .16]],
+  'xm-jardin': [[.86, .476, 'lamp', .32], [.16, .446, 'lamp', .15], [.12, .64, 'lamp', .13], [.87, .67, 'lamp', .14], [.13, .58, 'lamp', .22]],
+  'xm-estudio': [[.515, .67, 'fire', .11], [.25, .62, 'fire', .11], [.87, .245, 'lamp', .2], [.66, .58, 'lamp', .24], [.2, .15, 'lamp', .32]],
+  'xm-cocina': [[.33, .62, 'fire', .12], [.17, .11, 'lamp', .32], [.73, .05, 'lamp', .26], [.66, .37, 'lamp', .26], [.94, .59, 'lamp', .18], [.145, .36, 'lamp', .2]]
+});
 let skScene = null;
 function placeSk() {
   if (!skScene) return;
@@ -76,6 +85,7 @@ function want() {
   if (L.skins.current() === 'pesadilla') return { room: 'pe', night: false };
   const night = force === 'auto' ? !!(s.sleeping || (L.settings.get('cycle') && L.world.isNight())) : force === 'night';
   if (L.skins.current() === 'sakura' && !s.pause) return { room: 'sk-' + (SK[L.api.isHere()] || 'salon'), night };   // Sakura: fondos japoneses
+  if (L.skins.current() === 'navidad' && !s.pause) return { room: 'xm-' + (SK[L.api.isHere()] || 'salon'), night };   // Navidad: fondos navideños
   const room = s.pause ? 'playa' : (ROOMS[L.api.isHere()] || 'salon');
   return { room, night };
 }
@@ -97,7 +107,7 @@ function over(on) {                                   // destello por encima de 
 }
 function update() {
   const b = document.body;
-  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night', 'blk'); layers.forEach(l => l.classList.remove('on')); over(false); const ni = document.getElementById('narIntro'); if (ni) ni.remove(); cur = ''; return; }
+  if (!enabled) { b.classList.remove('dyn', 'f-day', 'f-night', 'blk'); layers.forEach(l => l.classList.remove('on')); over(false); const ni = document.getElementById('narIntro'); if (ni) ni.remove(); cur = ''; xmOn = false; return; }
   const w = want(); if (!w) return;
   over(w.room === 'dbz'); if (w.room === 'dbz') place();
   const key = w.room + (w.night ? '-n' : '-d');
@@ -106,10 +116,11 @@ function update() {
   if (key === cur) return;
   cur = key;
   if (w.room === 'dbz' && armed) aura();
+  const xm = w.room.startsWith('xm-'); if (xm && !xmOn && armed) sfx('snd/navidad_musica.mp3', 0.7); xmOn = xm;      // la música suena una vez al activar, no al cambiar de sala
   if (INTRO[w.room] && armed) narIntro(w.room);
   const next = layers[idx ^ 1], old = layers[idx];
   next.className = `fx f-${w.room} f-${w.night ? 'night' : 'day'}`;
-  const sk = w.room.startsWith('sk-') ? w.room.slice(3) : null; skScene = sk;
+  const sk = w.room.startsWith('sk-') ? w.room.slice(3) : w.room.startsWith('xm-') ? w.room : null; skScene = sk;
   if (sk) next.classList.add('f-sk');
   next.innerHTML = sk ? (w.night ? SKG[sk].map(g => `<i class="sk-g sk-${g[2]}" data-x="${g[0]}" data-y="${g[1]}" data-s="${g[3]}" style="animation-delay:-${(Math.random() * 3).toFixed(2)}s"></i>`).join('') : '') : w.room === 'dbz' ? '<i class="dbz-img"></i><i class="dbz-flash"></i><i class="dbz-glow"></i>' : INTRO[w.room] ? '<i class="nr-img"></i>' + narGlints(w.room) : '';
   if (w.room === 'dbz') place();
