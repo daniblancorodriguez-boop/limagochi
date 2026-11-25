@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ==========================================================================
-   LIMAGOCHI · servidor
+   LIMAGOTCHI · servidor
    · Sirve la carpeta public/ (la app).
    · Web Push: guarda el calendario de avisos que calcula el juego y los envía a su hora,
      aunque la app esté cerrada.
@@ -56,7 +56,7 @@ function cleanSchedule(list) {
   const now = Date.now();
   return list.slice(0, MAX_SCHEDULE).map(o => ({
     at: Number(o && o.at), tag: String((o && o.tag) || 'limagochi').slice(0, 40),
-    title: String((o && o.title) || 'Limagochi').slice(0, 80), body: String((o && o.body) || '').slice(0, 160)
+    title: String((o && o.title) || 'Limagotchi').slice(0, 80), body: String((o && o.body) || '').slice(0, 160)
   })).filter(o => isFinite(o.at) && o.at > now - 60000 && o.at < now + 48 * 3600e3);
 }
 
@@ -162,7 +162,7 @@ async function api(req, res, url) {
   }
   if (url === '/api/push/test') {
     if (!subs[b.id]) return send(res, 404, { error: 'unknown' });
-    const ok = await deliver(b.id, { title: 'Limagochi', body: '¡Los avisos funcionan! 🍈', tag: 'test' });
+    const ok = await deliver(b.id, { title: 'Limagotchi', body: '¡Los avisos funcionan! 🍈', tag: 'test' });
     return send(res, ok ? 200 : 502, { ok });
   }
   if (url === '/api/_debug/sent' && DRY) return send(res, 200, { sent: sentLog });          // solo en modo prueba
@@ -195,7 +195,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Limagochi → http://localhost:${PORT}${DRY ? '  (push en modo prueba)' : ''}`);
+  console.log(`Limagotchi → http://localhost:${PORT}${DRY ? '  (push en modo prueba)' : ''}`);
   console.log('Web Push exige https (o localhost) en el navegador.');
 });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { persist(); process.exit(0); });

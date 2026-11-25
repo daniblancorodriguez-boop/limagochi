@@ -58,6 +58,6 @@ for n, cells in enumerate(SHEETS, 1):
     out.save(os.path.join(OUT, 'ico', f'g{n}.png'), optimize=True)
 old = {c: n for n, c in OLD.items()}
 if ONLY: old = json.loads(open(MAP, encoding='utf-8').read().split('LIMA.GLYPHS = ', 1)[1].rstrip().rstrip(';'))['old']
-js = '/* LIMAGOCHI · iconos propios (generado por tools/build_glyphs.py): emoji -> icono. */\nLIMA.GLYPHS = ' + json.dumps({'sheet': emo, 'old': old}, ensure_ascii=False, separators=(',', ':')) + ';\n'
+js = '/* LIMAGOTCHI · iconos propios (generado por tools/build_glyphs.py): emoji -> icono. */\nLIMA.GLYPHS = ' + json.dumps({'sheet': emo, 'old': old}, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(os.path.join(OUT, 'glyphs_map.js'), 'w', encoding='utf-8').write(js)
 print(len(emo), 'emojis ->', len(sheet), 'iconos nuevos;', len(old), 'antiguos')

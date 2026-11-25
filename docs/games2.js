@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · más minijuegos
+   LIMAGOTCHI · más minijuegos
    · Casino: Tragaperras · Ruleta (apuestas) · Ruleta del día (gratis)  → con límites
    · Pesca · Piedra, papel o tijera · Carrera
    Usan L.mini.reg (ver minigames.js) y la API de game.js (L.api).
@@ -315,7 +315,7 @@ L.hands = HANDS;
 function rps() {
   const a = A(), g = a.ctx, C = a.colors, W = a.W, H = a.H, rows = a.petRows('happy');
   const s = { me: 0, pet: 0, you: null, her: null, phase: 'pick', t: 0, text: 'Elige' };
-  const hud = () => a.hud(`✊ Tú ${s.me} – ${s.pet} Limagochi · ${s.text}`);
+  const hud = () => a.hud(`✊ Tú ${s.me} – ${s.pet} Limagotchi · ${s.text}`);
   function ui() {
     a.openPanel([a.row(...HANDS.map((h, i) => a.btn(h.n, () => play(i), '', s.phase !== 'pick'))), a.btn('Salir', () => { a.closePanel(); L.mini.stop(); }, 'ghost')]);
   }
@@ -333,13 +333,13 @@ function rps() {
         const d = (s.you - s.her + 3) % 3;                                  // 0 empate · 1 gana quien elige «el siguiente» (papel>piedra…)
         if (d === 0) { s.text = 'Empate'; a.sound.play('click'); }
         else if (d === 1) { s.me++; s.text = '¡Punto para ti!'; a.sound.play('win'); }
-        else { s.pet++; s.text = 'Punto para Limagochi'; a.sound.play('sad'); }
+        else { s.pet++; s.text = 'Punto para Limagotchi'; a.sound.play('sad'); }
         hud();
       } else if (s.phase === 'show' && s.t > 1.1) {
         if (s.me >= 2 || s.pet >= 2) {
           const win = s.me > s.pet;
           a.closePanel();
-          L.mini.end('rps', win ? '¡Has ganado!' : 'Ha ganado Limagochi', [`Resultado: ${s.me} – ${s.pet}`],
+          L.mini.end('rps', win ? '¡Has ganado!' : 'Ha ganado Limagotchi', [`Resultado: ${s.me} – ${s.pet}`],
             { happy: win ? 10 : 4, energy: -2, hunger: -2, lp: win ? 4 : 0, win, score: s.me });
         } else { s.phase = 'pick'; s.text = 'Elige'; hud(); ui(); }
       }

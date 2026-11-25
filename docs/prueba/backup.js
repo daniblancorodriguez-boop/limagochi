@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · ajustes, copia de seguridad (exportar/importar) e instalación
+   LIMAGOTCHI · ajustes, copia de seguridad (exportar/importar) e instalación
    ========================================================================== */
 (() => {
 'use strict';
@@ -59,7 +59,7 @@ async function shareFile() {
     a.save();
     const file = new File([JSON.stringify(buildBackup(), null, 1)], fileName(), { type: 'application/json' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'Copia de Limagochi' });
+      await navigator.share({ files: [file], title: 'Copia de Limagotchi' });
     } else exportFile();
   } catch (e) { if (e && e.name !== 'AbortError') exportFile(); }
 }
@@ -68,7 +68,7 @@ async function shareFile() {
 function importText(text) {
   let d;
   try { d = JSON.parse(text); } catch { return { ok: false, msg: 'El archivo no es válido' }; }
-  if (!d || d.app !== 'limagochi' || !d.save || typeof d.save !== 'object') return { ok: false, msg: 'No parece una copia de Limagochi' };
+  if (!d || d.app !== 'limagochi' || !d.save || typeof d.save !== 'object') return { ok: false, msg: 'No parece una copia de Limagotchi' };
   if (d.save.v !== 1 && d.save.v !== 2) return { ok: false, msg: 'Versión de partida desconocida' };
   if (typeof d.save.stage !== 'string') return { ok: false, msg: 'La partida está dañada' };
   if (!A().replaceState(d.save)) return { ok: false, msg: 'No se pudo cargar la partida' };

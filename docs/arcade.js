@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · minijuegos de arcade con monedas limitadas
+   LIMAGOTCHI · minijuegos de arcade con monedas limitadas
    · Esquiva  (llueven piedras y monedas por 6 columnas)
    · Bloques  (tipo Arkanoid: la mascota rebota la bola y rompe ladrillos)
    Límites (cada juego los lleva por separado): 5 monedas por partida y 20 monedas al día.

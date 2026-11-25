@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · minijuegos de acción (se dibujan en la propia pantalla LCD)
+   LIMAGOTCHI · minijuegos de acción (se dibujan en la propia pantalla LCD)
    · Lima Vuela  (tipo Flappy Bird)
    · Esquiva y Bloques → arcade.js
    · Penaltis    (tanda de 5 penaltis: para la mira y chuta)

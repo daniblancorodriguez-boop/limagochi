@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · Formas nuevas: 7 adultos por talento + Lima Maestra (secreta) y 4 adolescentes por carácter.
+   LIMAGOTCHI · Formas nuevas: 7 adultos por talento + Lima Maestra (secreta) y 4 adolescentes por carácter.
    Los dibujos se construyen al cargar: el cuerpo de Lima Flor (adultos) o Lima Joven (adolescentes) con complementos encima.
    ========================================================================== */
 (() => {

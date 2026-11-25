@@ -1,7 +1,7 @@
 /* Genera un REGALO ESPECIAL firmado: node tools/gift.js "MENSAJE" ENERGIA FELICIDAD MONEDAS [REMITENTE] [OBJETO, p. ej. robodog]
    Usa la clave privada de .git/gift_key.json (no se versiona). La clave pública vive en docs/visit.js. */
 const fs = require('fs'), path = require('path'), { webcrypto: c } = require('crypto');
-const [msg = '', e = '0', h = '0', l = '0', nick = 'Limagochi', item = ''] = process.argv.slice(2);
+const [msg = '', e = '0', h = '0', l = '0', nick = 'Limagotchi', item = ''] = process.argv.slice(2);
 const b64 = b => Buffer.from(b).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 (async () => {
   const jwk = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '.git', 'gift_key.json'), 'utf8'));

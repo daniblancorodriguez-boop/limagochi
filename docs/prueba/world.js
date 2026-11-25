@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · mundo: reloj real (día/noche), ajustes, eventos de temporada
+   LIMAGOTCHI · mundo: reloj real (día/noche), ajustes, eventos de temporada
    Para probar sin esperar: ?hour=23  ·  ?date=2026-10-31  (en la URL)
    ========================================================================== */
 (() => {

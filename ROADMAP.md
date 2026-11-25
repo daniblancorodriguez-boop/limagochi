@@ -1,4 +1,4 @@
-# Limagochi · mejoras guardadas para más adelante
+# Limagotchi · mejoras guardadas para más adelante
 
 ## Talentos nuevos (planteados, sin implementar)
 - **Jardinería**: se gana trabajando el huerto (plantar, regar, cosechar). Nivel alto: crece más rápido, cosechas extra, semillas raras.

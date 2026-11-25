@@ -1,7 +1,7 @@
 /* ==========================================================================
-   LIMAGOCHI · disfraces de temporada
+   LIMAGOTCHI · disfraces de temporada
    Durante un evento (Halloween, Navidad, San Valentín, Primavera, Verano), al comer 3 platos del evento el
-   Limagochi se disfraza hasta que el evento acaba. El disfraz se dibuja por código encima de su forma actual
+   Limagotchi se disfraza hasta que el evento acaba. El disfraz se dibuja por código encima de su forma actual
    (no la sustituye) y se apunta en el álbum como forma «cos_<evento>».
    ========================================================================== */
 (() => {

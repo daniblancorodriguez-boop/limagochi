@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · primeros pasos
+   LIMAGOTCHI · primeros pasos
    Solo para partidas nuevas (primera vida): regalo de bienvenida y 5 mini-misiones con premio
    y una pista contextual a la vez. Las partidas que ya existían no ven nada de esto.
    ========================================================================== */

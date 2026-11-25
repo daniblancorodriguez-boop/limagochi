@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · Estudio y talentos (pintura, escritura, música)
+   LIMAGOTCHI · Estudio y talentos (pintura, escritura, música)
    · Nivel 0-99 por talento. Subir cuesta cada vez más cuanto más cerca del límite.
    · Una sesión dura hasta 10 + disciplina/2 minutos. Al acabar hay una obra: cuadro, capítulo (4 = libro) o canción.
    · Las obras se venden en el mercado: el precio sube con la calidad, cambia cada día, se satura al vender mucho
@@ -242,7 +242,7 @@ function finish(reason, quiet) {
   if (P.min >= 5) { msg = makeWork(P.k, P.seed).text; if (reason !== 'done') msg += ' (sesión corta)'; }
   else msg = 'Ha dejado de practicar';
   if (quiet) { t.news = msg; }
-  else { a.setMsg(msg, 5000); a.sound.play(P.min >= 5 ? 'win' : 'sad'); L.notify && L.notify.event && L.notify.event('Limagochi', msg); }
+  else { a.setMsg(msg, 5000); a.sound.play(P.min >= 5 ? 'win' : 'sad'); L.notify && L.notify.event && L.notify.event('Limagotchi', msg); }
   barOn = false; a.skillBar && a.skillBar(null);
   L.progress && L.progress.check();
 }

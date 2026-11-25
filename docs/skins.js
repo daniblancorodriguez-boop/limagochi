@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · Carcasas: la básica (con 5 colores) y las de la tienda.
+   LIMAGOTCHI · Carcasas: la básica (con 5 colores) y las de la tienda.
    La carcasa es una imagen; la pantalla y los botones reales se colocan encima.
    La elegida se guarda en la partida (state.skin): 'base', 'base:pink', 'galaxia'…
    ========================================================================== */

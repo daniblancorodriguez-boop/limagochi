@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · núcleo del juego
+   LIMAGOTCHI · núcleo del juego
    Secciones: CONFIG · ESTADO · LÓGICA · ACCIONES · TIENDA · ADIVINA · RENDER · UI · API · INIT
    Otros módulos (ya cargados antes): sprites.js, audio.js, world.js, notify.js, progress.js, backup.js, minigames.js, voice.js
    ========================================================================== */
@@ -315,7 +315,7 @@ function flag(name, on, off) {
 function makeSick(reason) {
   const s = state;
   s.sick = true; s.medicine = 2; s.sickMin = 0; s.sickMistake = false;
-  if (!quiet) { setMsg(reason || '¡Limagochi se ha puesto enfermo!', 3500); Sound.play('sad'); }
+  if (!quiet) { setMsg(reason || '¡Limagotchi se ha puesto enfermo!', 3500); Sound.play('sad'); }
 }
 
 function adultForm() {
@@ -341,7 +341,7 @@ function toStage(st, text, from) {
   if (quiet) return;
   evo = { start: Date.now(), dur: 3800, from: from || 'egg', to: spriteId() };       // animación de evolución
   fx('happy', 3800 + 1800); peek(3800); setMsg(text, 5500); Sound.play('evolve');
-  L.notify && L.notify.event('¡Limagochi ha evolucionado!', text);
+  L.notify && L.notify.event('¡Limagotchi ha evolucionado!', text);
 }
 
 function evolve() {
@@ -365,7 +365,7 @@ function die(cause) {
   logLife(cause);
 }
 
-/** Apunta la vida de este Limagochi en el historial (una sola vez, al morir o al cambiar de huevo). */
+/** Apunta la vida de este Limagotchi en el historial (una sola vez, al morir o al cambiar de huevo). */
 function logLife(cause) {
   const s = state, m = s.meta;
   if (s.logged || s.stage === 'egg') return;
@@ -555,8 +555,8 @@ function attention() {
 function onDeath() {
   const old = state.cause === 'vejez';
   if (!quiet) Sound.play('die');
-  setMsg(old ? 'Limagochi ha vivido una larga vida… 🌈' : 'Limagochi se ha ido al cielo de las limas…', 7000);
-  L.notify && L.notify.event('Limagochi', old ? 'Ha fallecido de vejez.' : 'Ha fallecido por descuido…');
+  setMsg(old ? 'Limagotchi ha vivido una larga vida… 🌈' : 'Limagotchi se ha ido al cielo de las limas…', 7000);
+  L.notify && L.notify.event('Limagotchi', old ? 'Ha fallecido de vejez.' : 'Ha fallecido por descuido…');
   L.progress.check();
   Store.save();
   openStatus();
@@ -565,7 +565,7 @@ function onDeath() {
 /* ============================== ACCIONES ================================ */
 function canInteract() {
   if (L.school.isAway()) { setMsg(L.school.hudText().replace(' · vuelve', ' · vuelve'), 3000); return false; }
-  if (state.stage === 'dead') { setMsg('Limagochi ya no está…'); return false; }
+  if (state.stage === 'dead') { setMsg('Limagotchi ya no está…'); return false; }
   if (state.stage === 'egg') { setMsg('El huevo aún no ha eclosionado'); return false; }
   return true;
 }
@@ -807,7 +807,7 @@ function openNewEgg() {
   const dead = state.stage === 'dead';
   openPanel([
     p('🥚 Nuevo huevo'),
-    p(dead ? 'Tu Limagochi ya no está. Su vida quedará en el historial.' : 'Tu Limagochi actual se despide: su vida quedará en el historial.'),
+    p(dead ? 'Tu Limagotchi ya no está. Su vida quedará en el historial.' : 'Tu Limagotchi actual se despide: su vida quedará en el historial.'),
     p('Las habilidades y los trucos empiezan siempre en 0.'),
     btn('📦 Conservar bienes', () => newEgg('keep')),
     p('Guardas monedas, muebles y todo lo que compraste.'),
@@ -818,8 +818,8 @@ function openNewEgg() {
 }
 function openHistory(back) {
   const m = state.meta, h = (m.history || []).slice().reverse();
-  const nodes = [p('📜 Historial de Limagochis')];
-  if (!h.length) nodes.push(p('Aún no hay vidas anotadas. Cuando tu Limagochi muera o empieces otro huevo, aparecerá aquí.'));
+  const nodes = [p('📜 Historial de Limagotchis')];
+  if (!h.length) nodes.push(p('Aún no hay vidas anotadas. Cuando tu Limagotchi muera o empieces otro huevo, aparecerá aquí.'));
   else {
     const best = h.reduce((a, b) => (b.age > a.age ? b : a));
     nodes.push(p(`Criados: ${m.lives || h.length} · vida más larga: ${fmtDur(best.age)} (${formName(best.form)})`));
@@ -855,7 +855,7 @@ function paintIcons(root = document) {
 function openVacation() {
   const s = state;
   openPanel([
-    p('🏖️ Limagochi está de vacaciones'),
+    p('🏖️ Limagotchi está de vacaciones'),
     p(`Lleva ${fmtDur((Date.now() - s.pause.since) / 60000)} descansando. Mientras tanto no crece ni necesita cuidados.`),
     btn('☀️ Volver de vacaciones', endVacation),
     row(btn('📘 Guía', () => L.guide.open(openVacation)), btn('⚙️ Ajustes', () => L.backup.openSettings(openVacation))),
@@ -865,9 +865,9 @@ function openVacation() {
 function startVacation() {
   const s = state;
   if (L.studio.session()) { guardPractice('irse de vacaciones', startVacation); return; }
-  if (s.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
+  if (s.stage === 'dead') { setMsg('Limagotchi ya no está…'); return; }
   if (s.pause) { openVacation(); return; }
-  if (!confirm('¿Mandar a Limagochi de vacaciones? El tiempo se detiene (no crece ni necesita cuidados) hasta que lo recojas.')) return;
+  if (!confirm('¿Mandar a Limagotchi de vacaciones? El tiempo se detiene (no crece ni necesita cuidados) hasta que lo recojas.')) return;
   L.mini && L.mini.stop(false);
   s.pause = { since: Date.now() };
   closePanel(); Store.save(); setMsg('🏖️ ¡Felices vacaciones!', 3500); render();
@@ -1123,7 +1123,7 @@ function shopNodes(cat) {
 }
 /** Tienda: primero eliges sección; al comprar te quedas en ella (con el mismo desplazamiento). */
 function openShop(cat) {
-  if (state.stage === 'dead') { setMsg('Limagochi ya no está…'); return; }
+  if (state.stage === 'dead') { setMsg('Limagotchi ya no está…'); return; }
   const s = state, keep = (cat && cat === shopCat && !panel.hidden) ? panel.scrollTop : 0;
   shopCat = cat || null;
   if (!cat) {
@@ -1972,7 +1972,7 @@ function eyeBand(rows) {
   if (ey < 0 || ex1 - ex0 < 2) { const w = maxI - minI + 1; ey = top + Math.round(h * 0.42); ex0 = minI + Math.round(w * 0.28); ex1 = maxI - Math.round(w * 0.28); }
   return { x: ex0 - 1, y: ey, w: ex1 - ex0 + 3, minI, maxI, top, bot };
 }
-/** Vacaciones: el Limagochi tumbado en la tumbona (aplastado y reclinado hacia el respaldo), con gafas de sol. */
+/** Vacaciones: el Limagotchi tumbado en la tumbona (aplastado y reclinado hacia el respaldo), con gafas de sol. */
 function drawBeachPet(now, rows) {
   const e = eyeBand(rows), ratio = 0.72, K = Math.round((e.bot - e.top + 1) * ratio), lift = Math.floor(now / 900) % 2 ? 1 : 0;
   const y0 = LOUNGE.y - K + 1 - lift, xb = LOUNGE.x + 20 - 12, sick = state.sick;
@@ -2294,14 +2294,14 @@ function replaceState(raw) {
 function predictSchedule() {
   const s = state, R = CFG.rate, out = [], now = Date.now();
   if (s.stage === 'dead' || s.pause) return out;
-  const add = (min, tag, body, title = 'Limagochi te necesita') => { if (isFinite(min)) out.push({ at: now + Math.max(1, min) * 60000, tag, title, body }); };
-  if (s.stage === 'egg') { add(CFG.stageMin.egg - s.stageMin, 'event-hatch', '¡Tu huevo está a punto de eclosionar!', 'Limagochi'); return out; }
-  if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagochi está a punto de evolucionar!', 'Limagochi');
+  const add = (min, tag, body, title = 'Limagotchi te necesita') => { if (isFinite(min)) out.push({ at: now + Math.max(1, min) * 60000, tag, title, body }); };
+  if (s.stage === 'egg') { add(CFG.stageMin.egg - s.stageMin, 'event-hatch', '¡Tu huevo está a punto de eclosionar!', 'Limagotchi'); return out; }
+  if (CFG.stageMin[s.stage]) add(CFG.stageMin[s.stage] - s.stageMin, 'event-evolve', '¡Limagotchi está a punto de evolucionar!', 'Limagotchi');
   const pr = s.talent && s.talent.practice;
-  if (s.kitchen && s.kitchen.cook) add(s.kitchen.cook.total - s.kitchen.cook.min, 'event-cook', 'Ha terminado de cocinar: ¡a la mesa!', 'Limagochi');
+  if (s.kitchen && s.kitchen.cook) add(s.kitchen.cook.total - s.kitchen.cook.min, 'event-cook', 'Ha terminado de cocinar: ¡a la mesa!', 'Limagotchi');
   const bus = L.school.nextOfferAt(now);
-  if (bus) out.push({ at: bus, tag: 'bus', title: 'Limagochi', body: '🚌 ¡El bus espera! Abre la app para que vaya.' });
-  if (pr) add(pr.total - pr.min, 'event-practice', 'Ha terminado de practicar: ¡ve su obra!', 'Limagochi');
+  if (bus) out.push({ at: bus, tag: 'bus', title: 'Limagotchi', body: '🚌 ¡El bus espera! Abre la app para que vaya.' });
+  if (pr) add(pr.total - pr.min, 'event-practice', 'Ha terminado de practicar: ¡ve su obra!', 'Limagotchi');
   if (s.sleeping) return out;                                               // dormido: no avisamos
   const toy = s.owned.includes('plush') ? 0.7 : s.owned.includes('ball') ? 0.85 : 1;
   const Hn = R.hunger * need().hunger, hungerIn = s.hunger / Hn;
@@ -2352,7 +2352,7 @@ function watch() {
   trackEvent();
   L.mail && L.mail.poll();
   L.progress.check();
-  document.title = reasons.length ? '❗ Limagochi' : 'Limagochi';
+  document.title = reasons.length ? '❗ Limagotchi' : 'Limagotchi';
 }
 
 let eventShown = false;

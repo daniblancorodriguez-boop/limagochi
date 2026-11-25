@@ -1,6 +1,6 @@
 /* ==========================================================================
-   LIMAGOCHI · buzón de cartas e historias de eventos
-   · Cartas de tu Limagochi (logros, evolución, visitas) con el tono de su forma.
+   LIMAGOTCHI · buzón de cartas e historias de eventos
+   · Cartas de tu Limagotchi (logros, evolución, visitas) con el tono de su forma.
    · Cada evento de temporada tiene una mini-historia de 3 capítulos que llegan por carta
      (día 1, 3 y 5 del evento). Al terminar se gana un recuerdo (gorro) y 🪙.
    · Todo vive en state.meta (sobrevive a un huevo nuevo y va en la copia de seguridad).
@@ -94,7 +94,7 @@ function poll() {
   lastPoll = k;
   chapterToday();
   const t = tone().hello;
-  add(`hello-${k}`, 'Tu Limagochi', '🍈', t[(L.world.now().getDate() + s.mistakes) % t.length]);
+  add(`hello-${k}`, 'Tu Limagotchi', '🍈', t[(L.world.now().getDate() + s.mistakes) % t.length]);
 }
 
 function on(type, data = {}) {
@@ -102,12 +102,12 @@ function on(type, data = {}) {
   if (!s || s.stage === 'dead') return;
   const t = tone(), n = data.name || '';
   const key = `${type}-${n}-${s.stage}`;
-  if (type === 'evolve') add(`${key}-${s.born}`, 'Tu Limagochi', '🌱', t.evolve(n));
-  else if (type === 'learn') add(`${key}-${s.born}`, 'Tu Limagochi', '🎓', t.learn(n));
-  else if (type === 'word') add(`${key}-${s.born}`, 'Tu Limagochi', '🗣️', t.word(n));
+  if (type === 'evolve') add(`${key}-${s.born}`, 'Tu Limagotchi', '🌱', t.evolve(n));
+  else if (type === 'learn') add(`${key}-${s.born}`, 'Tu Limagotchi', '🎓', t.learn(n));
+  else if (type === 'word') add(`${key}-${s.born}`, 'Tu Limagotchi', '🗣️', t.word(n));
   else if (type === 'gift') { const [who, what, u] = n.split('|'); add(`gift-${u}`, who, '🎁', `${who} te mandó un regalo: ${what}. ¡Qué detalle!`); }
-  else if (type === 'note') add(String(data.id || `note-${Date.now()}`), data.from || 'Tu Limagochi', data.icon || '✉️', String(data.text || ''));
-  else if (type === 'visit') add(`visit-${n}-${dayKey()}`, 'Tu Limagochi', '🤝', t.visit(n));
+  else if (type === 'note') add(String(data.id || `note-${Date.now()}`), data.from || 'Tu Limagotchi', data.icon || '✉️', String(data.text || ''));
+  else if (type === 'visit') add(`visit-${n}-${dayKey()}`, 'Tu Limagotchi', '🤝', t.visit(n));
 }
 
 /* --------------------------------- pantallas ---------------------------- */
@@ -121,7 +121,7 @@ function open(back) {
   const a = A(), m = meta();
   back = back || open._back; open._back = back;
   const nodes = [a.p(`✉️ Buzón${unread() ? ` · ${unread()} sin leer` : ''}`)];
-  if (!m.letters.length) nodes.push(a.p('Aún no hay cartas. Tu Limagochi escribe de vez en cuando.'));
+  if (!m.letters.length) nodes.push(a.p('Aún no hay cartas. Tu Limagotchi escribe de vez en cuando.'));
   [...m.letters].reverse().slice(0, 12).forEach(l => nodes.push(a.btn(`${l.read ? '' : '● '}${l.icon} ${l.from} · ${fmt(l.ts)}`, () => openLetter(l, back))));
   nodes.push(a.row(a.btn('🎩 Recuerdos', () => openSouvenirs(back)), a.btn('Cerrar', back || a.closePanel, 'ghost')));
   a.openPanel(nodes, { full: true });
@@ -130,7 +130,7 @@ function open(back) {
 function openSouvenirs(back) {
   const a = A(), s = a.S(), m = meta();
   const own = L.world.EVENTS.filter(e => m.souvenirs[e.id]);
-  const nodes = [a.p('🎩 Recuerdos de eventos'), a.p(own.length ? 'Elige el gorro que llevará tu Limagochi.' : 'Completa la historia de un evento de temporada para ganar su gorro.')];
+  const nodes = [a.p('🎩 Recuerdos de eventos'), a.p(own.length ? 'Elige el gorro que llevará tu Limagotchi.' : 'Completa la historia de un evento de temporada para ganar su gorro.')];
   own.forEach(e => nodes.push(a.btn(`${e.icon} ${e.name}${s.hat === e.id ? ' ✓' : ''}`, () => { s.hat = s.hat === e.id ? null : e.id; a.save(); a.render(); openSouvenirs(back); })));
   if (s.hat) nodes.push(a.btn('Quitar gorro', () => { s.hat = null; a.save(); a.render(); openSouvenirs(back); }, 'ghost'));
   nodes.push(a.btn('Atrás', () => open(back), 'ghost'));

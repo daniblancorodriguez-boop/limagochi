@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · insectos del jardín (datos). 11 especies para el álbum.
+   LIMAGOTCHI · insectos del jardín (datos). 11 especies para el álbum.
    rar: común · poco común · rara · legendaria   ·   w: peso al aparecer un bicho
    v: velocidad en el suelo (0 = vuela)          ·   night: solo sale de noche
    fr: fotogramas (filas de texto; '.' = vacío)  ·   pal: colores de cada letra

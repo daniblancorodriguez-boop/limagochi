@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOCHI · sonido (Web Audio, sintetizado: no hay archivos de audio)
+   LIMAGOTCHI · sonido (Web Audio, sintetizado: no hay archivos de audio)
    ========================================================================== */
 (() => {
 'use strict';

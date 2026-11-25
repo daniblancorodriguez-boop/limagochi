@@ -1,6 +1,6 @@
-# Limagochi · servidor de avisos (Cloudflare Workers)
+# Limagotchi · servidor de avisos (Cloudflare Workers)
 
-Envía los avisos de Limagochi (hambre, caca, sueño…) aunque la app esté cerrada. Usa solo el plan gratuito de Cloudflare:
+Envía los avisos de Limagotchi (hambre, caca, sueño…) aunque la app esté cerrada. Usa solo el plan gratuito de Cloudflare:
 **Workers** (código) + **D1** (base de datos) + **cron** (cada minuto).
 
 ## Despliegue desde el móvil (sin instalar nada)
