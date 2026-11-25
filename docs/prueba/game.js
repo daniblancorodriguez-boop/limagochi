@@ -1241,7 +1241,7 @@ function pick(dir) {
 
 /* ============================== RENDER ================================== */
 const C = { ink: '#1d2a12', dark: '#3f5a28', mid: '#7d9f45', light: '#b8d474', bg: '#d4e5a4', poop: '#6b4a1f' };
-const SICK = { l: 'N', g: 'm', G: 'M', f: 'N', q: 'm', Q: 'M' };
+const SICK = { l: 'N', g: 'm', G: 'M', f: 'N', q: 'm', Q: 'M', A: 'N', B: 'm', C: 'M' };
 const tint = c => c;                                   // (antes pasaba los colores al modo LCD; ya no existe, se deja como identidad)
 const colorOf = (ch, sick) => { if (sick && SICK[ch]) ch = SICK[ch]; return PAL[ch]; };
 
