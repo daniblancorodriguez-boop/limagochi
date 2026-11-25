@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · simulador de economía (no es una prueba: imprime tablas)
+   LIMAGOCHI · simulador de economía (no es una prueba: imprime tablas)
    Uso:  node tools/economia.js            (escenarios por defecto)
    Simula vidas enteras con distintos cuidadores y mide monedas, peso y vida.
    ========================================================================== */

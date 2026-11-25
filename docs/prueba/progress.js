@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · progreso: estadísticas, logros y álbum de evoluciones
+   LIMAGOCHI · progreso: estadísticas, logros y álbum de evoluciones
    Todo vive en state.meta (se conserva al empezar un huevo nuevo y va en la copia de seguridad).
    ========================================================================== */
 (() => {
@@ -79,7 +79,7 @@ const ACH = [
   { id: 'visit1',   icon: '🤝', name: 'Sociable',           desc: 'Recibe la visita de un amigo.',              prog: (m) => [m.stats.visits || 0, 1] },
   { id: 'friends3', icon: '🎉', name: 'Popular',            desc: 'Ten 3 amigos distintos.',                    prog: (m) => [Object.keys(m.friends).length, 3] },
   { id: 'story',    icon: '📜', name: 'Aventurero',         desc: 'Completa la historia de un evento.',         prog: (m) => [Object.keys(m.souvenirs).length, 1] },
-  { id: 'oldage',   icon: '🌈', name: 'Larga vida',         desc: 'Que tu Limagotchi muera de viejo.',          prog: (m, s) => [s.cause === 'vejez' && s.stage === 'dead' ? 1 : 0, 1] }
+  { id: 'oldage',   icon: '🌈', name: 'Larga vida',         desc: 'Que tu Limagochi muera de viejo.',          prog: (m, s) => [s.cause === 'vejez' && s.stage === 'dead' ? 1 : 0, 1] }
 ];
 const has = (m, f) => !!m.album[f];
 const adultsSeen = m => ADULTS.filter(f => has(m, f)).length;

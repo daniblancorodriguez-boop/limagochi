@@ -10,14 +10,14 @@ if not os.path.exists(FR): FR = FB
 # (clip, inicio, duración, título, subtítulo)
 SEG = [
  ('01_huevo', 1.2, 4.2, 'Todo empieza con un huevo', ''),
- ('02_bebe', 0.4, 2.2, 'Nace tu Limagotchi', ''),
+ ('02_bebe', 0.4, 2.2, 'Nace tu Limagochi', ''),
  ('03_creciendo', 1.0, 4.0, 'Crece según cómo lo cuides', ''),
  ('04_caca', 0.6, 3.6, '¡A limpiar la caca!', ''),
  ('05_comiendo', 0.6, 4.0, 'Tú eliges qué come', ''),
  ('06_pescando', 1.0, 4.4, 'Pesca, juega y gana monedas', ''),
  ('07_jugando', 0.8, 3.0, 'Minijuegos', ''),
  ('08_enfermo', 0.4, 3.6, 'Si enferma… ¡a curarlo!', ''),
- ('09_javigotchi', 0.4, 3.2, 'JAVIGOTCHI', 'Tu Limagotchi con tu nombre'),
+ ('09_javigotchi', 0.4, 3.2, 'JAVIGOTCHI', 'Tu Limagochi con tu nombre'),
  ('10_bobbygotchi', 0.4, 3.2, 'BOBBYGOTCHI', 'Hasta tu perro puede ser uno'),
  ('11_gatigotchi', 0.4, 3.2, 'GATIGOTCHI', '…o tu gato'),
  ('12_javigotchi_dragonball', 1.6, 4.0, 'Con tu carcasa favorita', 'Dragon Ball'),
@@ -40,7 +40,7 @@ def card(i, title, sub):
 def end_card():
     im = Image.new('RGB', (1080, 1920), (18, 22, 38)); d = ImageDraw.Draw(im)
     f1, f2, f3 = ImageFont.truetype(FB, 96), ImageFont.truetype(FB, 54), ImageFont.truetype(FR, 44)
-    for t, f, y, col in [('Limagotchi', f1, 640, (190, 235, 110)), ('personalizados', f2, 770, (255, 255, 255)),
+    for t, f, y, col in [('Limagochi', f1, 640, (190, 235, 110)), ('personalizados', f2, 770, (255, 255, 255)),
                          ('para regalar en Navidad', f3, 880, (230, 230, 240)), ('Tu nombre, tus fondos, tu carcasa', f3, 1010, (255, 216, 77)),
                          ('y un manual hecho a medida', f3, 1075, (255, 216, 77))]:
         d.text(((1080 - d.textlength(t, font=f)) / 2, y), t, font=f, fill=col)

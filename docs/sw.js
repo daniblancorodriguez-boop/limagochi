@@ -1,10 +1,10 @@
 /* ==========================================================================
-   LIMAGOTCHI · service worker
+   LIMAGOCHI · service worker
    · Offline: precarga todos los archivos y los sirve de la caché (stale-while-revalidate).
    · Web Push: muestra el aviso salvo que la app esté a la vista.
    · Al tocar un aviso enfoca (o abre) la app.
    ========================================================================== */
-const VERSION = 'limagochi-v3.46.0';
+const VERSION = 'limagochi-v3.47.0';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.json',
   'sprites.js', 'items.js', 'config.js', 'audio.js', 'world.js', 'notify.js', 'bugs.js', 'forms2.js', 'faces.js', 'skins.js', 'fondos.js', 'navidad.js', 'season.js', 'progress.js', 'guide.js', 'backup.js', 'lib/qrcode.js', 'mail.js', 'visit.js', 'minigames.js', 'games2.js', 'arcade.js', 'robodog_frames.js', 'robodog.js', 'studio.js', 'kitchen.js', 'school.js', 'voice.js', 'first.js', 'glyphs_map.js', 'glyphs.js', 'game.js',
@@ -54,7 +54,7 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       if (list.some(c => c.visibilityState === 'visible')) return;          // ya la está viendo
-      return self.registration.showNotification(data.title || 'Limagotchi te necesita', {
+      return self.registration.showNotification(data.title || 'Limagochi te necesita', {
         body: data.body || '', tag: data.tag || 'limagochi', icon: 'icons/icon-192.png', badge: 'icons/favicon-32.png',
         vibrate: [120, 60, 120], data: { url: './' }
       });

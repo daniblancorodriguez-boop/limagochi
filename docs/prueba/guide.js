@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · Guía básica para cuidar tu Limagotchi
+   LIMAGOCHI · Guía básica para cuidar tu Limagochi
    Resumen de todas las instrucciones del juego. Las palabras clave se leen de voice.js,
    así que la guía siempre está al día con lo que entiende la mascota.
    ========================================================================== */
@@ -38,7 +38,7 @@ const TOPICS = [
     LI('🎁 Ruleta del día: un giro gratis cada día con premio de 0 a 15 🪙.'),
     H('Otros juegos'),
     LI('🎣 Pesca: toca justo cuando pique. Los peces van a Sanas.'),
-    LI('✊ Piedra, papel o tijera: gana 2 de 3 contra Limagotchi.'),
+    LI('✊ Piedra, papel o tijera: gana 2 de 3 contra Limagochi.'),
     LI('🏃 Carrera: toca para saltar las vallas y llegar antes que el rival.')
   ] },
   { icon: '🎨', title: 'Estudio y talentos', body: () => [
@@ -51,7 +51,7 @@ const TOPICS = [
   ] },
   { icon: '🍳', title: 'Cocina y habilidades', body: () => [
     H('5.º cuarto: 🍳 Cocina'),
-    LI('Pulsar 🍔 lleva a Limagotchi a la cocina y abre la nevera. La nevera básica trae pocos alimentos (se reponen despacio); el arroz siempre está.'),
+    LI('Pulsar 🍔 lleva a Limagochi a la cocina y abre la nevera. La nevera básica trae pocos alimentos (se reponen despacio); el arroz siempre está.'),
     LI('🧊 Nevera mejorada (tienda): todas las comidas y guarda lo fresco (huerto, fruta, pescado, gourmet) 3-5 días. Sin ella, lo fresco dura 1 día. 🟢🟡🔴 indica su frescura; comer algo pasado puede enfermarlo.'),
     LI('🍳 Fogón (tienda): combina ingredientes y cocina platos. Cuanto más nivel de cocina, mejores platos, más recetas y menos quemados.'),
     LI('☕ Cafetera (tienda): energía rápida, pero más caca, menos disciplina y peor sueño. Máximo 3 al día (más lo pone nervioso); de noche le quita el sueño.'),
@@ -92,8 +92,8 @@ const TOPICS = [
     LI('Una ducha al día es lo ideal. No se puede duchar enfermo, dormido ni si ya está limpio.')
   ] },
   { icon: '✉️', title: 'Buzón e historias', body: () => [
-    LI('☰ Menú → 📜 Historial: cada Limagotchi que has criado (forma, edad, causa del final, talentos y 🪙 ganadas). Al pedir un huevo nuevo eliges «Conservar bienes» (monedas y compras) o «Empezar desde 0»; el álbum, los logros y el historial siempre se guardan, y las habilidades empiezan en 0.'),
-    LI('☰ Menú → ✉️ Buzón: tu Limagotchi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
+    LI('☰ Menú → 📜 Historial: cada Limagochi que has criado (forma, edad, causa del final, talentos y 🪙 ganadas). Al pedir un huevo nuevo eliges «Conservar bienes» (monedas y compras) o «Empezar desde 0»; el álbum, los logros y el historial siempre se guardan, y las habilidades empiezan en 0.'),
+    LI('☰ Menú → ✉️ Buzón: tu Limagochi te escribe cuando evoluciona, aprende algo o recibe visitas.'),
     LI('Durante cada evento de temporada llega una historia de 3 capítulos (días 1, 3 y 5).'),
     LI('Al leer el capítulo final ganas 10 🪙 y un 🎩 recuerdo: elige gorro en Buzón → Recuerdos.')
   ] },
@@ -105,7 +105,7 @@ const TOPICS = [
     LI('⚙️ Ajustes: horario (siempre 5 h y nunca en tu descanso), desactivar el cole/trabajo e «Ir solo sin preguntar» para que vaya aunque tengas la app cerrada.')
   ] },
   { icon: '🤝', title: 'Visitas de amigos', body: () => [
-    LI('☰ Menú → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagotchi irá a visitarle.'),
+    LI('☰ Menú → 🤝 Visitas: enseña tu QR o manda tu enlace. Tu amigo lo abre y tu Limagochi irá a visitarle.'),
     LI('Para recibir una visita pega el enlace de tu amigo, o ábrelo directamente.'),
     LI('🎁 Regalos: en Visitas pulsa «Enviar un regalo» y elige comida de tu huerto, un plato cocinado o flores (se compran en 🛒 → 🎁). Se crea un enlace o QR que tu amigo abre una sola vez en los 7 días siguientes (máximo 5 regalos al día). Las flores le suben mucho la felicidad.'),
     LI('Cada amigo da premio una vez cada 20 horas. Hay logros por tener amigos.')
@@ -189,7 +189,7 @@ const TOPICS = [
     LI('Botones de abajo: 🔊 sonido · 🔔 avisos · ▦ rejilla de píxeles · colores de la carcasa.'),
     H('Vacaciones 🏖️'),
     LI('⚙️ Ajustes → Vacaciones detiene el tiempo: no crece, no pasa hambre ni enferma. Vuelve cuando quieras con «Volver de vacaciones».'),
-    H('No pierdas tu Limagotchi'),
+    H('No pierdas tu Limagochi'),
     LI('Se guarda solo en este dispositivo. Sigue viviendo (y envejeciendo) aunque cierres la app.'),
     LI('☁️ Copia en la nube (☰ Menú → ⚙️ Ajustes): actívala y apunta tu código secreto de 12 letras. La partida se guarda sola cada 6 h y, con el código, la recuperas en cualquier móvil aunque se borren los datos del navegador.'),
     LI('☰ Menú → ⚙️ Ajustes → Exportar para guardar una copia; Importar para recuperarla en otro móvil.'),
@@ -209,7 +209,7 @@ function open(back) {
   back = back || open._back;
   open._back = back;
   a.openPanel([
-    a.p('📘 Guía básica para cuidar tu Limagotchi'),
+    a.p('📘 Guía básica para cuidar tu Limagochi'),
     ...TOPICS.map((t, i) => a.btn(`${t.icon} ${t.title}`, () => openTopic(i))),
     a.btn('Cerrar', back || a.closePanel, 'ghost')
   ], { full: true });

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · Cocina: nevera básica, nevera mejorada, fogón (recetas + habilidad) y cafetera
+   LIMAGOCHI · Cocina: nevera básica, nevera mejorada, fogón (recetas + habilidad) y cafetera
    · El icono 🍔 lleva a la cocina y abre la nevera.
    · Nevera básica (gratis): pocos alimentos que se reponen despacio. Arroz siempre disponible (ración de emergencia).
    · Nevera mejorada (tienda): todas las comidas y recetas. Guarda lo fresco (huerto, fruta, pescado, gourmet) unos días.
@@ -164,7 +164,7 @@ function finishCook(quiet) {
   k.plates.push({ r: r.id, m: +mult(lv).toFixed(2), age: 0, st: lv < 25 ? 1 : lv < 60 ? 2 : 3 });
   L.progress.stat('dishes');
   const m = `🍽️ ¡${r.name} listo! ${'⭐'.repeat(k.plates[k.plates.length - 1].st)}`;
-  if (quiet) k.news = m; else { a.setMsg(m, 4500); a.sound.play('win'); L.notify && L.notify.event && L.notify.event('Limagotchi', m); }
+  if (quiet) k.news = m; else { a.setMsg(m, 4500); a.sound.play('win'); L.notify && L.notify.event && L.notify.event('Limagochi', m); }
   L.progress.check(); a.save(); a.render();
 }
 /** Convierte un plato cocinado en un «alimento» que game.js sabe comer. */

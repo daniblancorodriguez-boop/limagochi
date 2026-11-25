@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera sprites 24x24 de Limagotchi (cuerpo base + accesorios dibujados pixel a pixel)
+"""Genera sprites 24x24 de Limagochi (cuerpo base + accesorios dibujados pixel a pixel)
 y produce: sprites_preview.png (para revisar) y limagochi-sprites.html (muestra jugable)."""
 import json
 from PIL import Image

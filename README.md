@@ -1,4 +1,4 @@
-# Limagotchi 3.0
+# Limagochi 3.0
 
 Mascota virtual retro (HTML5 + CSS + JS vanilla). PWA instalable, funciona offline, con Web Push opcional.
 
@@ -71,7 +71,7 @@ Settings → Pages → *Deploy from a branch* → rama `main`, carpeta `/docs`. 
 
 ## Novedades 3.3
 - 🚿 **Ducha**: barra de higiene (🧼) y minijuego de frotar con el dedo/ratón. Ideal: una al día.
-- ✉️ **Buzón**: cartas de tu Limagotchi (con el tono de su forma) y mini-historias de 3 capítulos por evento, con recuerdo (gorro) y 🪙.
+- ✉️ **Buzón**: cartas de tu Limagochi (con el tono de su forma) y mini-historias de 3 capítulos por evento, con recuerdo (gorro) y 🪙.
 - 🤝 **Visitas por tarjeta**: enlace `#visit=…` y QR (sin servidor); un amigo da premio una vez cada 20 h.
 - 🎤 5 trucos nuevos (aplaudir, beso, pino, meditar, bostezar) y 6 palabras (agua, amigo, jugar, buenas noches, feliz, abrazo).
 - Librería QR: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT) en `docs/lib/`.
@@ -95,7 +95,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - Regalos por enlace (`#gift=`): comida de huerto, platos cocinados y flores (🛒 → 🎁, tulipán 8 🪙, ramo 20 🪙). Un solo uso por regalo, caduca a los 7 días, máx. 5 al día. Logros «Detallista» y «Amigo generoso».
 
 ## v3.23.0
-- 📜 Historial de Limagotchis (☰ Menú): cada vida se anota al morir o al cambiar de huevo (últimas 30).
+- 📜 Historial de Limagochis (☰ Menú): cada vida se anota al morir o al cambiar de huevo (últimas 30).
 - Nuevo huevo: «Conservar bienes» o «Empezar desde 0» (siempre se guardan álbum, logros e historial; las habilidades empiezan en 0).
 
 ## v3.24.0
@@ -113,7 +113,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 - Vida adulta de 12 a **16 días** (vida total ≈ 22 días).
 - Sueldos por rango 12 / 22 / 38 / 60 🪙; el cole paga **3 🪙** al día y da **2,0** de experiencia por habilidad (antes 0,9). Monedas de flappy (20 por partida), tope diario (ninguno) y precios de la tienda, sin cambios.
 - Peso: la comida sana engorda la mitad y quema pasiva de 0,25 g por hora despierto. Un cuidador que solo da arroz ya no muere obeso.
-- **Barra de gordura** sobre el Limagotchi al comer: izquierda delgado, centro equilibrado, derecha obeso (límite de su etapa). Pasada la mitad, cada comida avisa de «índice de obesidad peligroso».
+- **Barra de gordura** sobre el Limagochi al comer: izquierda delgado, centro equilibrado, derecha obeso (límite de su etapa). Pasada la mitad, cada comida avisa de «índice de obesidad peligroso».
 - Mientras está en el cole o el trabajo ya no se le puede enseñar palabras ni trucos (🎓 y 🎤).
 - `tools/economia.js`: simulador de vidas enteras (`node tools/economia.js`) con tablas de monedas, peso y días de cole/trabajo.
 - Pruebas: 20 escenarios (nuevos: cole sin enseñanza y paga, peso y barra, vida adulta de 16 días).
@@ -128,7 +128,7 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.28.0 · arte propio (punto 5)
 - 🖼️ **Fondos ilustrados** (hechos con Nano Banana) en `docs/bg/`: salón, cuarto, estudio, cocina, jardín y playa, a 96×72. Se generan con `python3 tools/build_bg.py CARPETA` (reduce, alinea suelo y valla con los muebles y guarda el jardín y la playa también sin cielo, `*_k.png`). De día se ve la imagen; al atardecer y de noche manda el cielo del juego en los exteriores y un tinte en los interiores. El papel pintado de la tienda se dibuja encima en trazo blanco suave. Si una imagen no carga (p. ej. `limagochi-single.html`), se usa el dibujo anterior.
 - 🪟 La ventana del salón y del cuarto tiene el cristal azul de día, naranja al atardecer y azul oscuro de noche.
-- 🏖️ **Vacaciones:** playa con sombrilla y tumbona; el Limagotchi está tumbado en ella con gafas de sol (sin los muebles de casa).
+- 🏖️ **Vacaciones:** playa con sombrilla y tumbona; el Limagochi está tumbado en ella con gafas de sol (sin los muebles de casa).
 - 📺 **Tele nueva** (apagada y encendida, `python3 tools/build_tv.py tv_off.png tv_on.png`): encendida, las filas de píxeles de la pantalla se desplazan y una franja de luz la recorre; suena una melodía suave y corta mientras está encendida y la ves en el salón (respeta el botón de sonido).
 - ➖ **Se elimina el modo LCD** (botón 🎨, función y guardado en las copias; las copias antiguas se importan igual). El pixel fino sigue en Ajustes.
 - Pruebas: 25 escenarios (nuevos: fondos y sin modo LCD, playa con gafas, tele animada).
@@ -142,11 +142,14 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
-## v3.46.0 · Limagotchi personalizados
+## v3.46.0 · Limagochi personalizados
 - `docs/custom.js`: nombre propio + aspecto niño/perro/gato (pelo u orejas dibujados sobre los sprites, colores a medida) con etiqueta de nombre sobre la consola. Se aplica con un enlace (`node tools/custom.js NOMBRE kid|dog|cat`).
 - `tools/record_clips.js`, `tools/promo_clips.js` y `tools/promo_build.py`: graban clips verticales del juego y montan un vídeo promocional.
 
-## v3.45.0 · el juego pasa a llamarse Limagotchi
+## v3.47.0 · vuelve el nombre Limagochi
+- Se deshace el cambio de nombre de la v3.45.0 para no tener que rehacer las carcasas (el título va dibujado en ellas).
+
+## v3.45.0 · el juego pasa a llamarse Limagochi
 - Cambio de nombre en textos, título, manifest y avisos (las claves internas y la URL no cambian, para no perder partidas).
 
 ## v3.44.0 · fondos navideños
@@ -263,13 +266,13 @@ A las 7:00–7:59 el momento del día ponía «Atardecer»; ahora pone «Amanece
 ## v3.32.0 · huerto rentable, cultivos raros y disfraces de temporada
 - **Huerto:** cada semilla da 2 unidades; la cosecha y los platos se venden (huerto → «🪙 Vender cosecha y platos», también desde el mercado del estudio); un plato casero deja «bien alimentado» (el hambre baja un 25 % más despacio 4 h, 2 h si es un snack).
 - **Cultivos raros** por nivel de jardinería: 🍄 seta (45), 🌶 pimiento (55), 🍇 uva (65), 🎃 calabaza (75), 🌻 girasol (85) y 🏵 flor lunar (95: solo crece de noche, da 1 y se vende a 55 🪙 o se regala). Semillas de 10 a 30 🪙 y 5 recetas nuevas.
-- **Disfraces de temporada** (`docs/season.js`): comer 3 platos del evento disfraza al Limagotchi (bruja, Papá Noel, Cupido, corona de flores, gafas y flotador) hasta que acaba el evento; se apuntan en el álbum (32 formas).
+- **Disfraces de temporada** (`docs/season.js`): comer 3 platos del evento disfraza al Limagochi (bruja, Papá Noel, Cupido, corona de flores, gafas y flotador) hasta que acaba el evento; se apuntan en el álbum (32 formas).
 
 ## v3.31.1 · barra de obesidad fina y silencio en el cole
-Al comer, la obesidad se muestra en la barra fina de arriba (la de las habilidades): vacía = bien, pasada la mitad avisa, llena = obeso; desaparece el recuadro grande sobre la mascota. En el cole o en el trabajo el Limagotchi ya no dice palabras.
+Al comer, la obesidad se muestra en la barra fina de arriba (la de las habilidades): vacía = bien, pasada la mitad avisa, llena = obeso; desaparece el recuadro grande sobre la mascota. En el cole o en el trabajo el Limagochi ya no dice palabras.
 
 ## v3.31.0 · estudio con piano y sesiones guardadas
-- Piano de cola propio (`tools/build_item.py piano imagen.png 34`), caballete un poco a la izquierda y escritorio pegado a la pared. Al tocar, pintar o escribir el Limagotchi se dibuja de espaldas delante del objeto (`backRows()` quita la cara) y la pantalla del escritorio se pone blanca.
+- Piano de cola propio (`tools/build_item.py piano imagen.png 34`), caballete un poco a la izquierda y escritorio pegado a la pared. Al tocar, pintar o escribir el Limagochi se dibuja de espaldas delante del objeto (`backRows()` quita la cara) y la pantalla del escritorio se pone blanca.
 - Sesiones guardadas: antes de cambiar de habitación, dormir, jugar, ducharlo, irse de vacaciones o enseñarle, si está practicando pregunta «¿Guardar la sesión y …?». La sesión se guarda (`talent.saved`) y se continúa desde el objeto con «▶ Continuar sesión»: mismo cuadro (se ve a medias en el caballete), canción o capítulo. Las interrupciones automáticas (sueño nocturno, hambre, enfermedad…) también guardan en vez de terminar la obra. «Terminar ahora» conserva la sesión corta de antes.
 - El panel de trucos y palabras ya no se abre dormido (enseñar dormido ya estaba bloqueado).
 

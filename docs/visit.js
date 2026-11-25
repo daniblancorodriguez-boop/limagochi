@@ -1,7 +1,7 @@
 /* ==========================================================================
-   LIMAGOTCHI · visitas con tarjeta
+   LIMAGOCHI · visitas con tarjeta
    · Tu tarjeta (nombre, forma y etapa) va en un enlace #visit=CÓDIGO y en un QR.
-   · No hay servidor: quien la recibe ve llegar a tu Limagotchi de visita y ambos ganan.
+   · No hay servidor: quien la recibe ve llegar a tu Limagochi de visita y ambos ganan.
    · Un mismo amigo solo da premio una vez cada 20 h (sin trucos para sacar 🪙).
    ========================================================================== */
 (() => {
@@ -116,7 +116,7 @@ function open(back) {
   const card = myCard();
   const s = a.S(), m = s.meta;
   const nodes = [a.p('🤝 Visitas')];
-  if (!card) nodes.push(a.p('Cuando haya nacido tu Limagotchi podrás compartir su tarjeta.'));
+  if (!card) nodes.push(a.p('Cuando haya nacido tu Limagochi podrás compartir su tarjeta.'));
   else {
     const url = link();
     const nick = document.createElement('input');
@@ -127,7 +127,7 @@ function open(back) {
       a.row(
         a.btn('📋 Copiar', async () => a.setMsg((await copy(url)) ? 'Enlace copiado' : 'No se pudo copiar', 3000)),
         a.btn('📤 Enviar', async () => {
-          try { if (navigator.share) await navigator.share({ title: 'Visita a mi Limagotchi', text: '¡Ven a visitar a mi Limagotchi!', url }); else a.setMsg((await copy(url)) ? 'Enlace copiado' : 'No se pudo compartir', 3000); } catch { /* cancelado */ }
+          try { if (navigator.share) await navigator.share({ title: 'Visita a mi Limagochi', text: '¡Ven a visitar a mi Limagochi!', url }); else a.setMsg((await copy(url)) ? 'Enlace copiado' : 'No se pudo compartir', 3000); } catch { /* cancelado */ }
         })
       ));
   }
@@ -223,7 +223,7 @@ function showGift(lg, back) {
     ...(left > 0 ? [qrCanvas(lg.url), a.row(
       a.btn('📋 Copiar', async () => a.setMsg((await copy(lg.url)) ? 'Enlace copiado' : 'No se pudo copiar', 3000)),
       a.btn('📤 Enviar', async () => {
-        try { if (navigator.share) await navigator.share({ title: 'Un regalo para tu Limagotchi', text: '¡Te mando un regalo para tu Limagotchi!', url: lg.url }); else a.setMsg((await copy(lg.url)) ? 'Enlace copiado' : 'No se pudo compartir', 3000); } catch { /* cancelado */ }
+        try { if (navigator.share) await navigator.share({ title: 'Un regalo para tu Limagochi', text: '¡Te mando un regalo para tu Limagochi!', url: lg.url }); else a.setMsg((await copy(lg.url)) ? 'Enlace copiado' : 'No se pudo compartir', 3000); } catch { /* cancelado */ }
       })
     )] : []),
     a.btn('Atrás', () => openGift(back), 'ghost')

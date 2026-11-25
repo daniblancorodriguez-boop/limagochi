@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · Lima robot, el galgo de peluche robot (regalo exclusivo, objeto 'robodog')
+   LIMAGOCHI · Lima robot, el galgo de peluche robot (regalo exclusivo, objeto 'robodog')
    Vive en el cuarto, a la derecha de la lámpara, tumbado con su pelota. Cada rato juega con la mascota:
    · «bola»   la lanza, se levanta, corre tras ella, la recoge y vuelve a tumbarse con ella
    · «cuerda» se planta y tira con fuerza de una cuerda: la mascota se ve arrastrada y tira de vuelta

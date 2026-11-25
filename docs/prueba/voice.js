@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · voz: trucos y palabras
+   LIMAGOCHI · voz: trucos y palabras
    · Reconocimiento de voz del navegador (Web Speech API, es-ES). Necesita https
      o localhost y, en Chrome, envía el audio a un servicio de Google.
    · Sin micro o sin soporte: los botones ↻ hacen la misma "repetición" a mano.
@@ -219,7 +219,7 @@ function listen() {
 function talk() {
   const a = A(), s = a.S();
   if (s.stage === 'egg') { a.setMsg('Aún está en el huevo'); return; }
-  if (s.stage === 'dead') { a.setMsg('Limagotchi ya no está…'); return; }
+  if (s.stage === 'dead') { a.setMsg('Limagochi ya no está…'); return; }
   if (awayNow()) return;
   if (!SR) { a.setMsg('Tu navegador no admite voz: practica con los botones', 4000); open(); return; }
   statusEl = null; micBtn = null;
@@ -240,7 +240,7 @@ function refresh() {
 
 function open() {
   const a = A(), s = a.S();
-  if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg(s.stage === 'egg' ? 'Aún está en el huevo' : 'Limagotchi ya no está…'); return; }
+  if (s.stage === 'egg' || s.stage === 'dead') { a.setMsg(s.stage === 'egg' ? 'Aún está en el huevo' : 'Limagochi ya no está…'); return; }
   if (awayNow()) return;
   if (s.sleeping) { a.setMsg('Zzz… está durmiendo: no puede aprender'); return; }
   iqEl = a.p(''); statusEl = a.p('Di el nombre del truco o una palabra. Repítelo para que aprenda.');

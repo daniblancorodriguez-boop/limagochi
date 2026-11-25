@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · iconos propios en los textos
+   LIMAGOCHI · iconos propios en los textos
    Cambia los emojis del juego por los iconos negros de docs/ico (g1…g9.png y los antiguos) cuando «Iconos negros»
    está activado. El emoji se conserva dentro del <span> (invisible), así que el texto, los lectores de pantalla
    y las pruebas siguen viendo lo mismo; al desactivar el ajuste se devuelve el emoji.

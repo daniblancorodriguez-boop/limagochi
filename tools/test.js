@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · pruebas automáticas
+   LIMAGOCHI · pruebas automáticas
    Arranca un servidor local, abre el juego en un navegador sin pantalla y simula días de juego.
    Uso:  npm test            (todas)        ·        npm test -- vida        (solo las que contengan «vida»)
    ========================================================================== */
@@ -683,7 +683,7 @@ test('huerto: cosecha doble, cultivos raros por nivel, venta, flor lunar nocturn
   noErrors(p);
 });
 
-test('temporada: 3 platos del evento disfrazan al Limagotchi, se apunta en el álbum y acaba con el evento', async () => {
+test('temporada: 3 platos del evento disfrazan al Limagochi, se apunta en el álbum y acaba con el evento', async () => {
   const p = await fresh();
   const r = await p.evaluate(() => {
     const a = LIMA.api, s = a.S(), out = {};

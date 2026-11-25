@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · colegio (niño y adolescente) y trabajo (adulto)
+   LIMAGOCHI · colegio (niño y adolescente) y trabajo (adulto)
    · Cada día llega el aviso «el bus espera» 5 min antes de la hora elegida. Si aceptas, se va 5 h.
    · Mientras está fuera no hay cacas, errores ni enfermedades y las barras bajan despacio (igual que el descanso del dueño).
    · Si no vas no pasa nada: solo que no aprende, no cobra ni asciende.
@@ -101,7 +101,7 @@ function canGo(s) {
   return true;
 }
 
-/** Se llama en cada minuto de juego. Devuelve true si Limagotchi está fuera (colegio/trabajo) durante este minuto. */
+/** Se llama en cada minuto de juego. Devuelve true si Limagochi está fuera (colegio/trabajo) durante este minuto. */
 function tick(dt, now, quiet) {
   const s = S();
   if (!s || !s.sch) return false;

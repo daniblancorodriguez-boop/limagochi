@@ -1,4 +1,4 @@
-/* Enlace de Limagotchi personalizado: node tools/custom.js NOMBRE kid|dog|cat [#cuerpoClaro #cuerpoMedio #cuerpoOscuro]
+/* Enlace de Limagochi personalizado: node tools/custom.js NOMBRE kid|dog|cat [#cuerpoClaro #cuerpoMedio #cuerpoOscuro]
    Quien abre el enlace ve su mascota con ese nombre y aspecto (se guarda en su dispositivo). */
 const [name = '', look = 'kid', ...body] = process.argv.slice(2);
 const o = { look, name }; if (body.length === 3) o.body = body;

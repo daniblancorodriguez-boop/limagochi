@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · servidor de avisos para Cloudflare Workers
+   LIMAGOCHI · servidor de avisos para Cloudflare Workers
    Misma API que server.js, pero sin servidor propio:
      · D1 guarda cada suscripción y su calendario de avisos.
      · Un cron de Cloudflare (cada minuto) envía los avisos que ya tocan.
@@ -26,7 +26,7 @@ function cleanSchedule(list) {
   const now = Date.now();
   return list.slice(0, MAX_SCHEDULE).map(o => ({
     at: Number(o && o.at), tag: String((o && o.tag) || 'limagochi').slice(0, 40),
-    title: String((o && o.title) || 'Limagotchi').slice(0, 80), body: String((o && o.body) || '').slice(0, 160)
+    title: String((o && o.title) || 'Limagochi').slice(0, 80), body: String((o && o.body) || '').slice(0, 160)
   })).filter(o => isFinite(o.at) && o.at > now - 60000 && o.at < now + 48 * 3600e3).sort((a, b) => a.at - b.at);
 }
 
@@ -136,7 +136,7 @@ async function api(request, env, path) {
   if (path === '/api/push/test') {
     const row = await env.DB.prepare('SELECT sub FROM subs WHERE id = ?').bind(b.id).first();
     if (!row) return json({ error: 'unknown' }, 404);
-    const r = await deliver(env, row.sub, { title: 'Limagotchi', body: '¡Los avisos funcionan! 🍈', tag: 'test' });
+    const r = await deliver(env, row.sub, { title: 'Limagochi', body: '¡Los avisos funcionan! 🍈', tag: 'test' });
     if (r === 'gone') await env.DB.prepare('DELETE FROM subs WHERE id = ?').bind(b.id).run();
     return json({ ok: r === 'ok' }, r === 'ok' ? 200 : 502);
   }
@@ -173,7 +173,7 @@ export default {
     const url = new URL(request.url);
     try {
       if (url.pathname.startsWith('/api/')) return await api(request, env, url.pathname);
-      return new Response('Limagotchi push · OK', { headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8' } });
+      return new Response('Limagochi push · OK', { headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8' } });
     } catch (e) {
       console.log('error', e && e.message);
       return json({ error: 'server' }, 500);

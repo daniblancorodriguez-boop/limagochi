@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · Personalizado: nombre propio + aspecto (niño, perro, gato) con colores a medida.
+   LIMAGOCHI · Personalizado: nombre propio + aspecto (niño, perro, gato) con colores a medida.
    Es solo cosmético: recolorea los sprites 24×24 y les dibuja pelo u orejas encima.
    Se aplica con un enlace  …/#custom=BASE64  (tools/custom.js lo genera) y se guarda en este dispositivo.
    ========================================================================== */
@@ -66,7 +66,7 @@ function build() {
     Object.assign(L.PAL, { A: b[0], B: b[1], C: b[2], H: h[0], J: h[1], I: h[2] });
   }
   const name = cfg && cfg.name ? cfg.name : null;
-  const br = document.querySelector('.brand'); if (br) br.textContent = name || 'Limagotchi';
+  const br = document.querySelector('.brand'); if (br) br.textContent = name || 'Limagochi';
   document.body.classList.toggle('custom', !!name);
   if (name) document.title = name;
 }

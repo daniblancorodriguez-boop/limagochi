@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · notificaciones
+   LIMAGOCHI · notificaciones
    · Avisos locales: funcionan mientras la página siga abierta (aunque esté en segundo plano).
    · Web Push (LIMA.push): con la app cerrada. Necesita https (o localhost) y el servidor server.js,
      que guarda el calendario de avisos que calcula el juego y los envía a su hora.
@@ -45,7 +45,7 @@ LIMA.notify = {
     if (perm !== 'granted') return { ok: false, reason: 'Permiso denegado en el navegador' };
     enabled = true;
     try { localStorage.setItem(KEY, '1'); } catch { /* */ }
-    show('Limagotchi', '¡Notificaciones activadas!', 'welcome');
+    show('Limagochi', '¡Notificaciones activadas!', 'welcome');
     return { ok: true, on: true };
   },
   /** reasons: [{key, text}] — avisa solo si la página no está a la vista y respeta el enfriamiento. */
@@ -55,7 +55,7 @@ LIMA.notify = {
     for (const r of reasons) {
       if (now - (lastSent[r.key] || 0) < COOLDOWN_MS) continue;
       lastSent[r.key] = now;
-      show('Limagotchi te necesita', r.text, r.key);
+      show('Limagochi te necesita', r.text, r.key);
     }
   },
   /** Eventos puntuales (evolución, muerte…), sin enfriamiento. */

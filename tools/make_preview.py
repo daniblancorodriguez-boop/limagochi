@@ -26,6 +26,6 @@ open(os.path.join(DST, 'prueba.js'), 'w').write("""/* Solo copia de prueba: desb
 })();
 """)
 h = open(os.path.join(DST, 'index.html')).read()
-h = h.replace('<script src="game.js"></script>', '<script src="game.js"></script>\n  <script src="prueba.js"></script>').replace('<title>Limagotchi</title>', '<title>🧪 PRUEBA Limagotchi</title>')
+h = h.replace('<script src="game.js"></script>', '<script src="game.js"></script>\n  <script src="prueba.js"></script>').replace('<title>Limagochi</title>', '<title>🧪 PRUEBA Limagochi</title>')
 open(os.path.join(DST, 'index.html'), 'w').write(h)
 print('copia de prueba en', DST)

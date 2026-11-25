@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LIMAGOTCHI · Caras extra para todas las formas: enfadado, enfermo, sorprendido, aburrido y con hambre.
+   LIMAGOCHI · Caras extra para todas las formas: enfadado, enfermo, sorprendido, aburrido y con hambre.
    Se construyen al cargar a partir del dibujo normal (idle): se localizan los ojos y la boca y se repintan.
    ========================================================================== */
 (() => {
