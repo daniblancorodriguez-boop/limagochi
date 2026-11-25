@@ -142,12 +142,8 @@ Mira `worker/README.md`: el servidor de avisos también funciona gratis como Clo
 ## v3.38.7 · regalos de carcasa
 - Los regalos especiales también pueden traer las carcasas Sakura y Navidad (`skin_sakura`, `skin_navidad`).
 
-## v3.46.0 · Limagochi personalizados
-- `docs/custom.js`: nombre propio + aspecto niño/perro/gato (pelo u orejas dibujados sobre los sprites, colores a medida) con etiqueta de nombre sobre la consola. Se aplica con un enlace (`node tools/custom.js NOMBRE kid|dog|cat`).
-- `tools/record_clips.js`, `tools/promo_clips.js` y `tools/promo_build.py`: graban clips verticales del juego y montan un vídeo promocional.
-
-## v3.47.0 · vuelve el nombre Limagochi
-- Se deshace el cambio de nombre de la v3.45.0 para no tener que rehacer las carcasas (el título va dibujado en ellas).
+## v3.48.0 · se retira la personalización
+- Se quitan los Limagochi personalizados (nombre y aspecto niño/perro/gato): quedan archivados fuera del repositorio. Se limpia el ajuste guardado en los dispositivos que abrieron un enlace.
 
 ## v3.45.0 · el juego pasa a llamarse Limagochi
 - Cambio de nombre en textos, título, manifest y avisos (las claves internas y la URL no cambian, para no perder partidas).

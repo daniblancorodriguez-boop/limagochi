@@ -500,6 +500,3 @@ body.blk.dyn .shell::before{filter:var(--sk-filter,none) drop-shadow(0 0 10px #0
 .fx.f-xm-jardin.f-day{background-image:url(bg/navidad/jardin_d.webp)}.fx.f-xm-jardin.f-night{background-image:url(bg/navidad/jardin_n.webp)}
 .fx.f-xm-estudio.f-day{background-image:url(bg/navidad/estudio_d.webp)}.fx.f-xm-estudio.f-night{background-image:url(bg/navidad/estudio_n.webp)}
 .fx.f-xm-cocina.f-day{background-image:url(bg/navidad/cocina_d.webp)}.fx.f-xm-cocina.f-night{background-image:url(bg/navidad/cocina_n.webp)}
-
-/* nombre personalizado: etiqueta sobre la carcasa (tapa el título del dibujo) */
-body.custom .brand{display:block;position:absolute;left:50%;top:1.6%;transform:translateX(-50%);z-index:4;margin:0;padding:.18em .9em;background:var(--accent,#7ed957);color:#12200a;font:700 clamp(10px,3.4vw,14px)/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.14em;border-radius:9px;box-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap;text-transform:uppercase}
